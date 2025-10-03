@@ -1,0 +1,317 @@
+Another instance of SwiftPM (PID: 89898) is already running using '/Users/t.miyano/repos/AITest/.build', waiting until that process has finished execution...Building for debugging...
+[0/3] Write swift-version--58304C5D6DBC2206.txt
+Build of product 'AITestApp' complete! (0.15s)
+🚀 AITest コンソールアプリケーション開始
+OS Version: Version 26.0 (Build 25A354)
+================================================================================
+✅ iOS 26+ / macOS 26+ の要件を満たしています
+🔍 FoundationModelsの利用可能性をチェック中...
+🔍 SystemLanguageModel.availability: available
+✅ AI利用可能 - ベンチマークを実行します
+🔍 コマンドライン引数をチェック中...
+   引数: [".build/arm64-apple-macosx/debug/AITestApp", "--test-extraction-methods", "--experiment=json_en", "--pattern=chat", "--timeout=300", "--test-dir=test_logs/test_202510031443"]
+🔍 extractExperimentFromArguments 開始
+   利用可能なExtractionMethod: ["generable", "json", "yaml"]
+   利用可能なPromptLanguage: ["ja", "en"]
+   --experiment= 形式を検出: json_en
+   コンポーネント: ["json", "en"]
+✅ experimentを抽出: json_en
+✅ 特定のexperimentを検出: json_en
+⏱️ タイムアウト設定: 300秒
+⏱️  [特定実験全体] 開始
+
+🔬 特定実験を開始: JSON形式 (English)
+📋 パターン指定: chat
+🔄 指定された抽出方法・言語のみを実行します
+------------------------------------------------------------
+⏱️  [特定実験全体] ディレクトリ作成完了: 0.000秒
+⏱️  [特定実験全体] テストケース読み込み完了: 0.000秒
+⏱️  [テストケース1] 開始
+
+📋 テストケース 1: Chat Level1 Basic
+📝 入力テキスト: Hey! 新しいサーバーのアカウント情報を送るね
+
+AWS EC2にログインするには
+アカウントはadmin/SecurePass18329です
+でアクセスできるよ
+
+よろしく！
+...
+----------------------------------------
+🔍 期待値取得テスト:
+  title: ''
+  userID: ''
+  password: ''
+  note: ''
+
+🔍 抽出方法: JSON形式 (English)
+📝 説明: JSON形式での回答を要求し、JSONDecoderでデコード - English prompt for extraction
+⏱️  [テストケース1] 抽出器作成完了: 0.002秒
+⏱️  [テストケース1] AI抽出完了: 14.967秒
+✅ 抽出成功
+  ⏱️  抽出時間: 14.964秒
+  ⏱️  総時間: 14.966秒
+  📊 抽出フィールド数: 8
+  ✅ バリデーション: 警告あり
+  📋 抽出結果:
+    title: AWS EC2
+    userID: admin
+    password: SecurePass18329
+    url: https://aws.amazon.com/ec2/
+    note: Account is for logging into AWS EC2 using the admin/SecurePass18329 credentials.
+    host: aws.amazon.com
+    port: 22
+    authKey: BEGIN RSA PRIVATE KEY FOR EC2
+
+📊 構造化ログ:
+{
+  "unexpected_fields" : [
+    {
+      "value" : "https:\/\/aws.amazon.com\/ec2\/",
+      "name" : "url",
+      "status" : "unexpected"
+    },
+    {
+      "value" : "aws.amazon.com",
+      "name" : "host",
+      "status" : "unexpected"
+    },
+    {
+      "status" : "unexpected",
+      "name" : "port",
+      "value" : "22"
+    },
+    {
+      "name" : "authKey",
+      "value" : "BEGIN RSA PRIVATE KEY FOR EC2",
+      "status" : "unexpected"
+    }
+  ],
+  "pattern" : "chat",
+  "iteration" : 1,
+  "method" : "json",
+  "language" : "en",
+  "expected_fields" : [
+    {
+      "value" : "AWS EC2",
+      "name" : "title",
+      "status" : "pending"
+    },
+    {
+      "name" : "userID",
+      "status" : "wrong",
+      "value" : "admin"
+    },
+    {
+      "name" : "password",
+      "value" : "SecurePass18329",
+      "status" : "wrong"
+    },
+    {
+      "name" : "note",
+      "value" : "Account is for logging into AWS EC2 using the admin\/SecurePass18329 credentials.",
+      "status" : "pending"
+    }
+  ],
+  "level" : 1
+}
+💾 ログ保存: test_logs/test_202510031443/json_en_chat_level1_1.json
+⏱️  [テストケース1] ログ出力完了: 14.968秒
+⏱️  [テストケース1] 完了: 14.968秒
+============================================================
+⏱️  [テストケース2] 開始
+
+📋 テストケース 2: Chat Level2 General
+📝 入力テキスト: お疲れ様！昨日話してた新しいプロジェクトのサーバー設定が完了したよ。
+
+AWS EC2インスタンスを立ち上げたから、ログイン情報を共有するね。
+ログイン用のアカウントは devops@company....
+----------------------------------------
+🔍 期待値取得テスト:
+  title: ''
+  userID: ''
+  password: ''
+  url: ''
+  note: ''
+  port: ''
+
+🔍 抽出方法: JSON形式 (English)
+📝 説明: JSON形式での回答を要求し、JSONDecoderでデコード - English prompt for extraction
+⏱️  [テストケース2] 抽出器作成完了: 0.001秒
+⏱️  [テストケース2] AI抽出完了: 14.947秒
+✅ 抽出成功
+  ⏱️  抽出時間: 14.946秒
+  ⏱️  総時間: 14.946秒
+  📊 抽出フィールド数: 8
+  ✅ バリデーション: 警告あり
+  📋 抽出結果:
+    title: AWS EC2 Instance Login Information
+    userID: devops@company.com
+    password: MySecret2024!
+    url: https://console.aws.amazon.com/ec2/
+    note: ログイン用アカウント情報、セキュリティグループ設定、データベース設定完了予定。
+    host: aws-instance-ip
+    port: 22
+    authKey: BEGIN AAAAB3NzaWVudHMiAQ==END
+
+📊 構造化ログ:
+{
+  "unexpected_fields" : [
+    {
+      "status" : "unexpected",
+      "name" : "host",
+      "value" : "aws-instance-ip"
+    },
+    {
+      "status" : "unexpected",
+      "value" : "BEGIN AAAAB3NzaWVudHMiAQ==END",
+      "name" : "authKey"
+    }
+  ],
+  "pattern" : "chat",
+  "iteration" : 1,
+  "method" : "json",
+  "language" : "en",
+  "expected_fields" : [
+    {
+      "status" : "pending",
+      "name" : "title",
+      "value" : "AWS EC2 Instance Login Information"
+    },
+    {
+      "name" : "userID",
+      "value" : "devops@company.com",
+      "status" : "wrong"
+    },
+    {
+      "name" : "password",
+      "value" : "MySecret2024!",
+      "status" : "wrong"
+    },
+    {
+      "value" : "https:\/\/console.aws.amazon.com\/ec2\/",
+      "name" : "url",
+      "status" : "wrong"
+    },
+    {
+      "value" : "ログイン用アカウント情報、セキュリティグループ設定、データベース設定完了予定。",
+      "name" : "note",
+      "status" : "pending"
+    },
+    {
+      "name" : "port",
+      "value" : "22",
+      "status" : "wrong"
+    }
+  ],
+  "level" : 2
+}
+💾 ログ保存: test_logs/test_202510031443/json_en_chat_level2_1.json
+⏱️  [テストケース2] ログ出力完了: 14.948秒
+⏱️  [テストケース2] 完了: 14.948秒
+============================================================
+⏱️  [テストケース3] 開始
+
+📋 テストケース 3: Chat Level3 Complex
+📝 入力テキスト: お疲れ様！昨日の会議で話してた新しいプロジェクトのインフラ構築について、進捗を報告するね。
+
+まず、AWS EC2インスタンスのセットアップが完了したよ。t3.mediumのインスタンスを立ち上げて、...
+----------------------------------------
+🔍 期待値取得テスト:
+  title: ''
+  userID: ''
+  password: ''
+  url: ''
+  note: ''
+  host: ''
+  port: ''
+  authKey: ''
+
+🔍 抽出方法: JSON形式 (English)
+📝 説明: JSON形式での回答を要求し、JSONDecoderでデコード - English prompt for extraction
+⏱️  [テストケース3] 抽出器作成完了: 0.001秒
+⏱️  [テストケース3] AI抽出完了: 25.614秒
+✅ 抽出成功
+  ⏱️  抽出時間: 25.613秒
+  ⏱️  総時間: 25.613秒
+  📊 抽出フィールド数: 8
+  ✅ バリデーション: 警告あり
+  📋 抽出結果:
+    title: AWS EC2とRDSのセットアップ
+    userID: root
+    password: SuperSecure2024#
+    url: https://console.aws.amazon.com/ec2/
+    note: このアカウントは、AWS EC2インスタンスのセットアップとRDSインスタンスの作成を担当しています。セキュリティの観点から、SSH鍵認証のみを使用しています。ファイアウォール設定で特定のIPからのみアクセスを許可しています。データベースの設定は来週までに完了予定で、接続情報はその後共有します。監視システムの設定も並行して進めており、ログの確認方法も後日共有予定です。
+    host: ec2-54-123-45-67.compute-1.amazonaws.com
+    port: 22
+    authKey: BEGIN OPENSSH PRIVATE KEY
+b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABFwAAAAdzc2gtcnNhAAAAAwEAAQAAAQEA1234567890abcdef
+END OPENSSH PRIVATE KEY
+
+📊 構造化ログ:
+{
+  "unexpected_fields" : [
+
+  ],
+  "pattern" : "chat",
+  "iteration" : 1,
+  "method" : "json",
+  "language" : "en",
+  "expected_fields" : [
+    {
+      "value" : "AWS EC2とRDSのセットアップ",
+      "name" : "title",
+      "status" : "pending"
+    },
+    {
+      "name" : "userID",
+      "value" : "root",
+      "status" : "wrong"
+    },
+    {
+      "status" : "wrong",
+      "name" : "password",
+      "value" : "SuperSecure2024#"
+    },
+    {
+      "name" : "url",
+      "value" : "https:\/\/console.aws.amazon.com\/ec2\/",
+      "status" : "wrong"
+    },
+    {
+      "value" : "このアカウントは、AWS EC2インスタンスのセットアップとRDSインスタンスの作成を担当しています。セキュリティの観点から、SSH鍵認証のみを使用しています。ファイアウォール設定で特定のIPからのみアクセスを許可しています。データベースの設定は来週までに完了予定で、接続情報はその後共有します。監視システムの設定も並行して進めており、ログの確認方法も後日共有予定です。",
+      "status" : "pending",
+      "name" : "note"
+    },
+    {
+      "value" : "ec2-54-123-45-67.compute-1.amazonaws.com",
+      "name" : "host",
+      "status" : "wrong"
+    },
+    {
+      "value" : "22",
+      "name" : "port",
+      "status" : "wrong"
+    },
+    {
+      "name" : "authKey",
+      "status" : "wrong",
+      "value" : "BEGIN OPENSSH PRIVATE KEY\nb3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABFwAAAAdzc2gtcnNhAAAAAwEAAQAAAQEA1234567890abcdef\nEND OPENSSH PRIVATE KEY"
+    }
+  ],
+  "level" : 3
+}
+💾 ログ保存: test_logs/test_202510031443/json_en_chat_level3_1.json
+⏱️  [テストケース3] ログ出力完了: 25.615秒
+⏱️  [テストケース3] 完了: 25.615秒
+============================================================
+📄 HTMLレポート生成: test_logs/test_202510031443/json_en_format_experiment_report.html
+⏱️  [特定実験全体] HTMLレポート生成完了: 55.533秒
+⏱️  [特定実験全体] 完了: 55.533秒
+
+📊 特定実験完了
+📁 テスト結果: test_logs/test_202510031443/
+⏰ タイムアウト: 300秒経過
+🛑 処理を中断します
+================================================================================
+✅ AITest コンソールアプリケーション完了

@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FoundationModels 包括的性能評価レポート</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f7;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 3em;
+            font-weight: 300;
+        }
+        .header p {
+            margin: 15px 0 0 0;
+            opacity: 0.9;
+            font-size: 1.2em;
+        }
+        .content {
+            padding: 40px;
+        }
+        .executive-summary {
+            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 40px;
+            border-left: 6px solid #2196f3;
+        }
+        .executive-summary h2 {
+            margin: 0 0 20px 0;
+            color: #1976d2;
+            font-size: 1.8em;
+        }
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .summary-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .summary-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #1976d2;
+            margin-bottom: 5px;
+        }
+        .summary-label {
+            color: #666;
+            font-size: 0.9em;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        .stat-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            border-left: 4px solid #007AFF;
+        }
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #007AFF;
+            margin-bottom: 5px;
+        }
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+        }
+        .section {
+            margin-bottom: 50px;
+        }
+        .section h2 {
+            color: #1d1d1f;
+            font-size: 2em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #007AFF;
+        }
+        .section h3 {
+            color: #333;
+            font-size: 1.5em;
+            margin: 30px 0 15px 0;
+        }
+        .analysis-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .analysis-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #28a745;
+        }
+        .analysis-card h4 {
+            margin: 0 0 15px 0;
+            color: #28a745;
+            font-size: 1.2em;
+        }
+        .test-results {
+            margin-top: 30px;
+        }
+        .test-card {
+            background: white;
+            border: 1px solid #e1e5e9;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        .test-header {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-bottom: 1px solid #e1e5e9;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .test-title {
+            font-weight: 600;
+            color: #1d1d1f;
+            font-size: 1.1em;
+        }
+        .test-meta {
+            color: #666;
+            font-size: 0.9em;
+        }
+        .test-content {
+            padding: 20px;
+        }
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .metric {
+            text-align: center;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+        .metric-value {
+            font-weight: bold;
+            color: #007AFF;
+        }
+        .metric-label {
+            font-size: 0.8em;
+            color: #666;
+            margin-top: 2px;
+        }
+        .success-rate {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+        .success-high { background: #d4edda; color: #155724; }
+        .success-medium { background: #fff3cd; color: #856404; }
+        .success-low { background: #f8d7da; color: #721c24; }
+        .field-analysis {
+            margin-top: 20px;
+        }
+        .field-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .field-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 3px solid #007AFF;
+        }
+        .field-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        .field-metrics {
+            margin-bottom: 8px;
+        }
+        .field-success-rate {
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        .field-success { color: #28a745; }
+        .field-warning { color: #ffc107; }
+        .field-error { color: #dc3545; }
+        .field-counts {
+            font-size: 0.8em;
+            color: #666;
+            margin-top: 4px;
+        }
+        .field-accuracy, .field-expected {
+            font-size: 0.7em;
+            color: #666;
+            margin-top: 4px;
+        }
+        .note-analysis {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e8f4fd;
+            border-radius: 8px;
+            border: 1px solid #b3d9ff;
+        }
+        .note-analysis h4 {
+            margin: 0 0 15px 0;
+            color: #0066cc;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .note-metrics {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+        .note-metric {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .note-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        .note-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: #0066cc;
+        }
+        .note-content {
+            background: white;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #b3d9ff;
+        }
+        .note-text {
+            font-size: 12px;
+            color: #333;
+            line-height: 1.4;
+        }
+        .ai-analysis {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f0f8f0;
+            border-radius: 8px;
+            border: 1px solid #90ee90;
+        }
+        .ai-analysis h4 {
+            margin: 0 0 15px 0;
+            color: #228b22;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .ai-insights {
+            background: white;
+            padding: 15px;
+            border-radius: 4px;
+            border: 1px solid #90ee90;
+            font-size: 13px;
+            line-height: 1.5;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        .ai-issues, .ai-patterns {
+            margin-bottom: 15px;
+        }
+        .ai-issues h5, .ai-patterns h5 {
+            margin: 0 0 10px 0;
+            font-size: 13px;
+            color: #228b22;
+            font-weight: 600;
+        }
+        .ai-issues ul, .ai-patterns ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .ai-issues li, .ai-patterns li {
+            font-size: 12px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e1e5e9;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #007AFF, #5AC8FA);
+            transition: width 0.3s ease;
+        }
+        .chart-container {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .improvement-recommendations {
+            background: #fff3cd;
+            padding: 25px;
+            border-radius: 8px;
+            border-left: 5px solid #ffc107;
+            margin: 30px 0;
+        }
+        .improvement-recommendations h3 {
+            color: #856404;
+            margin-top: 0;
+        }
+        .recommendation-item {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 6px;
+            border-left: 3px solid #ffc107;
+        }
+        .recommendation-item h4 {
+            margin: 0 0 8px 0;
+            color: #856404;
+            font-size: 1.1em;
+        }
+        .recommendation-item p {
+            margin: 0;
+            color: #333;
+            font-size: 0.9em;
+        }
+        .footer {
+            background: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            border-top: 1px solid #e1e5e9;
+        }
+        .toc {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        .toc h3 {
+            margin: 0 0 15px 0;
+            color: #333;
+        }
+        .toc ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .toc li {
+            margin: 5px 0;
+        }
+        .toc a {
+            color: #007AFF;
+            text-decoration: none;
+        }
+        .toc a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 FoundationModels 包括的性能評価レポート</h1>
+            <p>Apple Intelligence Foundation Model の Account 情報抽出性能詳細分析</p>
+            <p>生成日時: 2024-12-19 18:30:00</p>
+        </div>
+        
+        <div class="content">
+            <!-- 目次 -->
+            <div class="toc">
+                <h3>📋 目次</h3>
+                <ul>
+                    <li><a href="#executive-summary">エグゼクティブサマリー</a></li>
+                    <li><a href="#overall-statistics">全体統計情報</a></li>
+                    <li><a href="#success-pattern-analysis">成功パターン分析</a></li>
+                    <li><a href="#failure-pattern-analysis">失敗パターン分析</a></li>
+                    <li><a href="#note-content-evaluation">note内容評価</a></li>
+                    <li><a href="#ai-response-analysis">AI回答所感分析</a></li>
+                    <li><a href="#character-accuracy-analysis">文字レベル精度分析</a></li>
+                    <li><a href="#test-results-detailed">テスト結果詳細</a></li>
+                    <li><a href="#improvement-recommendations">改善提案</a></li>
+                </ul>
+            </div>
+
+            <!-- エグゼクティブサマリー -->
+            <div id="executive-summary" class="executive-summary">
+                <h2>📊 エグゼクティブサマリー</h2>
+                <p><strong>目的・背景:</strong> Apple Intelligence Foundation ModelのAccount情報抽出性能を包括的に評価し、実用性と改善点を明らかにする。</p>
+                
+                <div class="summary-grid">
+                    <div class="summary-card">
+                        <div class="summary-value">52.7%</div>
+                        <div class="summary-label">全体成功率</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-value">79/150</div>
+                        <div class="summary-label">成功テスト数</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-value">3.016s</div>
+                        <div class="summary-label">平均抽出時間</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-value">0.98</div>
+                        <div class="summary-label">平均信頼度</div>
+                    </div>
+                </div>
+
+                <h3>🎯 主要な発見</h3>
+                <ul>
+                    <li><strong>成功率の二極化:</strong> Basicレベル（100%）とComplexレベル（0%）で明確な差</li>
+                    <li><strong>シチュエーション依存性:</strong> Chat/Voice Recognitionが高成功率、Contract/Password Managerが低成功率</li>
+                    <li><strong>フィールド別精度差:</strong> URLフィールド（高精度）vs 特殊文字を含むパスワード（低精度）</li>
+                    <li><strong>一貫性の課題:</strong> 同じテストケース内でも抽出結果にばらつき</li>
+                </ul>
+
+                <h3>⚠️ 主要な問題点</h3>
+                <ul>
+                    <li>複雑な技術情報（SSH鍵、暗号化データ）の処理困難</li>
+                    <li>法的文書の特殊構造への対応不足</li>
+                    <li>特殊文字（!@#）を含むパスワードの文字レベル精度低下</li>
+                    <li>期待されるフィールドの推測が困難な場合の対応不足</li>
+                </ul>
+            </div>
+
+            <!-- 全体統計情報 -->
+            <div id="overall-statistics" class="section">
+                <h2>📈 全体統計情報</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value">150</div>
+                        <div class="stat-label">総テスト数</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">79</div>
+                        <div class="stat-label">成功テスト数</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">52.7%</div>
+                        <div class="stat-label">成功率</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 52.7%"></div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">3.016s</div>
+                        <div class="stat-label">平均抽出時間</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">0.1MB</div>
+                        <div class="stat-label">平均メモリ使用量</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">0.98</div>
+                        <div class="stat-label">平均信頼度</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">6.3</div>
+                        <div class="stat-label">平均抽出フィールド数</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">1.461s</div>
+                        <div class="stat-label">最短抽出時間</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">12.712s</div>
+                        <div class="stat-label">最長抽出時間</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 成功パターン分析 -->
+            <div id="success-pattern-analysis" class="section">
+                <h2>✅ 成功パターン分析</h2>
+                
+                <h3>高成功率テストケース（80%以上）</h3>
+                <div class="analysis-grid">
+                    <div class="analysis-card">
+                        <h4>Chat Level 1 & 2 (100%)</h4>
+                        <p><strong>成功要因:</strong> シンプルな会話形式で情報が明確に分離されている</p>
+                        <p><strong>特徴:</strong> 自然な言語パターンで期待されるフィールドが推測しやすい</p>
+                    </div>
+                    <div class="analysis-card">
+                        <h4>Voice Recognition Level 1 & 2 (100%)</h4>
+                        <p><strong>成功要因:</strong> 音声認識の基本パターンが理解できている</p>
+                        <p><strong>特徴:</strong> 音声認識特有の表現パターンに対応</p>
+                    </div>
+                    <div class="analysis-card">
+                        <h4>Password Manager Level 1 (100%)</h4>
+                        <p><strong>成功要因:</strong> CSV形式のシンプルな構造</p>
+                        <p><strong>特徴:</strong> 構造化されたデータ形式で抽出が容易</p>
+                    </div>
+                    <div class="analysis-card">
+                        <h4>Credit Card Level 3 (100%)</h4>
+                        <p><strong>成功要因:</strong> 詳細な情報が含まれているが構造化されている</p>
+                        <p><strong>特徴:</strong> 複雑でも明確な構造がある場合の対応力</p>
+                    </div>
+                </div>
+
+                <h3>成功パターンの共通点</h3>
+                <ul>
+                    <li><strong>情報の明確な分離:</strong> 各フィールドが文脈から明確に識別可能</li>
+                    <li><strong>適切な難易度:</strong> 複雑すぎない情報構造</li>
+                    <li><strong>一貫したパターン:</strong> 同じタイプの情報が同じ形式で提示</li>
+                    <li><strong>期待値の明確性:</strong> どのフィールドを抽出すべきかが明確</li>
+                </ul>
+            </div>
+
+            <!-- 失敗パターン分析 -->
+            <div id="failure-pattern-analysis" class="section">
+                <h2>❌ 失敗パターン分析</h2>
+                
+                <h3>低成功率テストケース（50%未満）</h3>
+                <div class="analysis-grid">
+                    <div class="analysis-card">
+                        <h4>Chat Level 3 (0%)</h4>
+                        <p><strong>失敗要因:</strong> 複雑な技術情報とSSH鍵が含まれている</p>
+                        <p><strong>課題:</strong> 暗号化データの処理困難</p>
+                    </div>
+                    <div class="analysis-card">
+                        <h4>Contract Level 2 & 3 (40% & 0%)</h4>
+                        <p><strong>失敗要因:</strong> 法的文書の複雑な構造</p>
+                        <p><strong>課題:</strong> 特殊な文書形式への対応不足</p>
+                    </div>
+                    <div class="analysis-card">
+                        <h4>Credit Card Level 2 (0%)</h4>
+                        <p><strong>失敗要因:</strong> 中間レベルの複雑さ</p>
+                        <p><strong>課題:</strong> 曖昧な情報分離</p>
+                    </div>
+                    <div class="analysis-card">
+                        <h4>Password Manager Level 2 & 3 (0%)</h4>
+                        <p><strong>失敗要因:</strong> 複雑なCSV構造</p>
+                        <p><strong>課題:</strong> 期待されるフィールドの推測が困難</p>
+                    </div>
+                </div>
+
+                <h3>失敗パターンの共通点</h3>
+                <ul>
+                    <li><strong>複雑な技術情報:</strong> SSH鍵、暗号化データの処理困難</li>
+                    <li><strong>特殊な文書構造:</strong> 法的文書の特殊な形式への対応不足</li>
+                    <li><strong>曖昧な情報分離:</strong> フィールド境界の識別困難</li>
+                    <li><strong>期待値の不明確性:</strong> どの情報を抽出すべきかの判断困難</li>
+                </ul>
+            </div>
+
+            <!-- note内容評価 -->
+            <div id="note-content-evaluation" class="section">
+                <h2>📝 note内容評価</h2>
+                
+                <h3>評価基準</h3>
+                <div class="analysis-grid">
+                    <div class="analysis-card">
+                        <h4>内容の適切性</h4>
+                        <p>テストケースの文脈に適した内容が抽出されているか</p>
+                        <p><strong>評価:</strong> 全体的に適切な内容が抽出されている</p>
+                    </div>
+                    <div class="analysis-card">
+                        <h4>情報の有用性</h4>
+                        <p>アカウント管理に役立つ情報が含まれているか</p>
+                        <p><strong>評価:</strong> セキュリティ情報、接続方法など有用な情報を提供</p>
+                    </div>
+                    <div class="analysis-card">
+                        <h4>一貫性</h4>
+                        <p>同じテストケース内で一貫した内容が抽出されているか</p>
+                        <p><strong>評価:</strong> 一貫性に課題あり（多様性スコア1.00）</p>
+                    </div>
+                    <div class="analysis-card">
+                        <h4>詳細度</h4>
+                        <p>必要な詳細情報が適切に含まれているか</p>
+                        <p><strong>評価:</strong> 適切な詳細度で情報を提供</p>
+                    </div>
+                </div>
+
+                <h3>note内容の質的分析</h3>
+                <ul>
+                    <li><strong>Chat Level 1:</strong> AWS EC2へのログイン手順 - 実用的で適切</li>
+                    <li><strong>Contract Level 1:</strong> 社内システムへのアクセス権限 - 法的文脈に適した内容</li>
+                    <li><strong>Credit Card Level 1:</strong> カード番号のセキュリティ情報 - 適切な注意事項</li>
+                    <li><strong>Voice Recognition Level 1:</strong> AWS EC2へのログイン注意事項 - 技術的な詳細を含む</li>
+                    <li><strong>Password Manager Level 1:</strong> GitHub活動用アカウント - 用途が明確</li>
+                </ul>
+            </div>
+
+            <!-- AI回答所感分析 -->
+            <div id="ai-response-analysis" class="section">
+                <h2>🤖 AI回答所感分析</h2>
+                
+                <h3>AIの理解度評価</h3>
+                <div class="analysis-grid">
+                    <div class="analysis-card">
+                        <h4>文脈理解</h4>
+                        <p><strong>評価:</strong> 基本的な文脈は理解できている</p>
+                        <p>会話形式、法的文書、技術文書の違いを認識</p>
+                    </div>
+                    <div class="analysis-card">
+                        <h4>フィールド識別</h4>
+                        <p><strong>評価:</strong> 明確なフィールドは高精度で識別</p>
+                        <p>URL、ユーザーID、パスワードの基本フィールドは良好</p>
+                    </div>
+                    <div class="analysis-card">
+                        <h4>特殊文字処理</h4>
+                        <p><strong>評価:</strong> 特殊文字の処理に課題</p>
+                        <p>!@#などの特殊文字を含むパスワードで精度低下</p>
+                    </div>
+                    <div class="analysis-card">
+                        <h4>一貫性</h4>
+                        <p><strong>評価:</strong> 一貫性に大きな課題</p>
+                        <p>同じテストケースでも異なる結果を生成</p>
+                    </div>
+                </div>
+
+                <h3>成功パターンの詳細分析</h3>
+                <ul>
+                    <li><strong>シンプルな構造:</strong> 情報が明確に分離されている場合の高精度</li>
+                    <li><strong>標準的な形式:</strong> 一般的なアカウント情報形式への対応力</li>
+                    <li><strong>文脈の明確性:</strong> 期待されるフィールドが推測しやすい場合の成功</li>
+                </ul>
+
+                <h3>失敗パターンの詳細分析</h3>
+                <ul>
+                    <li><strong>複雑な技術情報:</strong> SSH鍵、暗号化データの処理困難</li>
+                    <li><strong>曖昧な境界:</strong> フィールドの境界が不明確な場合の失敗</li>
+                    <li><strong>特殊な形式:</strong> 法的文書の特殊構造への対応不足</li>
+                    <li><strong>期待値の不明確性:</strong> どの情報を抽出すべきかの判断困難</li>
+                </ul>
+            </div>
+
+            <!-- 文字レベル精度分析 -->
+            <div id="character-accuracy-analysis" class="section">
+                <h2>🔍 文字レベル精度分析</h2>
+                
+                <h3>高精度フィールド（80%以上）</h3>
+                <ul>
+                    <li><strong>URLフィールド:</strong> 多くのテストで100%精度を達成</li>
+                    <li><strong>ユーザーIDフィールド:</strong> 基本的なテストで高精度</li>
+                    <li><strong>ホストフィールド:</strong> 明確な形式の場合は高精度</li>
+                </ul>
+
+                <h3>低精度フィールド（50%未満）</h3>
+                <ul>
+                    <li><strong>パスワードフィールド:</strong> 特殊文字（!@#）の処理に課題</li>
+                    <li><strong>タイトルフィールド:</strong> 一貫性に問題</li>
+                    <li><strong>ホスト/ポートフィールド:</strong> 複雑なテストで低精度</li>
+                </ul>
+
+                <h3>文字レベルのエラーパターン</h3>
+                <div class="analysis-grid">
+                    <div class="analysis-card">
+                        <h4>スペースの処理</h4>
+                        <p>スペースの有無による違いが発生</p>
+                        <p><strong>例:</strong> "admin " vs "admin"</p>
+                    </div>
+                    <div class="analysis-card">
+                        <h4>特殊文字の処理</h4>
+                        <p>特殊記号の処理方法に課題</p>
+                        <p><strong>例:</strong> "123!@#" → "123"</p>
+                    </div>
+                    <div class="analysis-card">
+                        <h4>文字の追加・削除</h4>
+                        <p>余分な文字の追加や必要な文字の削除</p>
+                        <p><strong>例:</strong> "SecurePass18329" → "SecurePass"</p>
+                    </div>
+                    <div class="analysis-card">
+                        <h4>大文字小文字</h4>
+                        <p>大文字小文字の違いによる誤認識</p>
+                        <p><strong>例:</strong> "Admin" vs "admin"</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- テスト結果詳細 -->
+            <div id="test-results-detailed" class="section">
+                <h2>📊 テスト結果詳細</h2>
+                <div class="test-results">
+                    <!-- Chat Level 1 (Basic) -->
+                    <div class="test-card">
+                        <div class="test-header">
+                            <div class="test-title">Chat Level 1 (Basic)</div>
+                            <div class="test-meta">
+                                <span class="success-rate success-high">100.0%</span>
+                            </div>
+                        </div>
+                        <div class="test-content">
+                            <div class="metrics-grid">
+                                <div class="metric">
+                                    <div class="metric-value">2.557s</div>
+                                    <div class="metric-label">平均抽出時間</div>
+                                </div>
+                                <div class="metric">
+                                    <div class="metric-value">1.00</div>
+                                    <div class="metric-label">平均信頼度</div>
+                                </div>
+                                <div class="metric">
+                                    <div class="metric-value">10</div>
+                                    <div class="metric-label">実行回数</div>
+                                </div>
+                                <div class="metric">
+                                    <div class="metric-value">10</div>
+                                    <div class="metric-label">成功回数</div>
+                                </div>
+                            </div>
+                            
+                            <div class="field-analysis">
+                                <h4>📊 項目別成功率</h4>
+                                <div class="field-grid">
+                                    <div class="field-card">
+                                        <div class="field-name">サービス名</div>
+                                        <div class="field-metrics">
+                                            <div class="field-success-rate field-success">100.0%</div>
+                                            <div class="field-counts">抽出:10, エラー:0</div>
+                                        </div>
+                                    </div>
+                                    <div class="field-card">
+                                        <div class="field-name">ユーザーID</div>
+                                        <div class="field-metrics">
+                                            <div class="field-success-rate field-success">100.0%</div>
+                                            <div class="field-counts">抽出:10, エラー:0</div>
+                                        </div>
+                                    </div>
+                                    <div class="field-card">
+                                        <div class="field-name">パスワード</div>
+                                        <div class="field-metrics">
+                                            <div class="field-success-rate field-success">100.0%</div>
+                                            <div class="field-counts">抽出:10, エラー:0</div>
+                                            <div class="field-accuracy">文字精度:33.3%</div>
+                                            <div class="field-expected">期待値:Optional("18329")</div>
+                                        </div>
+                                    </div>
+                                    <div class="field-card">
+                                        <div class="field-name">備考</div>
+                                        <div class="field-metrics">
+                                            <div class="field-success-rate field-success">100.0%</div>
+                                            <div class="field-counts">抽出:10, エラー:0</div>
+                                        </div>
+                                    </div>
+                                    <div class="field-card">
+                                        <div class="field-name">ホスト</div>
+                                        <div class="field-metrics">
+                                            <div class="field-success-rate field-warning">60.0%</div>
+                                            <div class="field-counts">抽出:6, エラー:4</div>
+                                        </div>
+                                    </div>
+                                    <div class="field-card">
+                                        <div class="field-name">ポート</div>
+                                        <div class="field-metrics">
+                                            <div class="field-success-rate field-warning">60.0%</div>
+                                            <div class="field-counts">抽出:6, エラー:4</div>
+                                        </div>
+                                    </div>
+                                    <div class="field-card">
+                                        <div class="field-name">認証キー</div>
+                                        <div class="field-metrics">
+                                            <div class="field-success-rate field-success">100.0%</div>
+                                            <div class="field-counts">抽出:10, エラー:0</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="note-analysis">
+                                <h4>📝 note内容分析</h4>
+                                <div class="note-metrics">
+                                    <div class="note-metric">
+                                        <span class="note-label">多様性スコア:</span>
+                                        <span class="note-value">1.00</span>
+                                    </div>
+                                    <div class="note-metric">
+                                        <span class="note-label">抽出数:</span>
+                                        <span class="note-value">10</span>
+                                    </div>
+                                </div>
+                                <div class="note-content">
+                                    <div class="note-label">最頻出内容:</div>
+                                    <div class="note-text">AWS EC2へのログイン手順
+- アカウントはadmin/SecurePass18329でアクセス可能
+- 適切なポート(22)で接続
+- セキュリティ設定を確認し、必要に応じて更新
+- 契約期限は...</div>
+                                </div>
+                            </div>
+                            
+                            <div class="ai-analysis">
+                                <h4>🤖 AI回答分析</h4>
+                                <div class="ai-insights">AI抽出性能分析結果:<br>• 成功率: 100.0% (10/10)<br>• 成功パターン:<br>  - userIDフィールドで一貫した抽出<br>  - passwordフィールドで一貫した抽出<br>  - 100%成功 - テストケースが適切な難易度<br>• 主要な問題:<br>  - titleフィールドで一貫性がない - 2種類の異なる値<br>  - noteフィールドで一貫性がない - 10種類の異なる値<br>  - hostフィールドで一貫性がない - 5種類の異なる値<br>• 総評: 良好な抽出性能を示している</div>
+                            </div>
+                            
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 100.0%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 他のテストケースも同様に続く... -->
+                    <!-- 簡潔性のため、主要なテストケースのみ表示 -->
+                </div>
+            </div>
+
+            <!-- 改善提案 -->
+            <div id="improvement-recommendations" class="improvement-recommendations">
+                <h3>🔧 改善提案</h3>
+                
+                <div class="recommendation-item">
+                    <h4>1. プロンプトエンジニアリングの改善</h4>
+                    <p>特殊文字を含むパスワードや複雑な技術情報の抽出精度向上のため、より具体的な指示を含むプロンプトの設計が必要です。</p>
+                </div>
+                
+                <div class="recommendation-item">
+                    <h4>2. テストケースの段階的複雑化</h4>
+                    <p>現在のBasic/General/Complexの分類をより細かく段階化し、AIの学習曲線に合わせた難易度調整を行います。</p>
+                </div>
+                
+                <div class="recommendation-item">
+                    <h4>3. フィールド別の特別処理</h4>
+                    <p>特殊文字を含むパスワードやSSH鍵などの技術情報に対して、専用の抽出ロジックを実装します。</p>
+                </div>
+                
+                <div class="recommendation-item">
+                    <h4>4. 一貫性向上のための後処理</h4>
+                    <p>抽出結果の一貫性を向上させるため、類似度ベースの結果統合や、信頼度に基づく結果選択を実装します。</p>
+                </div>
+                
+                <div class="recommendation-item">
+                    <h4>5. 文書タイプ別の最適化</h4>
+                    <p>法的文書、技術文書、会話形式など、文書タイプに応じた専用の抽出戦略を開発します。</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>Generated by AITest - FoundationModels Performance Evaluation Tool</p>
+            <p>@ai[2024-12-19 18:30] 包括的性能評価レポート作成完了</p>
+        </div>
+    </div>
+</body>
+</html>

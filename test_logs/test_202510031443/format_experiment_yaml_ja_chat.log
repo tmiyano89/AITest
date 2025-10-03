@@ -1,0 +1,315 @@
+Another instance of SwiftPM (PID: 89898) is already running using '/Users/t.miyano/repos/AITest/.build', waiting until that process has finished execution...Building for debugging...
+[0/3] Write swift-version--58304C5D6DBC2206.txt
+Build of product 'AITestApp' complete! (0.09s)
+🚀 AITest コンソールアプリケーション開始
+OS Version: Version 26.0 (Build 25A354)
+================================================================================
+✅ iOS 26+ / macOS 26+ の要件を満たしています
+🔍 FoundationModelsの利用可能性をチェック中...
+🔍 SystemLanguageModel.availability: available
+✅ AI利用可能 - ベンチマークを実行します
+🔍 コマンドライン引数をチェック中...
+   引数: [".build/arm64-apple-macosx/debug/AITestApp", "--test-extraction-methods", "--experiment=yaml_ja", "--pattern=chat", "--timeout=300", "--test-dir=test_logs/test_202510031443"]
+🔍 extractExperimentFromArguments 開始
+   利用可能なExtractionMethod: ["generable", "json", "yaml"]
+   利用可能なPromptLanguage: ["ja", "en"]
+   --experiment= 形式を検出: yaml_ja
+   コンポーネント: ["yaml", "ja"]
+✅ experimentを抽出: yaml_ja
+✅ 特定のexperimentを検出: yaml_ja
+⏱️ タイムアウト設定: 300秒
+⏱️  [特定実験全体] 開始
+
+🔬 特定実験を開始: YAML形式 (日本語)
+📋 パターン指定: chat
+🔄 指定された抽出方法・言語のみを実行します
+------------------------------------------------------------
+⏱️  [特定実験全体] ディレクトリ作成完了: 0.000秒
+⏱️  [特定実験全体] テストケース読み込み完了: 0.000秒
+⏱️  [テストケース1] 開始
+
+📋 テストケース 1: Chat Level1 Basic
+📝 入力テキスト: Hey! 新しいサーバーのアカウント情報を送るね
+
+AWS EC2にログインするには
+アカウントはadmin/SecurePass18329です
+でアクセスできるよ
+
+よろしく！
+...
+----------------------------------------
+🔍 期待値取得テスト:
+  title: ''
+  userID: ''
+  password: ''
+  note: ''
+
+🔍 抽出方法: YAML形式 (日本語)
+📝 説明: YAML形式での回答を要求し、YAMLパーサーでデコード - 日本語プロンプトを使用した抽出
+⏱️  [テストケース1] 抽出器作成完了: 0.002秒
+⏱️  [テストケース1] AI抽出完了: 4.911秒
+✅ 抽出成功
+  ⏱️  抽出時間: 4.907秒
+  ⏱️  総時間: 4.909秒
+  📊 抽出フィールド数: 8
+  ✅ バリデーション: 警告あり
+  📋 抽出結果:
+    title: AWS EC2
+    userID: admin/SecurePass18329
+    password: パスワード文字列
+    url: ログインページURL、サービスURL
+    note: AWS EC2にログインするためのアカウント情報です。
+    host: ホスト名またはIPアドレス
+    port: 22
+    authKey: 認証キー（SSH秘密鍵など）
+
+📊 構造化ログ:
+{
+  "pattern" : "chat",
+  "level" : 1,
+  "iteration" : 1,
+  "language" : "ja",
+  "unexpected_fields" : [
+    {
+      "value" : "ログインページURL、サービスURL",
+      "name" : "url",
+      "status" : "unexpected"
+    },
+    {
+      "status" : "unexpected",
+      "name" : "host",
+      "value" : "ホスト名またはIPアドレス"
+    },
+    {
+      "name" : "port",
+      "status" : "unexpected",
+      "value" : "22"
+    },
+    {
+      "name" : "authKey",
+      "value" : "認証キー（SSH秘密鍵など）",
+      "status" : "unexpected"
+    }
+  ],
+  "method" : "yaml",
+  "expected_fields" : [
+    {
+      "status" : "pending",
+      "name" : "title",
+      "value" : "AWS EC2"
+    },
+    {
+      "value" : "admin\/SecurePass18329",
+      "name" : "userID",
+      "status" : "wrong"
+    },
+    {
+      "name" : "password",
+      "value" : "パスワード文字列",
+      "status" : "wrong"
+    },
+    {
+      "name" : "note",
+      "value" : "AWS EC2にログインするためのアカウント情報です。",
+      "status" : "pending"
+    }
+  ]
+}
+💾 ログ保存: test_logs/test_202510031443/yaml_ja_chat_level1_1.json
+⏱️  [テストケース1] ログ出力完了: 4.912秒
+⏱️  [テストケース1] 完了: 4.912秒
+============================================================
+⏱️  [テストケース2] 開始
+
+📋 テストケース 2: Chat Level2 General
+📝 入力テキスト: お疲れ様！昨日話してた新しいプロジェクトのサーバー設定が完了したよ。
+
+AWS EC2インスタンスを立ち上げたから、ログイン情報を共有するね。
+ログイン用のアカウントは devops@company....
+----------------------------------------
+🔍 期待値取得テスト:
+  title: ''
+  userID: ''
+  password: ''
+  url: ''
+  note: ''
+  port: ''
+
+🔍 抽出方法: YAML形式 (日本語)
+📝 説明: YAML形式での回答を要求し、YAMLパーサーでデコード - 日本語プロンプトを使用した抽出
+⏱️  [テストケース2] 抽出器作成完了: 0.001秒
+⏱️  [テストケース2] AI抽出完了: 15.136秒
+✅ 抽出成功
+  ⏱️  抽出時間: 15.134秒
+  ⏱️  総時間: 15.135秒
+  📊 抽出フィールド数: 8
+  ✅ バリデーション: 警告あり
+  📋 抽出結果:
+    title: AWS EC2 サーバーアクセス
+    userID: devops@company.com / MySecret2024!
+    password: パスワード文字列
+    url: https://console.aws.amazon.com/ec2/, https://console.aws.amazon.com/
+    note: このアカウントはAWS EC2インスタンスの管理に使用します。SSH接続はポート22で許可されています。
+    host: ホスト名またはIPアドレス
+    port: 22
+    authKey: 認証キー（SSH秘密鍵など）
+
+📊 構造化ログ:
+{
+  "pattern" : "chat",
+  "level" : 2,
+  "iteration" : 1,
+  "language" : "ja",
+  "unexpected_fields" : [
+    {
+      "value" : "ホスト名またはIPアドレス",
+      "name" : "host",
+      "status" : "unexpected"
+    },
+    {
+      "status" : "unexpected",
+      "name" : "authKey",
+      "value" : "認証キー（SSH秘密鍵など）"
+    }
+  ],
+  "method" : "yaml",
+  "expected_fields" : [
+    {
+      "name" : "title",
+      "value" : "AWS EC2 サーバーアクセス",
+      "status" : "pending"
+    },
+    {
+      "name" : "userID",
+      "value" : "devops@company.com \/ MySecret2024!",
+      "status" : "wrong"
+    },
+    {
+      "status" : "wrong",
+      "name" : "password",
+      "value" : "パスワード文字列"
+    },
+    {
+      "name" : "url",
+      "value" : "https:\/\/console.aws.amazon.com\/ec2\/, https:\/\/console.aws.amazon.com\/",
+      "status" : "wrong"
+    },
+    {
+      "value" : "このアカウントはAWS EC2インスタンスの管理に使用します。SSH接続はポート22で許可されています。",
+      "name" : "note",
+      "status" : "pending"
+    },
+    {
+      "name" : "port",
+      "value" : "22",
+      "status" : "wrong"
+    }
+  ]
+}
+💾 ログ保存: test_logs/test_202510031443/yaml_ja_chat_level2_1.json
+⏱️  [テストケース2] ログ出力完了: 15.137秒
+⏱️  [テストケース2] 完了: 15.137秒
+============================================================
+⏱️  [テストケース3] 開始
+
+📋 テストケース 3: Chat Level3 Complex
+📝 入力テキスト: お疲れ様！昨日の会議で話してた新しいプロジェクトのインフラ構築について、進捗を報告するね。
+
+まず、AWS EC2インスタンスのセットアップが完了したよ。t3.mediumのインスタンスを立ち上げて、...
+----------------------------------------
+🔍 期待値取得テスト:
+  title: ''
+  userID: ''
+  password: ''
+  url: ''
+  note: ''
+  host: ''
+  port: ''
+  authKey: ''
+
+🔍 抽出方法: YAML形式 (日本語)
+📝 説明: YAML形式での回答を要求し、YAMLパーサーでデコード - 日本語プロンプトを使用した抽出
+⏱️  [テストケース3] 抽出器作成完了: 0.001秒
+⏱️  [テストケース3] AI抽出完了: 18.164秒
+✅ 抽出成功
+  ⏱️  抽出時間: 18.162秒
+  ⏱️  総時間: 18.163秒
+  📊 抽出フィールド数: 8
+  ✅ バリデーション: 警告あり
+  📋 抽出結果:
+    title: AWS EC2 Instance Setup
+    userID: ec2-user@example.com
+    password: SuperSecure2024#
+    url: https://console.aws.amazon.com/ec2/", "https://console.aws.amazon.com/rds/
+    note: AWS EC2インスタンスとRDSインスタンスの設定完了。セキュリティ設定を再度確認。
+    host: ec2-54-123-45-67.compute-1.amazonaws.com
+    port: 22
+    authKey: BEGIN OPENSSH PRIVATE KEY\nb3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABFwAAAAdzc2gtcn\nNhAAAAAwEAAQAAAQEA1234567890abcdef\nEND OPENSSH PRIVATE KEY
+
+📊 構造化ログ:
+{
+  "pattern" : "chat",
+  "level" : 3,
+  "iteration" : 1,
+  "language" : "ja",
+  "unexpected_fields" : [
+
+  ],
+  "method" : "yaml",
+  "expected_fields" : [
+    {
+      "value" : "AWS EC2 Instance Setup",
+      "name" : "title",
+      "status" : "pending"
+    },
+    {
+      "name" : "userID",
+      "value" : "ec2-user@example.com",
+      "status" : "wrong"
+    },
+    {
+      "name" : "password",
+      "value" : "SuperSecure2024#",
+      "status" : "wrong"
+    },
+    {
+      "status" : "wrong",
+      "name" : "url",
+      "value" : "https:\/\/console.aws.amazon.com\/ec2\/\", \"https:\/\/console.aws.amazon.com\/rds\/"
+    },
+    {
+      "name" : "note",
+      "value" : "AWS EC2インスタンスとRDSインスタンスの設定完了。セキュリティ設定を再度確認。",
+      "status" : "pending"
+    },
+    {
+      "name" : "host",
+      "value" : "ec2-54-123-45-67.compute-1.amazonaws.com",
+      "status" : "wrong"
+    },
+    {
+      "value" : "22",
+      "status" : "wrong",
+      "name" : "port"
+    },
+    {
+      "name" : "authKey",
+      "value" : "BEGIN OPENSSH PRIVATE KEY\\nb3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABFwAAAAdzc2gtcn\\nNhAAAAAwEAAQAAAQEA1234567890abcdef\\nEND OPENSSH PRIVATE KEY",
+      "status" : "wrong"
+    }
+  ]
+}
+💾 ログ保存: test_logs/test_202510031443/yaml_ja_chat_level3_1.json
+⏱️  [テストケース3] ログ出力完了: 18.165秒
+⏱️  [テストケース3] 完了: 18.165秒
+============================================================
+📄 HTMLレポート生成: test_logs/test_202510031443/yaml_ja_format_experiment_report.html
+⏱️  [特定実験全体] HTMLレポート生成完了: 38.215秒
+⏱️  [特定実験全体] 完了: 38.215秒
+
+📊 特定実験完了
+📁 テスト結果: test_logs/test_202510031443/
+⏰ タイムアウト: 300秒経過
+🛑 処理を中断します
+================================================================================
+✅ AITest コンソールアプリケーション完了

@@ -1,0 +1,22 @@
+えー お疲れ様 昨日の会議で話してた新しいプロジェクトのインフラ構築について 進捗を報告するね
+
+まず AWS EC2インスタンスのセットアップが完了したよ t3.mediumのインスタンスを立ち上げて アクセス情報を設定した
+login: admin
+credential: SecurePass123!@#
+site: https://console.aws.amazon.com/ec2/
+host: ec2-54-123-45-67.compute-1.amazonaws.com
+port: 22
+
+セキュリティグループの設定も完了して SSH接続はポート22で開放済み また RDSのMySQLインスタンスも作成して データベース接続情報も準備した
+
+SSH秘密鍵も生成して 以下の内容で保存しておいた
+BEGIN OPENSSH PRIVATE KEY
+b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABFwAAAAdzc2gtcn
+NhAAAAAwEAAQAAAQEA1234567890abcdef...
+END OPENSSH PRIVATE KEY
+
+セキュリティの観点から パスワード認証は無効にして SSH鍵認証のみにした また ファイアウォールの設定で 特定のIPアドレスからのみアクセス可能にしている
+
+データベースの設定は来週までに完了予定で その時には接続情報も共有する 何か問題があったら すぐに連絡してね
+
+あと 監視システムの設定も並行して進めてるから ログの確認方法も後日共有する予定だ

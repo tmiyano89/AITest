@@ -1,0 +1,331 @@
+Building for debugging...
+[0/3] Write swift-version--58304C5D6DBC2206.txt
+Build of product 'AITestApp' complete! (0.12s)
+🚀 AITest コンソールアプリケーション開始
+OS Version: Version 26.0 (Build 25A354)
+================================================================================
+✅ iOS 26+ / macOS 26+ の要件を満たしています
+🔍 FoundationModelsの利用可能性をチェック中...
+🔍 SystemLanguageModel.availability: available
+✅ AI利用可能 - ベンチマークを実行します
+🔍 コマンドライン引数をチェック中...
+   引数: [".build/arm64-apple-macosx/debug/AITestApp", "--test-extraction-methods", "--experiment=json_en", "--pattern=creditcard", "--timeout=300", "--test-dir=test_logs/test_202510030926"]
+🔍 extractExperimentFromArguments 開始
+   利用可能なExtractionMethod: ["generable", "json", "yaml"]
+   利用可能なPromptLanguage: ["ja", "en"]
+   --experiment= 形式を検出: json_en
+   コンポーネント: ["json", "en"]
+✅ experimentを抽出: json_en
+✅ 特定のexperimentを検出: json_en
+⏱️ タイムアウト設定: 300秒
+⏱️  [特定実験全体] 開始
+
+🔬 特定実験を開始: JSON形式 (English)
+📋 パターン指定: creditcard
+🔄 指定された抽出方法・言語のみを実行します
+------------------------------------------------------------
+⏱️  [特定実験全体] ディレクトリ作成完了: 0.000秒
+⏱️  [特定実験全体] テストケース読み込み完了: 0.001秒
+⏱️  [テストケース1] 開始
+
+📋 テストケース 1: Creditcard Level1 Basic
+📝 入力テキスト: MASTERCARD
+5321 4411 3290 2189
+03/26
+456
+YAMADA TAROSUKE
+...
+----------------------------------------
+🔍 期待値取得テスト:
+  title: ''
+  userID: ''
+  password: ''
+  url: ''
+  note: ''
+  host: ''
+  port: ''
+  authKey: ''
+
+🔍 抽出方法: JSON形式 (English)
+📝 説明: JSON形式での回答を要求し、JSONDecoderでデコード - English prompt for extraction
+⏱️  [テストケース1] 抽出器作成完了: 0.000秒
+⏱️  [テストケース1] AI抽出完了: 15.420秒
+✅ 抽出成功
+  ⏱️  抽出時間: 15.418秒
+  ⏱️  総時間: 15.420秒
+  📊 抽出フィールド数: 8
+  ✅ バリデーション: 警告あり
+  📋 抽出結果:
+    title: Account Management Service
+    userID: yamada.tarosuke@example.com
+    password: *******
+    url: https://example.com/login
+    note: This account is for managing financial transactions securely.
+    host: localhost
+    port: 456
+    authKey: BEGIN RSA PRIVATE KEY...END
+
+📊 構造化ログ:
+{
+  "method" : "json",
+  "level" : 1,
+  "expected_fields" : [
+    {
+      "status" : "pending",
+      "value" : "Account Management Service",
+      "name" : "title"
+    },
+    {
+      "value" : "yamada.tarosuke@example.com",
+      "status" : "wrong",
+      "name" : "userID"
+    },
+    {
+      "value" : "*******",
+      "status" : "wrong",
+      "name" : "password"
+    },
+    {
+      "status" : "pending",
+      "value" : "This account is for managing financial transactions securely.",
+      "name" : "note"
+    }
+  ],
+  "iteration" : 1,
+  "unexpected_fields" : [
+    {
+      "status" : "unexpected",
+      "value" : "https:\/\/example.com\/login",
+      "name" : "url"
+    },
+    {
+      "status" : "unexpected",
+      "value" : "localhost",
+      "name" : "host"
+    },
+    {
+      "status" : "unexpected",
+      "name" : "port",
+      "value" : "456"
+    },
+    {
+      "value" : "BEGIN RSA PRIVATE KEY...END",
+      "status" : "unexpected",
+      "name" : "authKey"
+    }
+  ],
+  "language" : "en",
+  "pattern" : "creditcard"
+}
+💾 ログ保存: test_logs/test_202510030926/json_en_creditcard_level1_1.json
+⏱️  [テストケース1] ログ出力完了: 15.421秒
+⏱️  [テストケース1] 完了: 15.421秒
+============================================================
+⏱️  [テストケース2] 開始
+
+📋 テストケース 2: Creditcard Level2 General
+📝 入力テキスト: JCB
+5115 4321 8329 2382
+01/26
+406
+SAKAI MASASHI
+
+オンライン決済時のみ使用可能
+月間利用限度額 50万円
+海外利用時は事前に連絡が必要
+カード紛失時は即...
+----------------------------------------
+🔍 期待値取得テスト:
+  title: ''
+  userID: ''
+  password: ''
+  url: ''
+  note: ''
+  host: ''
+  port: ''
+  authKey: ''
+
+🔍 抽出方法: JSON形式 (English)
+📝 説明: JSON形式での回答を要求し、JSONDecoderでデコード - English prompt for extraction
+⏱️  [テストケース2] 抽出器作成完了: 0.000秒
+⏱️  [テストケース2] AI抽出完了: 70.171秒
+✅ 抽出成功
+  ⏱️  抽出時間: 70.170秒
+  ⏱️  総時間: 70.170秒
+  📊 抽出フィールド数: 8
+  ✅ バリデーション: 警告あり
+  📋 抽出結果:
+    title: JCB Online Payment Service
+    userID: 5115432183292382
+    password: ****
+    url: https://secure.jcb.co.jp/online/payment/index.jsp
+    note: Online payment service for JCB cards. Note: Use this account only for online payments, not for physical card use. Monthly limit of 500,000 yen applies. If using abroad, prior notification is required. In case of card loss, immediate notification is necessary.
+    host: secure.jcb.co.jp
+    port: 406
+    authKey: BEGIN RSA PRIVATE KEY MD5 2382832983292382...END
+
+📊 構造化ログ:
+{
+  "iteration" : 1,
+  "method" : "json",
+  "level" : 2,
+  "language" : "en",
+  "expected_fields" : [
+    {
+      "status" : "pending",
+      "value" : "JCB Online Payment Service",
+      "name" : "title"
+    },
+    {
+      "value" : "5115432183292382",
+      "status" : "wrong",
+      "name" : "userID"
+    },
+    {
+      "status" : "wrong",
+      "value" : "****",
+      "name" : "password"
+    },
+    {
+      "status" : "pending",
+      "value" : "Online payment service for JCB cards. Note: Use this account only for online payments, not for physical card use. Monthly limit of 500,000 yen applies. If using abroad, prior notification is required. In case of card loss, immediate notification is necessary.",
+      "name" : "note"
+    }
+  ],
+  "unexpected_fields" : [
+    {
+      "value" : "https:\/\/secure.jcb.co.jp\/online\/payment\/index.jsp",
+      "status" : "unexpected",
+      "name" : "url"
+    },
+    {
+      "status" : "unexpected",
+      "name" : "host",
+      "value" : "secure.jcb.co.jp"
+    },
+    {
+      "value" : "406",
+      "status" : "unexpected",
+      "name" : "port"
+    },
+    {
+      "status" : "unexpected",
+      "value" : "BEGIN RSA PRIVATE KEY MD5 2382832983292382...END",
+      "name" : "authKey"
+    }
+  ],
+  "pattern" : "creditcard"
+}
+💾 ログ保存: test_logs/test_202510030926/json_en_creditcard_level2_1.json
+⏱️  [テストケース2] ログ出力完了: 70.171秒
+⏱️  [テストケース2] 完了: 70.171秒
+============================================================
+⏱️  [テストケース3] 開始
+
+📋 テストケース 3: Creditcard Level3 Complex
+📝 入力テキスト: VISA
+4532-3234-5678-9112
+11/25
+125
+KEISUKE INOUE
+
+オンライン決済時のみ使用可能
+月間利用限度額: 50万円
+海外利用時は事前に連絡が必要
+カード紛失時...
+----------------------------------------
+🔍 期待値取得テスト:
+  title: ''
+  userID: ''
+  password: ''
+  url: ''
+  note: ''
+  host: ''
+  port: ''
+  authKey: ''
+
+🔍 抽出方法: JSON形式 (English)
+📝 説明: JSON形式での回答を要求し、JSONDecoderでデコード - English prompt for extraction
+⏱️  [テストケース3] 抽出器作成完了: 0.000秒
+⏱️  [テストケース3] AI抽出完了: 23.067秒
+✅ 抽出成功
+  ⏱️  抽出時間: 23.066秒
+  ⏱️  総時間: 23.067秒
+  📊 抽出フィールド数: 8
+  ✅ バリデーション: 警告あり
+  📋 抽出結果:
+    title: VISA
+    userID: keisuke.inoue@example.com
+    password: ****
+    url: https://example.com/visa
+    note: Online payment only, monthly limit: ¥500,000, international use requires prior notification, card loss requires immediate notification, 3D Secure authentication required, fraud detection system in place, automatic card suspension on detected unusual transaction patterns, daily transaction limit: ¥30,000, monthly transaction limit: ¥50,000, prohibited for specific industries (gambling, cryptocurrencies, etc.), 1% cashback, free annual fee for the first year, 1.5% foreign transaction fees, up to 1 cashback per month, card information cannot be disclosed to third parties, recommend regular password changes, notify immediately if fraud is suspected, card physical damage can be replaced at no cost
+    host: example.com
+    port: 4532
+    authKey: BEGIN RSA PRIVATE KEY blah blah blah END
+
+📊 構造化ログ:
+{
+  "iteration" : 1,
+  "language" : "en",
+  "pattern" : "creditcard",
+  "expected_fields" : [
+    {
+      "status" : "pending",
+      "value" : "VISA",
+      "name" : "title"
+    },
+    {
+      "status" : "wrong",
+      "value" : "keisuke.inoue@example.com",
+      "name" : "userID"
+    },
+    {
+      "status" : "wrong",
+      "name" : "password",
+      "value" : "****"
+    },
+    {
+      "value" : "Online payment only, monthly limit: ¥500,000, international use requires prior notification, card loss requires immediate notification, 3D Secure authentication required, fraud detection system in place, automatic card suspension on detected unusual transaction patterns, daily transaction limit: ¥30,000, monthly transaction limit: ¥50,000, prohibited for specific industries (gambling, cryptocurrencies, etc.), 1% cashback, free annual fee for the first year, 1.5% foreign transaction fees, up to 1 cashback per month, card information cannot be disclosed to third parties, recommend regular password changes, notify immediately if fraud is suspected, card physical damage can be replaced at no cost",
+      "status" : "pending",
+      "name" : "note"
+    },
+    {
+      "status" : "wrong",
+      "value" : "BEGIN RSA PRIVATE KEY blah blah blah END",
+      "name" : "authKey"
+    }
+  ],
+  "level" : 3,
+  "unexpected_fields" : [
+    {
+      "value" : "https:\/\/example.com\/visa",
+      "status" : "unexpected",
+      "name" : "url"
+    },
+    {
+      "value" : "example.com",
+      "status" : "unexpected",
+      "name" : "host"
+    },
+    {
+      "status" : "unexpected",
+      "value" : "4532",
+      "name" : "port"
+    }
+  ],
+  "method" : "json"
+}
+💾 ログ保存: test_logs/test_202510030926/json_en_creditcard_level3_1.json
+⏱️  [テストケース3] ログ出力完了: 23.068秒
+⏱️  [テストケース3] 完了: 23.068秒
+============================================================
+📄 HTMLレポート生成: test_logs/test_202510030926/json_en_format_experiment_report.html
+⏱️  [特定実験全体] HTMLレポート生成完了: 108.662秒
+⏱️  [特定実験全体] 完了: 108.662秒
+
+📊 特定実験完了
+📁 テスト結果: test_logs/test_202510030926/
+⏰ タイムアウト: 300秒経過
+🛑 処理を中断します
+================================================================================
+✅ AITest コンソールアプリケーション完了

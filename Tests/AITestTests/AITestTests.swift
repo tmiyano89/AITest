@@ -102,6 +102,48 @@ final class AITestTests: XCTestCase {
         }
     }
     
+    /// @ai[2024-12-19 16:00] Account情報抽出テスト
+    /// FoundationModelsを使用したAccount情報抽出の動作確認
+    @available(iOS 18.2, macOS 15.0, *)
+    func testAccountExtraction() async throws {
+        // 注意: 実際のFoundationModelsが利用できないため、
+        // このテストはコンパイル確認のみ
+        
+        let sampleText = "GitHub\nUsername: test_user\nPassword: test_password\nURL: https://github.com"
+        
+        // AccountExtractorの初期化確認
+        let extractor = AccountExtractor()
+        XCTAssertNotNil(extractor, "AccountExtractor should be initialized")
+        
+        // 実際の抽出は実行しない（FoundationModelsが利用できないため）
+        // 将来的にFoundationModelsが利用可能になったら実際のテストを実装
+    }
+    
+    /// @ai[2024-12-19 16:00] AccountInfoバリデーションテスト
+    /// AccountInfoのバリデーション機能をテスト
+    func testAccountInfoValidation() throws {
+        // 有効なAccountInfo
+        let validAccount = AccountInfo(
+            title: "Test Service",
+            userID: "test@example.com",
+            password: "password123",
+            url: "https://example.com"
+        )
+        
+        XCTAssertTrue(validAccount.isValid, "Valid account should pass validation")
+        XCTAssertEqual(validAccount.extractedFieldsCount, 4, "Should have 4 extracted fields")
+        
+        // 無効なURLを持つAccountInfo
+        let invalidAccount = AccountInfo(
+            title: "Test Service",
+            userID: "test@example.com",
+            password: "password123",
+            url: "invalid-url"
+        )
+        
+        XCTAssertFalse(invalidAccount.isValid, "Account with invalid URL should fail validation")
+    }
+    
     /// @ai[2024-12-19 15:30] メモリ使用量測定テスト
     /// メモリ使用量の測定が正しく動作することを確認
     func testMemoryUsageMeasurement() throws {

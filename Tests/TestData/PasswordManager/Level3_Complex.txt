@@ -1,0 +1,6 @@
+name,username,password,url,notes,host,port,auth_key
+"AWS EC2 Production","admin","SecurePass123!@#","https://console.aws.amazon.com/ec2/","Production server with SSH access","ec2-54-123-45-67.compute-1.amazonaws.com","22","BEGIN OPENSSH PRIVATE KEY\nb3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABFwAAAAdzc2gtcn\nNhAAAAAwEAAQAAAQEA1234567890abcdef...\nEND OPENSSH PRIVATE KEY"
+"GitHub Enterprise","dev_user","GitPass456!@#","https://github.company.com","Enterprise GitHub with 2FA enabled","github.company.com","443",""
+"Slack Workspace","team_member","SlackPass789!@#","https://company.slack.com","Team communication with admin privileges","company.slack.com","443",""
+"Database Server","db_admin","DbPass123!@#","https://db.company.com","MySQL production database","192.168.1.100","3306",""
+"VPN Gateway","vpn_user","VpnPass456!@#","https://vpn.company.com","Corporate VPN access","vpn.company.com","443",""

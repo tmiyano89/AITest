@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FoundationModels フォーマット実験レポート</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 20px; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+        .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px; }
+        .summary-card { background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center; }
+        .test-case { margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        .test-case h3 { margin-top: 0; color: #333; }
+        .result { background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 10px 0; }
+        .success { border-left: 4px solid #28a745; }
+        .error { border-left: 4px solid #dc3545; }
+        .field { margin: 5px 0; padding: 5px; background: #e9ecef; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔬 FoundationModels フォーマット実験レポート</h1>
+        <p>生成日時: 2025-10-03 09:34:37</p>
+        <p>抽出方法: JSON形式</p>
+        <p>言語: English</p>
+    </div>
+    
+    <div class="summary">
+        <div class="summary-card">
+            <h3>テストケース数</h3>
+            <p style="font-size: 2em; margin: 0;">3</p>
+        </div>
+        <div class="summary-card">
+            <h3>抽出方法</h3>
+            <p style="font-size: 1.5em; margin: 0;">JSON形式</p>
+        </div>
+        <div class="summary-card">
+            <h3>言語</h3>
+            <p style="font-size: 1.5em; margin: 0;">English</p>
+        </div>
+    </div><div class="test-case">
+    <h3>📋 テストケース 1: Passwordmanager Level1 Basic</h3>
+    <div class="result">
+        <h4>入力テキスト:</h4>
+        <pre>name,username,password,url
+GitHub,john.doe,GitHubPass2024!,https://github.com
+</pre>
+    </div>
+    <div class="result">
+        <h4>抽出結果:</h4>
+        <p>詳細な抽出結果は個別のJSONログファイルを確認してください。</p>
+    </div>
+</div><div class="test-case">
+    <h3>📋 テストケース 2: Passwordmanager Level2 General</h3>
+    <div class="result">
+        <h4>入力テキスト:</h4>
+        <pre>name,username,password,url,notes
+"AWS EC2","admin","SecurePass123","https://console.aws.amazon.com/ec2/","Production server"
+"GitHub","dev_user","GitPass456","https://github.com","Development repository"
+"Slack","team_member","SlackPass789","https://company.slack.com","Team communication"
+</pre>
+    </div>
+    <div class="result">
+        <h4>抽出結果:</h4>
+        <p>詳細な抽出結果は個別のJSONログファイルを確認してください。</p>
+    </div>
+</div><div class="test-case">
+    <h3>📋 テストケース 3: Passwordmanager Level3 Complex</h3>
+    <div class="result">
+        <h4>入力テキスト:</h4>
+        <pre>name,username,password,url,notes,host,port,auth_key
+"AWS EC2 Production","admin","SecurePass123!@#","https://console.aws.amazon.com/ec2/","Production server with SSH access","ec2-54-123-45-67.compute-1.amazonaws.com","22","BEGIN OPENSSH PRIVATE KEY\nb3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABFwAAAAdzc2gtcn\nNhAAAAAwEAAQAAAQEA1234567890abcdef...\nEND OPENSSH PRIVATE KEY"
+"GitHub Enterprise","dev_user","GitPass456!@#","https://github.company.com","Enterprise GitHub with 2FA enabled","github.company.com","443",""
+"Slack Workspace","team_member","SlackPass789!@#","https://company.slack.com","Team communication with admin privileges","company.slack.com","443",""
+"Database Server","db_admin","DbPass123!@#","https://db.company.com","MySQL production database","192.168.1.100","3306",""
+"VPN Gateway","vpn_user","VpnPass456!@#","https://vpn.company.com","Corporate VPN access","vpn.company.com","443",""
+</pre>
+    </div>
+    <div class="result">
+        <h4>抽出結果:</h4>
+        <p>詳細な抽出結果は個別のJSONログファイルを確認してください。</p>
+    </div>
+</div>    </body>
+</html>

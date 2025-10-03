@@ -1,0 +1,4 @@
+name,username,password,url,notes
+"AWS EC2","admin","SecurePass123","https://console.aws.amazon.com/ec2/","Production server"
+"GitHub","dev_user","GitPass456","https://github.com","Development repository"
+"Slack","team_member","SlackPass789","https://company.slack.com","Team communication"

@@ -2,7 +2,7 @@ import SwiftUI
 
 /// @ai[2024-12-19 15:30] AITestアプリケーションのメインエントリーポイント
 /// iOS26のApple Intelligence Foundation Modelの性能検証を目的としたアプリケーション
-@available(iOS 15.0, macOS 12.0, *)
+@available(iOS 26.0, macOS 26.0, *)
 struct AITestApp: App {
     var body: some Scene {
         WindowGroup {

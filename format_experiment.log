@@ -1,0 +1,377 @@
+Building for debugging...
+[0/3] Write swift-version--58304C5D6DBC2206.txt
+Build of product 'AITestApp' complete! (0.09s)
+🚀 AITest コンソールアプリケーション開始
+OS Version: Version 26.0 (Build 25A354)
+================================================================================
+✅ iOS 26+ / macOS 26+ の要件を満たしています
+🔍 FoundationModelsの利用可能性をチェック中...
+🔍 SystemLanguageModel.availability: available
+✅ AI利用可能 - ベンチマークを実行します
+
+🔬 抽出方法比較テストを開始
+🔄 各抽出方法で同じテストケースを実行し、性能を比較します
+------------------------------------------------------------
+
+📋 テストケース 1: Chat Level 1 (Basic)
+📝 入力テキスト: Hey! 新しいサーバーのアカウント情報を送るね
+
+AWS EC2にログインするには
+アカウントはadmin/SecurePass18329です
+でアクセスできるよ
+
+よろしく！...
+----------------------------------------
+
+🔍 抽出方法: @Generableマクロ (日本語)
+📝 説明: FoundationModelsの@Generableマクロを使用した構造化抽出 - 日本語プロンプトを使用した抽出
+✅ 抽出成功
+  ⏱️  抽出時間: 2.480秒
+  ⏱️  総時間: 2.482秒
+  💾 メモリ使用量: 9.14MB
+  📊 抽出フィールド数: 5
+  🎯 信頼度: 1.00
+  ✅ バリデーション: 成功
+  📋 抽出結果:
+    title: AWS EC2アカウント情報
+    userID: admin
+    password: SecurePass18329
+    note: AWS EC2にログインするための情報です。注意: 機密情報を安全に管理してください。...
+    authKey: -----BEGIN OPENSSH PRIVATE KEY-----...
+
+🔍 抽出方法: @Generableマクロ (English)
+📝 説明: FoundationModelsの@Generableマクロを使用した構造化抽出 - English prompt for extraction
+✅ 抽出成功
+  ⏱️  抽出時間: 2.703秒
+  ⏱️  総時間: 2.703秒
+  💾 メモリ使用量: -0.12MB
+  📊 抽出フィールド数: 5
+  🎯 信頼度: 1.00
+  ✅ バリデーション: 成功
+  📋 抽出結果:
+    title: AWS EC2
+    userID: admin
+    password: SecurePass18329
+    note: AWS EC2にログインするためのアカウント情報です。...
+    authKey: -----BEGIN OPENSSH PRIVATE KEY-----...
+
+🔍 抽出方法: JSON形式 (日本語)
+📝 説明: JSON形式での回答を要求し、JSONDecoderでデコード - 日本語プロンプトを使用した抽出
+✅ 抽出成功
+  ⏱️  抽出時間: 4.964秒
+  ⏱️  総時間: 4.966秒
+  💾 メモリ使用量: -1.41MB
+  📊 抽出フィールド数: 8
+  🎯 信頼度: 0.90
+  ✅ バリデーション: 警告あり
+  📋 抽出結果:
+    title: AWS EC2
+    userID: admin/SecurePass18329
+    password: SecurePass18329
+    url: https://aws.amazon.com/ec2/
+    note: AWS EC2サーバーへのログインに使用するアカウント情報。注意: 個人情報のため、機密性を保つよう...
+    host: aws.amazon.com
+    port: 22
+    authKey: BEGINssh-rsa AAAA...END...
+
+🔍 抽出方法: JSON形式 (English)
+📝 説明: JSON形式での回答を要求し、JSONDecoderでデコード - English prompt for extraction
+✅ 抽出成功
+  ⏱️  抽出時間: 6.048秒
+  ⏱️  総時間: 6.048秒
+  💾 メモリ使用量: 1.33MB
+  📊 抽出フィールド数: 8
+  🎯 信頼度: 0.90
+  ✅ バリデーション: 警告あり
+  📋 抽出結果:
+    title: AWS EC2 Account Information
+    userID: admin/SecurePass18329
+    password: SecurePass18329
+    url: https://aws.amazon.com/ec2/v2/
+    note: Account for logging into AWS EC2 with admin creden...
+    host: ec2-user.us-west-2.compute.amazonaws.com
+    port: 22
+    authKey: BEGIN:SSH PRIVATE KEY
+Host ec2-user.us-west-2.comp...
+
+🔍 抽出方法: YAML形式 (日本語)
+📝 説明: YAML形式での回答を要求し、YAMLパーサーでデコード - 日本語プロンプトを使用した抽出
+✅ 抽出成功
+  ⏱️  抽出時間: 6.046秒
+  ⏱️  総時間: 6.047秒
+  💾 メモリ使用量: 0.20MB
+  📊 抽出フィールド数: 8
+  🎯 信頼度: 0.95
+  ✅ バリデーション: 警告あり
+  📋 抽出結果:
+    title: AWS EC2アカウント管理
+    userID: admin@secure.example.com,admin,user123
+    password: SecurePass18329
+    url: https://163.121.123.123:22/home,https://163.121.123.123:22
+    note: AWS EC2アカウントの管理を行うための情報です。...
+    host: 163.121.123.123
+    port: 22
+    authKey: BEGIN:SSH-RSA:-----BEGIN-SSH-RSA-2048-bit PUBLIC K...
+
+🔍 抽出方法: YAML形式 (English)
+📝 説明: YAML形式での回答を要求し、YAMLパーサーでデコード - English prompt for extraction
+✅ 抽出成功
+  ⏱️  抽出時間: 12.998秒
+  ⏱️  総時間: 12.999秒
+  💾 メモリ使用量: -0.19MB
+  📊 抽出フィールド数: 8
+  🎯 信頼度: 0.90
+  ✅ バリデーション: 警告あり
+  📋 抽出結果:
+    title: AWS EC2 Login
+    userID: admin@secure.example.com
+    password: SecurePass18329
+    url: https://your-aws-instance.amazonaws.com/login,https://your-aws-instance.amazonaws.com/dashboard
+    note: Account for logging into AWS EC2 with admin creden...
+    host: your-aws-instance.amazonaws.com
+    port: 22
+    authKey: BEGIN ssh-rsa AAAAB3NzaC1yc2EAAAACgkQ85fG8P7D0FyNQ...
+============================================================
+
+📋 テストケース 2: Contract Level 1 (Basic)
+📝 入力テキスト: 第3条 システムアクセス情報
+
+社内システムへのアクセス権限を付与する。
+アクセス情報は以下の通りである：
+ログインID: employee_2024、パスワード: CorpAccess#789
+
+上...
+----------------------------------------
+
+🔍 抽出方法: @Generableマクロ (日本語)
+📝 説明: FoundationModelsの@Generableマクロを使用した構造化抽出 - 日本語プロンプトを使用した抽出
+✅ 抽出成功
+  ⏱️  抽出時間: 4.779秒
+  ⏱️  総時間: 4.780秒
+  💾 メモリ使用量: -0.72MB
+  📊 抽出フィールド数: 5
+  🎯 信頼度: 1.00
+  ✅ バリデーション: 成功
+  📋 抽出結果:
+    title: 社内システムアクセス権限
+    userID: employee_2024
+    password: CorpAccess#789
+    note: 社内システムへのアクセスを許可する。注意事項として、セキュリティパッチの適用や定期的なバックアップの...
+    authKey: -----BEGIN OPENSSH PRIVATE KEY-----から始まり、-----END ...
+
+🔍 抽出方法: @Generableマクロ (English)
+📝 説明: FoundationModelsの@Generableマクロを使用した構造化抽出 - English prompt for extraction
+✅ 抽出成功
+  ⏱️  抽出時間: 4.758秒
+  ⏱️  総時間: 4.759秒
+  💾 メモリ使用量: 0.69MB
+  📊 抽出フィールド数: 5
+  🎯 信頼度: 0.00
+  ✅ バリデーション: 成功
+  📋 抽出結果:
+    title: 社内システム
+    userID: employee_2024
+    password: CorpAccess#789
+    note: システムへのアクセスを許可するための重要な情報です。...
+    authKey: -----BEGIN OPENSSH PRIVATE KEY----- CorpAccess#789...
+
+🔍 抽出方法: JSON形式 (日本語)
+📝 説明: JSON形式での回答を要求し、JSONDecoderでデコード - 日本語プロンプトを使用した抽出
+✅ 抽出成功
+  ⏱️  抽出時間: 5.215秒
+  ⏱️  総時間: 5.216秒
+  💾 メモリ使用量: 0.08MB
+  📊 抽出フィールド数: 8
+  🎯 信頼度: 0.90
+  ✅ バリデーション: 警告あり
+  📋 抽出結果:
+    title: Employee Access
+    userID: employee_2024
+    password: CorpAccess#789
+    url: https://www.example.com/login
+    note: 社内システムへのアクセス権限を付与します。注意: パスワードは管理者にのみ公開してください。...
+    host: internal-system.example.com
+    port: 22
+    authKey: BEGIN CorpAccess#789 END...
+
+🔍 抽出方法: JSON形式 (English)
+📝 説明: JSON形式での回答を要求し、JSONDecoderでデコード - English prompt for extraction
+✅ 抽出成功
+  ⏱️  抽出時間: 5.566秒
+  ⏱️  総時間: 5.567秒
+  💾 メモリ使用量: 0.50MB
+  📊 抽出フィールド数: 8
+  🎯 信頼度: 0.95
+  ✅ バリデーション: 警告あり
+  📋 抽出結果:
+    title: Employee Access
+    userID: employee_2024
+    password: CorpAccess#789
+    url: https://secure.company.com/login
+    note: Employee access for internal system...
+    host: internal-system.company.com
+    port: 22
+    authKey: BEGIN SSH-RSA AAAA0NTA1NjIwMTk0MzQ3NzA0NzE5.END...
+
+🔍 抽出方法: YAML形式 (日本語)
+📝 説明: YAML形式での回答を要求し、YAMLパーサーでデコード - 日本語プロンプトを使用した抽出
+✅ 抽出成功
+  ⏱️  抽出時間: 4.466秒
+  ⏱️  総時間: 4.467秒
+  💾 メモリ使用量: -0.56MB
+  📊 抽出フィールド数: 8
+  🎯 信頼度: 0.80
+  ✅ バリデーション: 警告あり
+  📋 抽出結果:
+    title: 社内システムアクセス権限
+    userID: employee_2024
+    password: CorpAccess#789
+    url: ログインページURL、社内システムアクセスページURL
+    note: 社内システムへのアクセスを許可する権限が付与されました。...
+    host: 社内システムホスト名またはIPアドレス
+    port: 22
+    authKey: 認証キー（SSH秘密鍵など）...
+
+🔍 抽出方法: YAML形式 (English)
+📝 説明: YAML形式での回答を要求し、YAMLパーサーでデコード - English prompt for extraction
+✅ 抽出成功
+  ⏱️  抽出時間: 4.596秒
+  ⏱️  総時間: 4.597秒
+  💾 メモリ使用量: 0.67MB
+  📊 抽出フィールド数: 8
+  🎯 信頼度: 1.00
+  ✅ バリデーション: 警告あり
+  📋 抽出結果:
+    title: System Access Information
+    userID: employee_2024
+    password: CorpAccess#789
+    url: https://login.example.com/corp,https://service.example.com
+    note: Access information for employee_2024 to access the...
+    host: example.com
+    port: 22
+    authKey: BEGIN [SSH private key], END...
+============================================================
+
+📋 テストケース 3: Credit Card Level 1 (Basic)
+📝 入力テキスト: MASTERCARD
+5555 4444 3333 2222
+03/26
+456
+YAMADA TARO...
+----------------------------------------
+
+🔍 抽出方法: @Generableマクロ (日本語)
+📝 説明: FoundationModelsの@Generableマクロを使用した構造化抽出 - 日本語プロンプトを使用した抽出
+✅ 抽出成功
+  ⏱️  抽出時間: 7.082秒
+  ⏱️  総時間: 7.083秒
+  💾 メモリ使用量: -1.53MB
+  📊 抽出フィールド数: 7
+  🎯 信頼度: 0.00
+  ✅ バリデーション: 成功
+  📋 抽出結果:
+    title: accoca
+    userID: YAMADA TARO
+    password: MASTERCARD5555444433332222
+    note: クレジットカードを登録しました。注意事項：カード情報が漏洩しないよう十分に注意してください。...
+    host: localhost
+    port: 456
+    authKey: -----BEGIN OPENSSH PRIVATE KEY-----...
+
+🔍 抽出方法: @Generableマクロ (English)
+📝 説明: FoundationModelsの@Generableマクロを使用した構造化抽出 - English prompt for extraction
+✅ 抽出成功
+  ⏱️  抽出時間: 6.127秒
+  ⏱️  総時間: 6.128秒
+  💾 メモリ使用量: 1.08MB
+  📊 抽出フィールド数: 6
+  🎯 信頼度: 0.00
+  ✅ バリデーション: 成功
+  📋 抽出結果:
+    title: MASTERCARD
+    userID: YAMADA TARO
+    note: このカードはオンラインショッピングやレストランでの支払いに使用されています。有効期限は2023年3月...
+    host: 0.0.0.0
+    port: 456
+    authKey: -----BEGIN OPENSSH PRIVATE KEY----- ...
+
+🔍 抽出方法: JSON形式 (日本語)
+📝 説明: JSON形式での回答を要求し、JSONDecoderでデコード - 日本語プロンプトを使用した抽出
+✅ 抽出成功
+  ⏱️  抽出時間: 6.250秒
+  ⏱️  総時間: 6.252秒
+  💾 メモリ使用量: 0.52MB
+  📊 抽出フィールド数: 8
+  🎯 信頼度: 0.90
+  ✅ バリデーション: 警告あり
+  📋 抽出結果:
+    title: mastercard
+    userID: yamada@example.com
+    password: ****
+    url: https://mastercard.com/login, https://mastercard.com/
+    note: mastercardカードのアカウント管理、セキュリティのため、定期的にパスワードを変更してください...
+    host: mastercard.com
+    port: 456
+    authKey: BEGINssh secret keyEND...
+
+🔍 抽出方法: JSON形式 (English)
+📝 説明: JSON形式での回答を要求し、JSONDecoderでデコード - English prompt for extraction
+✅ 抽出成功
+  ⏱️  抽出時間: 6.489秒
+  ⏱️  総時間: 6.489秒
+  💾 メモリ使用量: 0.09MB
+  📊 抽出フィールド数: 8
+  🎯 信頼度: 0.90
+  ✅ バリデーション: 成功
+  📋 抽出結果:
+    title: MASTERCARD
+    userID: yamada.taro@example.com
+    password: ********
+    url: https://example.com/login
+    note: Mastercard account for financial transactions. Imp...
+    host: example.com
+    port: 456
+    authKey: BEGIN:SSH PRIVATE KEY
+-----BEGIN RSA PRIVATE KEY--...
+
+🔍 抽出方法: YAML形式 (日本語)
+📝 説明: YAML形式での回答を要求し、YAMLパーサーでデコード - 日本語プロンプトを使用した抽出
+✅ 抽出成功
+  ⏱️  抽出時間: 11.958秒
+  ⏱️  総時間: 11.959秒
+  💾 メモリ使用量: -2.19MB
+  📊 抽出フィールド数: 8
+  🎯 信頼度: 0.90
+  ✅ バリデーション: 警告あり
+  📋 抽出結果:
+    title: accoca
+    userID: yamada.tarou@example.com
+    password: null
+    url: https://www.accoca.com/login,https://www.accoca.com/
+    note: アカウントの用途: データの管理と整理、注意事項: 個人情報の安全管理を徹底...
+    host: accoca.com
+    port: 456
+    authKey: "BEGIN ssh-rsa AAAAB3NzaC1yc2EAAAAAJsAAEoK8Zl00sNq...
+
+🔍 抽出方法: YAML形式 (English)
+📝 説明: YAML形式での回答を要求し、YAMLパーサーでデコード - English prompt for extraction
+✅ 抽出成功
+  ⏱️  抽出時間: 7.257秒
+  ⏱️  総時間: 7.258秒
+  💾 メモリ使用量: 1.25MB
+  📊 抽出フィールド数: 7
+  🎯 信頼度: 0.95
+  ✅ バリデーション: 警告あり
+  📋 抽出結果:
+    title: "MasterCard",
+    userID: "yamada.tarou@example.com, Tarou, mastercarduser",
+    password: "*******",
+    url: "https://mastercard.example.com/login, https://mastercard.example.com/services",
+    note: "MasterCard account for financial transactions. Im...
+    host: "mastercard.example.com",
+    authKey: "BEGIN:SSH-PRIVATE-KEY\n-----BEGIN RSA PRIVATE KEY...
+============================================================
+
+📊 抽出方法比較テスト完了
+================================================================================
+✅ AITest コンソールアプリケーション完了

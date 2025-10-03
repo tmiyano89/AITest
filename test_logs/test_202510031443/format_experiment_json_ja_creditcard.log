@@ -1,0 +1,318 @@
+Building for debugging...
+[0/3] Write swift-version--58304C5D6DBC2206.txt
+Build of product 'AITestApp' complete! (0.10s)
+🚀 AITest コンソールアプリケーション開始
+OS Version: Version 26.0 (Build 25A354)
+================================================================================
+✅ iOS 26+ / macOS 26+ の要件を満たしています
+🔍 FoundationModelsの利用可能性をチェック中...
+🔍 SystemLanguageModel.availability: available
+✅ AI利用可能 - ベンチマークを実行します
+🔍 コマンドライン引数をチェック中...
+   引数: [".build/arm64-apple-macosx/debug/AITestApp", "--test-extraction-methods", "--experiment=json_ja", "--pattern=creditcard", "--timeout=300", "--test-dir=test_logs/test_202510031443"]
+🔍 extractExperimentFromArguments 開始
+   利用可能なExtractionMethod: ["generable", "json", "yaml"]
+   利用可能なPromptLanguage: ["ja", "en"]
+   --experiment= 形式を検出: json_ja
+   コンポーネント: ["json", "ja"]
+✅ experimentを抽出: json_ja
+✅ 特定のexperimentを検出: json_ja
+⏱️ タイムアウト設定: 300秒
+⏱️  [特定実験全体] 開始
+
+🔬 特定実験を開始: JSON形式 (日本語)
+📋 パターン指定: creditcard
+🔄 指定された抽出方法・言語のみを実行します
+------------------------------------------------------------
+⏱️  [特定実験全体] ディレクトリ作成完了: 0.000秒
+⏱️  [特定実験全体] テストケース読み込み完了: 0.000秒
+⏱️  [テストケース1] 開始
+
+📋 テストケース 1: Creditcard Level1 Basic
+📝 入力テキスト: MASTERCARD
+5321 4411 3290 2189
+03/26
+456
+YAMADA TAROSUKE
+...
+----------------------------------------
+🔍 期待値取得テスト:
+  title: ''
+  userID: ''
+  note: ''
+
+🔍 抽出方法: JSON形式 (日本語)
+📝 説明: JSON形式での回答を要求し、JSONDecoderでデコード - 日本語プロンプトを使用した抽出
+⏱️  [テストケース1] 抽出器作成完了: 0.001秒
+⏱️  [テストケース1] AI抽出完了: 17.727秒
+✅ 抽出成功
+  ⏱️  抽出時間: 17.724秒
+  ⏱️  総時間: 17.726秒
+  📊 抽出フィールド数: 8
+  ✅ バリデーション: 警告あり
+  📋 抽出結果:
+    title: MASTERCARD
+    userID: 5321 4411 3290 2189
+    password: YAMADA TAROSUKE
+    url: https://www.mastercard.com/
+    note: MasterCardはクレジットカード会社の1つです。セキュリティ上の注意として、個人情報を定期的にチェックし、不審な取引がないか確認してください。
+    host: www.mastercard.com
+    port: 456
+    authKey: BEGINSSH秘密鍵END
+
+📊 構造化ログ:
+{
+  "method" : "json",
+  "pattern" : "creditcard",
+  "unexpected_fields" : [
+    {
+      "name" : "password",
+      "value" : "YAMADA TAROSUKE",
+      "status" : "unexpected"
+    },
+    {
+      "status" : "unexpected",
+      "name" : "url",
+      "value" : "https:\/\/www.mastercard.com\/"
+    },
+    {
+      "status" : "unexpected",
+      "name" : "host",
+      "value" : "www.mastercard.com"
+    },
+    {
+      "value" : "456",
+      "name" : "port",
+      "status" : "unexpected"
+    },
+    {
+      "status" : "unexpected",
+      "name" : "authKey",
+      "value" : "BEGINSSH秘密鍵END"
+    }
+  ],
+  "language" : "ja",
+  "level" : 1,
+  "iteration" : 1,
+  "expected_fields" : [
+    {
+      "value" : "MASTERCARD",
+      "status" : "pending",
+      "name" : "title"
+    },
+    {
+      "status" : "wrong",
+      "name" : "userID",
+      "value" : "5321 4411 3290 2189"
+    },
+    {
+      "status" : "pending",
+      "value" : "MasterCardはクレジットカード会社の1つです。セキュリティ上の注意として、個人情報を定期的にチェックし、不審な取引がないか確認してください。",
+      "name" : "note"
+    }
+  ]
+}
+💾 ログ保存: test_logs/test_202510031443/json_ja_creditcard_level1_1.json
+⏱️  [テストケース1] ログ出力完了: 17.728秒
+⏱️  [テストケース1] 完了: 17.728秒
+============================================================
+⏱️  [テストケース2] 開始
+
+📋 テストケース 2: Creditcard Level2 General
+📝 入力テキスト: JCB
+5115 4321 8329 2382
+01/26
+406
+SAKAI MASASHI
+
+オンライン決済時のみ使用可能
+月間利用限度額 50万円
+海外利用時は事前に連絡が必要
+カード紛失時は即...
+----------------------------------------
+🔍 期待値取得テスト:
+  title: ''
+  userID: ''
+  note: ''
+
+🔍 抽出方法: JSON形式 (日本語)
+📝 説明: JSON形式での回答を要求し、JSONDecoderでデコード - 日本語プロンプトを使用した抽出
+⏱️  [テストケース2] 抽出器作成完了: 0.000秒
+⏱️  [テストケース2] AI抽出完了: 61.695秒
+✅ 抽出成功
+  ⏱️  抽出時間: 61.695秒
+  ⏱️  総時間: 61.695秒
+  📊 抽出フィールド数: 8
+  ✅ バリデーション: 警告あり
+  📋 抽出結果:
+    title: JCB
+    userID: 5115 4321 8329 2382
+    password: ******
+    url: https://online.jcb.co.jp/jp/login/
+    note: オンライン決済時のみ使用可能、月間利用限度額 50万円、海外利用時は事前に連絡が必要、カード紛失時は即座に連絡すること
+    host: online.jcb.co.jp
+    port: 406
+    authKey: BEGIN
+5115 4321 8329 2382
+END
+
+📊 構造化ログ:
+{
+  "method" : "json",
+  "pattern" : "creditcard",
+  "unexpected_fields" : [
+    {
+      "value" : "******",
+      "status" : "unexpected",
+      "name" : "password"
+    },
+    {
+      "name" : "url",
+      "value" : "https:\/\/online.jcb.co.jp\/jp\/login\/",
+      "status" : "unexpected"
+    },
+    {
+      "value" : "online.jcb.co.jp",
+      "status" : "unexpected",
+      "name" : "host"
+    },
+    {
+      "status" : "unexpected",
+      "name" : "port",
+      "value" : "406"
+    },
+    {
+      "value" : "BEGIN\n5115 4321 8329 2382\nEND",
+      "status" : "unexpected",
+      "name" : "authKey"
+    }
+  ],
+  "language" : "ja",
+  "level" : 2,
+  "iteration" : 1,
+  "expected_fields" : [
+    {
+      "value" : "JCB",
+      "name" : "title",
+      "status" : "pending"
+    },
+    {
+      "status" : "wrong",
+      "value" : "5115 4321 8329 2382",
+      "name" : "userID"
+    },
+    {
+      "status" : "pending",
+      "name" : "note",
+      "value" : "オンライン決済時のみ使用可能、月間利用限度額 50万円、海外利用時は事前に連絡が必要、カード紛失時は即座に連絡すること"
+    }
+  ]
+}
+💾 ログ保存: test_logs/test_202510031443/json_ja_creditcard_level2_1.json
+⏱️  [テストケース2] ログ出力完了: 61.696秒
+⏱️  [テストケース2] 完了: 61.696秒
+============================================================
+⏱️  [テストケース3] 開始
+
+📋 テストケース 3: Creditcard Level3 Complex
+📝 入力テキスト: VISA
+4532-3234-5678-9112
+11/25
+125
+KEISUKE INOUE
+
+オンライン決済時のみ使用可能
+月間利用限度額: 50万円
+海外利用時は事前に連絡が必要
+カード紛失時...
+----------------------------------------
+🔍 期待値取得テスト:
+  title: ''
+  userID: ''
+  note: ''
+
+🔍 抽出方法: JSON形式 (日本語)
+📝 説明: JSON形式での回答を要求し、JSONDecoderでデコード - 日本語プロンプトを使用した抽出
+⏱️  [テストケース3] 抽出器作成完了: 0.000秒
+⏱️  [テストケース3] AI抽出完了: 77.222秒
+✅ 抽出成功
+  ⏱️  抽出時間: 77.221秒
+  ⏱️  総時間: 77.221秒
+  📊 抽出フィールド数: 8
+  ✅ バリデーション: 警告あり
+  📋 抽出結果:
+    title: VISA
+    userID: keisuke.inoue@example.com
+    password: 4532-3234-5678-9112
+    url: https://www.visa.com/jp/
+    note: オンライン決済時のみ使用可能。月間利用限度額は50万円。海外利用時は事前に連絡が必要。3Dセキュア認証が必須。不正利用検知システムにより監視。異常な取引パターンが検出された場合、自動的にカードを停止。1回の取引上限は10万円、日次取引上限は30万円、月次取引上限は50万円。特定業種での利用は禁止。ポイント還元率は1%、年会費は無料（初年度）。海外利用手数料は1.5%、キャッシュバックは月1回まで。カード情報の第三者開示は禁止。パスワードは定期的に変更を推奨。不正利用が疑われる場合は即座に連絡を。カードの物理的損傷時は無料で再発行可能。
+    host: visa.com
+    port: 443
+    authKey: BEGIN;SSH秘密鍵;END
+
+📊 構造化ログ:
+{
+  "method" : "json",
+  "pattern" : "creditcard",
+  "unexpected_fields" : [
+    {
+      "value" : "4532-3234-5678-9112",
+      "name" : "password",
+      "status" : "unexpected"
+    },
+    {
+      "value" : "https:\/\/www.visa.com\/jp\/",
+      "status" : "unexpected",
+      "name" : "url"
+    },
+    {
+      "status" : "unexpected",
+      "name" : "host",
+      "value" : "visa.com"
+    },
+    {
+      "status" : "unexpected",
+      "name" : "port",
+      "value" : "443"
+    },
+    {
+      "name" : "authKey",
+      "value" : "BEGIN;SSH秘密鍵;END",
+      "status" : "unexpected"
+    }
+  ],
+  "language" : "ja",
+  "level" : 3,
+  "iteration" : 1,
+  "expected_fields" : [
+    {
+      "status" : "pending",
+      "name" : "title",
+      "value" : "VISA"
+    },
+    {
+      "status" : "wrong",
+      "name" : "userID",
+      "value" : "keisuke.inoue@example.com"
+    },
+    {
+      "value" : "オンライン決済時のみ使用可能。月間利用限度額は50万円。海外利用時は事前に連絡が必要。3Dセキュア認証が必須。不正利用検知システムにより監視。異常な取引パターンが検出された場合、自動的にカードを停止。1回の取引上限は10万円、日次取引上限は30万円、月次取引上限は50万円。特定業種での利用は禁止。ポイント還元率は1%、年会費は無料（初年度）。海外利用手数料は1.5%、キャッシュバックは月1回まで。カード情報の第三者開示は禁止。パスワードは定期的に変更を推奨。不正利用が疑われる場合は即座に連絡を。カードの物理的損傷時は無料で再発行可能。",
+      "status" : "pending",
+      "name" : "note"
+    }
+  ]
+}
+💾 ログ保存: test_logs/test_202510031443/json_ja_creditcard_level3_1.json
+⏱️  [テストケース3] ログ出力完了: 77.222秒
+⏱️  [テストケース3] 完了: 77.222秒
+============================================================
+📄 HTMLレポート生成: test_logs/test_202510031443/json_ja_format_experiment_report.html
+⏱️  [特定実験全体] HTMLレポート生成完了: 156.648秒
+⏱️  [特定実験全体] 完了: 156.648秒
+
+📊 特定実験完了
+📁 テスト結果: test_logs/test_202510031443/
+⏰ タイムアウト: 300秒経過
+🛑 処理を中断します
+================================================================================
+✅ AITest コンソールアプリケーション完了

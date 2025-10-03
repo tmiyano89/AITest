@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FoundationModels フォーマット実験レポート</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 20px; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+        .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px; }
+        .summary-card { background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center; }
+        .test-case { margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        .test-case h3 { margin-top: 0; color: #333; }
+        .result { background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 10px 0; }
+        .success { border-left: 4px solid #28a745; }
+        .error { border-left: 4px solid #dc3545; }
+        .field { margin: 5px 0; padding: 5px; background: #e9ecef; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔬 FoundationModels フォーマット実験レポート</h1>
+        <p>生成日時: 2025-10-03 14:48:03</p>
+        <p>抽出方法: YAML形式</p>
+        <p>言語: English</p>
+    </div>
+    
+    <div class="summary">
+        <div class="summary-card">
+            <h3>テストケース数</h3>
+            <p style="font-size: 2em; margin: 0;">3</p>
+        </div>
+        <div class="summary-card">
+            <h3>抽出方法</h3>
+            <p style="font-size: 1.5em; margin: 0;">YAML形式</p>
+        </div>
+        <div class="summary-card">
+            <h3>言語</h3>
+            <p style="font-size: 1.5em; margin: 0;">English</p>
+        </div>
+    </div><div class="test-case">
+    <h3>📋 テストケース 1: Creditcard Level1 Basic</h3>
+    <div class="result">
+        <h4>入力テキスト:</h4>
+        <pre>MASTERCARD
+5321 4411 3290 2189
+03/26
+456
+YAMADA TAROSUKE
+</pre>
+    </div>
+    <div class="result">
+        <h4>抽出結果:</h4>
+        <p>詳細な抽出結果は個別のJSONログファイルを確認してください。</p>
+    </div>
+</div><div class="test-case">
+    <h3>📋 テストケース 2: Creditcard Level2 General</h3>
+    <div class="result">
+        <h4>入力テキスト:</h4>
+        <pre>JCB
+5115 4321 8329 2382
+01/26
+406
+SAKAI MASASHI
+
+オンライン決済時のみ使用可能
+月間利用限度額 50万円
+海外利用時は事前に連絡が必要
+カード紛失時は即座に連絡すること
+</pre>
+    </div>
+    <div class="result">
+        <h4>抽出結果:</h4>
+        <p>詳細な抽出結果は個別のJSONログファイルを確認してください。</p>
+    </div>
+</div><div class="test-case">
+    <h3>📋 テストケース 3: Creditcard Level3 Complex</h3>
+    <div class="result">
+        <h4>入力テキスト:</h4>
+        <pre>VISA
+4532-3234-5678-9112
+11/25
+125
+KEISUKE INOUE
+
+オンライン決済時のみ使用可能
+月間利用限度額: 50万円
+海外利用時は事前に連絡が必要
+カード紛失時は即座に連絡すること
+
+3Dセキュア認証が必須
+不正利用検知システムにより監視
+異常な取引パターンが検出された場合、自動的にカードを停止
+
+1回の取引上限: 10万円
+日次取引上限: 30万円
+月次取引上限: 50万円
+特定業種（ギャンブル、暗号通貨等）での利用禁止
+
+ポイント還元率: 1%
+年会費: 無料（初年度）
+海外利用手数料: 1.5%
+キャッシュバック機能: 月1回まで
+
+カード情報の第三者への開示を禁止
+定期的なパスワード変更を推奨
+不正利用が疑われる場合は即座に連絡すること
+カードの物理的損傷時は無料で再発行可能
+</pre>
+    </div>
+    <div class="result">
+        <h4>抽出結果:</h4>
+        <p>詳細な抽出結果は個別のJSONログファイルを確認してください。</p>
+    </div>
+</div>    </body>
+</html>

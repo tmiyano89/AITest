@@ -1,0 +1,302 @@
+Building for debugging...
+[0/3] Write swift-version--58304C5D6DBC2206.txt
+Build of product 'AITestApp' complete! (0.09s)
+🚀 AITest コンソールアプリケーション開始
+OS Version: Version 26.0 (Build 25A354)
+================================================================================
+✅ iOS 26+ / macOS 26+ の要件を満たしています
+🔍 FoundationModelsの利用可能性をチェック中...
+🔍 SystemLanguageModel.availability: available
+✅ AI利用可能 - ベンチマークを実行します
+🔍 コマンドライン引数をチェック中...
+   引数: [".build/arm64-apple-macosx/debug/AITestApp", "--test-extraction-methods", "--experiment=json_en", "--pattern=contract", "--timeout=300", "--test-dir=test_logs/test_202510030926"]
+🔍 extractExperimentFromArguments 開始
+   利用可能なExtractionMethod: ["generable", "json", "yaml"]
+   利用可能なPromptLanguage: ["ja", "en"]
+   --experiment= 形式を検出: json_en
+   コンポーネント: ["json", "en"]
+✅ experimentを抽出: json_en
+✅ 特定のexperimentを検出: json_en
+⏱️ タイムアウト設定: 300秒
+⏱️  [特定実験全体] 開始
+
+🔬 特定実験を開始: JSON形式 (English)
+📋 パターン指定: contract
+🔄 指定された抽出方法・言語のみを実行します
+------------------------------------------------------------
+⏱️  [特定実験全体] ディレクトリ作成完了: 0.000秒
+⏱️  [特定実験全体] テストケース読み込み完了: 0.000秒
+⏱️  [テストケース1] 開始
+
+📋 テストケース 1: Contract Level1 Basic
+📝 入力テキスト: 第3条 システムアクセス情報
+
+社内システムへのアクセス権限を付与する。
+アクセス情報は以下の通りである：
+ログインID: employee_2024、パスワード: CorpAccess#789
+
+上...
+----------------------------------------
+🔍 期待値取得テスト:
+  title: ''
+  userID: ''
+  password: ''
+  url: ''
+  note: ''
+  host: ''
+  port: ''
+  authKey: ''
+
+🔍 抽出方法: JSON形式 (English)
+📝 説明: JSON形式での回答を要求し、JSONDecoderでデコード - English prompt for extraction
+⏱️  [テストケース1] 抽出器作成完了: 0.000秒
+⏱️  [テストケース1] AI抽出完了: 16.112秒
+✅ 抽出成功
+  ⏱️  抽出時間: 16.110秒
+  ⏱️  総時間: 16.112秒
+  📊 抽出フィールド数: 8
+  ✅ バリデーション: 警告あり
+  📋 抽出結果:
+    title: Employee Login System
+    userID: employee_2024
+    password: CorpAccess#789
+    url: https://login.example.com/employee/access
+    note: Employee login for internal system access.
+    host: internal-system.example.com
+    port: 22
+    authKey: BEGIN SSH-RSA AAAAB3NzaWVU...END
+
+📊 構造化ログ:
+{
+  "language" : "en",
+  "expected_fields" : [
+    {
+      "value" : "Employee Login System",
+      "status" : "pending",
+      "name" : "title"
+    },
+    {
+      "status" : "wrong",
+      "name" : "userID",
+      "value" : "employee_2024"
+    },
+    {
+      "name" : "password",
+      "value" : "CorpAccess#789",
+      "status" : "wrong"
+    },
+    {
+      "status" : "pending",
+      "value" : "Employee login for internal system access.",
+      "name" : "note"
+    }
+  ],
+  "unexpected_fields" : [
+    {
+      "name" : "url",
+      "value" : "https:\/\/login.example.com\/employee\/access",
+      "status" : "unexpected"
+    },
+    {
+      "name" : "host",
+      "value" : "internal-system.example.com",
+      "status" : "unexpected"
+    },
+    {
+      "value" : "22",
+      "status" : "unexpected",
+      "name" : "port"
+    },
+    {
+      "value" : "BEGIN SSH-RSA AAAAB3NzaWVU...END",
+      "name" : "authKey",
+      "status" : "unexpected"
+    }
+  ],
+  "iteration" : 1,
+  "level" : 1,
+  "pattern" : "contract",
+  "method" : "json"
+}
+💾 ログ保存: test_logs/test_202510030926/json_en_contract_level1_1.json
+⏱️  [テストケース1] ログ出力完了: 16.113秒
+⏱️  [テストケース1] 完了: 16.113秒
+============================================================
+⏱️  [テストケース2] 開始
+
+📋 テストケース 2: Contract Level2 General
+📝 入力テキスト: 第3条 システムアクセス情報
+
+3.1 アクセス権限の付与
+本契約に基づき、社内基幹システムへのアクセス情報を提供する。
+システム名: 社内基幹システム
+アクセス用アカウント: manager@com...
+----------------------------------------
+🔍 期待値取得テスト:
+  title: ''
+  userID: ''
+  password: ''
+  url: 'https://system.company.com/login'
+  note: ''
+  host: ''
+  port: ''
+  authKey: ''
+
+🔍 抽出方法: JSON形式 (English)
+📝 説明: JSON形式での回答を要求し、JSONDecoderでデコード - English prompt for extraction
+⏱️  [テストケース2] 抽出器作成完了: 0.000秒
+❌ 抽出失敗: Exceeded model context window size
+
+📊 構造化ログ（エラー）:
+{
+  "error" : "Exceeded model context window size",
+  "language" : "en",
+  "expected_fields" : [
+    {
+      "name" : "title",
+      "value" : null,
+      "status" : "missing"
+    },
+    {
+      "status" : "missing",
+      "value" : null,
+      "name" : "userID"
+    },
+    {
+      "name" : "password",
+      "value" : null,
+      "status" : "missing"
+    },
+    {
+      "name" : "url",
+      "value" : null,
+      "status" : "missing"
+    },
+    {
+      "value" : null,
+      "name" : "note",
+      "status" : "missing"
+    }
+  ],
+  "unexpected_fields" : [
+
+  ],
+  "iteration" : 1,
+  "level" : 2,
+  "pattern" : "contract",
+  "method" : "json"
+}
+💾 エラーログ保存: test_logs/test_202510030926/json_en_contract_level2_1_error.json
+⏱️  [テストケース2] エラーログ出力完了: 119.033秒
+⏱️  [テストケース2] 完了: 119.033秒
+============================================================
+⏱️  [テストケース3] 開始
+
+📋 テストケース 3: Contract Level3 Complex
+📝 入力テキスト: 第3条 システムアクセス情報及びセキュリティ要件
+
+3.1 アクセス権限の付与
+本契約に基づき、社内基幹システム（本番環境）へのアクセス情報を提供する。
+【システム情報】
+名称: 社内基幹システム（本...
+----------------------------------------
+🔍 期待値取得テスト:
+  title: ''
+  userID: ''
+  password: ''
+  url: 'https://system.company.com/login'
+  note: ''
+  host: ''
+  port: ''
+  authKey: 'BEGIN OPENSSH PRIVATE KEY
+b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABFwAAAAdzc2gtcn
+NhAAAAAwEAAQAAAQEA1234567890abcdef...
+END OPENSSH PRIVATE KEY'
+
+🔍 抽出方法: JSON形式 (English)
+📝 説明: JSON形式での回答を要求し、JSONDecoderでデコード - English prompt for extraction
+⏱️  [テストケース3] 抽出器作成完了: 0.000秒
+⏱️  [テストケース3] AI抽出完了: 20.659秒
+✅ 抽出成功
+  ⏱️  抽出時間: 20.657秒
+  ⏱️  総時間: 20.659秒
+  📊 抽出フィールド数: 8
+  ✅ バリデーション: 警告あり
+  📋 抽出結果:
+    title: 社内基幹システム（本番環境）
+    userID: user001
+    password: CompanyPass2024!@#
+    url: https://system.company.com/login
+    note: 業務目的でのみ利用可能であり、私的利用は禁止されています。VPN経由で接続し、最大5セッションまで同時接続可能です。ログイン試行は5回まで、それ以降は1時間ロックされます。
+    host: 192.168.1.100
+    port: 443
+    authKey: BEGIN OPENSSH PRIVATE KEY
+b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABFwAAAAdzc2gtcnNhAAAAAwEAAQAAAQEA1234567890abcdef...
+END OPENSSH PRIVATE KEY
+
+📊 構造化ログ:
+{
+  "language" : "en",
+  "method" : "json",
+  "pattern" : "contract",
+  "iteration" : 1,
+  "expected_fields" : [
+    {
+      "value" : "社内基幹システム（本番環境）",
+      "status" : "pending",
+      "name" : "title"
+    },
+    {
+      "name" : "userID",
+      "value" : "user001",
+      "status" : "wrong"
+    },
+    {
+      "name" : "password",
+      "value" : "CompanyPass2024!@#",
+      "status" : "wrong"
+    },
+    {
+      "status" : "correct",
+      "value" : "https:\/\/system.company.com\/login",
+      "name" : "url"
+    },
+    {
+      "value" : "業務目的でのみ利用可能であり、私的利用は禁止されています。VPN経由で接続し、最大5セッションまで同時接続可能です。ログイン試行は5回まで、それ以降は1時間ロックされます。",
+      "name" : "note",
+      "status" : "pending"
+    },
+    {
+      "name" : "host",
+      "value" : "192.168.1.100",
+      "status" : "wrong"
+    },
+    {
+      "status" : "wrong",
+      "name" : "port",
+      "value" : "443"
+    }
+  ],
+  "unexpected_fields" : [
+    {
+      "value" : "BEGIN OPENSSH PRIVATE KEY\nb3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABFwAAAAdzc2gtcnNhAAAAAwEAAQAAAQEA1234567890abcdef...\nEND OPENSSH PRIVATE KEY",
+      "status" : "unexpected",
+      "name" : "authKey"
+    }
+  ],
+  "level" : 3
+}
+💾 ログ保存: test_logs/test_202510030926/json_en_contract_level3_1.json
+⏱️  [テストケース3] ログ出力完了: 20.661秒
+⏱️  [テストケース3] 完了: 20.661秒
+============================================================
+📄 HTMLレポート生成: test_logs/test_202510030926/json_en_format_experiment_report.html
+⏱️  [特定実験全体] HTMLレポート生成完了: 155.808秒
+⏱️  [特定実験全体] 完了: 155.808秒
+
+📊 特定実験完了
+📁 テスト結果: test_logs/test_202510030926/
+⏰ タイムアウト: 300秒経過
+🛑 処理を中断します
+================================================================================
+✅ AITest コンソールアプリケーション完了

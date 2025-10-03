@@ -1,0 +1,310 @@
+Building for debugging...
+[0/3] Write swift-version--58304C5D6DBC2206.txt
+Build of product 'AITestApp' complete! (0.45s)
+🚀 AITest コンソールアプリケーション開始
+OS Version: Version 26.0 (Build 25A354)
+================================================================================
+✅ iOS 26+ / macOS 26+ の要件を満たしています
+🔍 FoundationModelsの利用可能性をチェック中...
+🔍 SystemLanguageModel.availability: available
+✅ AI利用可能 - ベンチマークを実行します
+🔍 コマンドライン引数をチェック中...
+   引数: [".build/arm64-apple-macosx/debug/AITestApp", "--test-extraction-methods", "--experiment=yaml_en", "--pattern=creditcard", "--timeout=300", "--test-dir=test_logs/test_202510031443"]
+🔍 extractExperimentFromArguments 開始
+   利用可能なExtractionMethod: ["generable", "json", "yaml"]
+   利用可能なPromptLanguage: ["ja", "en"]
+   --experiment= 形式を検出: yaml_en
+   コンポーネント: ["yaml", "en"]
+✅ experimentを抽出: yaml_en
+✅ 特定のexperimentを検出: yaml_en
+⏱️ タイムアウト設定: 300秒
+⏱️  [特定実験全体] 開始
+
+🔬 特定実験を開始: YAML形式 (English)
+📋 パターン指定: creditcard
+🔄 指定された抽出方法・言語のみを実行します
+------------------------------------------------------------
+⏱️  [特定実験全体] ディレクトリ作成完了: 0.000秒
+⏱️  [特定実験全体] テストケース読み込み完了: 0.000秒
+⏱️  [テストケース1] 開始
+
+📋 テストケース 1: Creditcard Level1 Basic
+📝 入力テキスト: MASTERCARD
+5321 4411 3290 2189
+03/26
+456
+YAMADA TAROSUKE
+...
+----------------------------------------
+🔍 期待値取得テスト:
+  title: ''
+  userID: ''
+  note: ''
+
+🔍 抽出方法: YAML形式 (English)
+📝 説明: YAML形式での回答を要求し、YAMLパーサーでデコード - English prompt for extraction
+⏱️  [テストケース1] 抽出器作成完了: 0.001秒
+⏱️  [テストケース1] AI抽出完了: 62.118秒
+✅ 抽出成功
+  ⏱️  抽出時間: 62.115秒
+  ⏱️  総時間: 62.117秒
+  📊 抽出フィールド数: 7
+  ✅ バリデーション: 警告あり
+  📋 抽出結果:
+    title: MasterCard
+    userID: 5321 4411 3290 2189
+    url: https://www.mastercard.com/jp/login
+    note: MasterCard account for transactions and financial management.
+    host: secure.mastercard.com
+    port: 456
+    authKey: BEGIN:SSH PRIVATE KEY\nEND:SSH PRIVATE KEY
+
+📊 構造化ログ:
+{
+  "expected_fields" : [
+    {
+      "status" : "pending",
+      "value" : "MasterCard",
+      "name" : "title"
+    },
+    {
+      "name" : "userID",
+      "value" : "5321 4411 3290 2189",
+      "status" : "wrong"
+    },
+    {
+      "value" : "MasterCard account for transactions and financial management.",
+      "status" : "pending",
+      "name" : "note"
+    }
+  ],
+  "unexpected_fields" : [
+    {
+      "name" : "url",
+      "value" : "https:\/\/www.mastercard.com\/jp\/login",
+      "status" : "unexpected"
+    },
+    {
+      "name" : "host",
+      "value" : "secure.mastercard.com",
+      "status" : "unexpected"
+    },
+    {
+      "name" : "port",
+      "value" : "456",
+      "status" : "unexpected"
+    },
+    {
+      "value" : "BEGIN:SSH PRIVATE KEY\\nEND:SSH PRIVATE KEY",
+      "name" : "authKey",
+      "status" : "unexpected"
+    }
+  ],
+  "language" : "en",
+  "pattern" : "creditcard",
+  "level" : 1,
+  "iteration" : 1,
+  "method" : "yaml"
+}
+💾 ログ保存: test_logs/test_202510031443/yaml_en_creditcard_level1_1.json
+⏱️  [テストケース1] ログ出力完了: 62.119秒
+⏱️  [テストケース1] 完了: 62.119秒
+============================================================
+⏱️  [テストケース2] 開始
+
+📋 テストケース 2: Creditcard Level2 General
+📝 入力テキスト: JCB
+5115 4321 8329 2382
+01/26
+406
+SAKAI MASASHI
+
+オンライン決済時のみ使用可能
+月間利用限度額 50万円
+海外利用時は事前に連絡が必要
+カード紛失時は即...
+----------------------------------------
+🔍 期待値取得テスト:
+  title: ''
+  userID: ''
+  note: ''
+
+🔍 抽出方法: YAML形式 (English)
+📝 説明: YAML形式での回答を要求し、YAMLパーサーでデコード - English prompt for extraction
+⏱️  [テストケース2] 抽出器作成完了: 0.000秒
+⏱️  [テストケース2] AI抽出完了: 15.620秒
+✅ 抽出成功
+  ⏱️  抽出時間: 15.619秒
+  ⏱️  総時間: 15.619秒
+  📊 抽出フィールド数: 8
+  ✅ バリデーション: 警告あり
+  📋 抽出結果:
+    title: JCB
+    userID: 5115432183292382@example.com
+    password: ****
+    url: https://www.jcb.co.jp/jp/login/index.html,https://www.jcb.co.jp/jp/card/payment
+    note: オンライン決済時のみ使用可能\n月間利用限度額 50万円\n海外利用時は事前に連絡が必要\nカード紛失時は即座に連絡すること
+    host: example.com
+    port: 406
+    authKey: BEGIN: SSH-RSA\nHostKeyFile: /path/to/key\nEND: SSH-RSA
+
+📊 構造化ログ:
+{
+  "unexpected_fields" : [
+    {
+      "name" : "password",
+      "value" : "****",
+      "status" : "unexpected"
+    },
+    {
+      "name" : "url",
+      "value" : "https:\/\/www.jcb.co.jp\/jp\/login\/index.html,https:\/\/www.jcb.co.jp\/jp\/card\/payment",
+      "status" : "unexpected"
+    },
+    {
+      "name" : "host",
+      "value" : "example.com",
+      "status" : "unexpected"
+    },
+    {
+      "value" : "406",
+      "name" : "port",
+      "status" : "unexpected"
+    },
+    {
+      "status" : "unexpected",
+      "value" : "BEGIN: SSH-RSA\\nHostKeyFile: \/path\/to\/key\\nEND: SSH-RSA",
+      "name" : "authKey"
+    }
+  ],
+  "level" : 2,
+  "language" : "en",
+  "pattern" : "creditcard",
+  "expected_fields" : [
+    {
+      "name" : "title",
+      "value" : "JCB",
+      "status" : "pending"
+    },
+    {
+      "value" : "5115432183292382@example.com",
+      "name" : "userID",
+      "status" : "wrong"
+    },
+    {
+      "value" : "オンライン決済時のみ使用可能\\n月間利用限度額 50万円\\n海外利用時は事前に連絡が必要\\nカード紛失時は即座に連絡すること",
+      "status" : "pending",
+      "name" : "note"
+    }
+  ],
+  "method" : "yaml",
+  "iteration" : 1
+}
+💾 ログ保存: test_logs/test_202510031443/yaml_en_creditcard_level2_1.json
+⏱️  [テストケース2] ログ出力完了: 15.621秒
+⏱️  [テストケース2] 完了: 15.621秒
+============================================================
+⏱️  [テストケース3] 開始
+
+📋 テストケース 3: Creditcard Level3 Complex
+📝 入力テキスト: VISA
+4532-3234-5678-9112
+11/25
+125
+KEISUKE INOUE
+
+オンライン決済時のみ使用可能
+月間利用限度額: 50万円
+海外利用時は事前に連絡が必要
+カード紛失時...
+----------------------------------------
+🔍 期待値取得テスト:
+  title: ''
+  userID: ''
+  note: ''
+
+🔍 抽出方法: YAML形式 (English)
+📝 説明: YAML形式での回答を要求し、YAMLパーサーでデコード - English prompt for extraction
+⏱️  [テストケース3] 抽出器作成完了: 0.000秒
+⏱️  [テストケース3] AI抽出完了: 83.776秒
+✅ 抽出成功
+  ⏱️  抽出時間: 83.775秒
+  ⏱️  総時間: 83.775秒
+  📊 抽出フィールド数: 8
+  ✅ バリデーション: 成功
+  📋 抽出結果:
+    title: VISA
+    userID: keisuke.inoue@example.com
+    password: *******
+    url: https://www.visa.com/jp/online-payment/login.do
+    note: Online payment only. Monthly limit: 500,000 yen. Overseas use requires prior notification. Card lost: immediate notification. Must use 3D Secure authentication. Card misuse detection system in place. Automatic card suspension if abnormal transaction patterns are detected. One-time transaction limit: 100,000 yen. Daily transaction limit: 300,000 yen. Monthly transaction limit: 500,000 yen. Prohibited for specific industries (gambling, cryptocurrencies, etc.). Point redemption rate: 1%. Free annual fee (first year). Overseas transaction fee: 1.5%. Cashback function: once a month.
+    host: visa.com
+    port: 443
+    authKey: BEGIN:SSH-PRIVATE-KEY\n-----BEGIN PRIVATE KEY-----\n...\nEND:SSH-PRIVATE-KEY\n-----END PRIVATE KEY-----\n
+
+📊 構造化ログ:
+{
+  "method" : "yaml",
+  "level" : 3,
+  "pattern" : "creditcard",
+  "expected_fields" : [
+    {
+      "name" : "title",
+      "value" : "VISA",
+      "status" : "pending"
+    },
+    {
+      "value" : "keisuke.inoue@example.com",
+      "status" : "wrong",
+      "name" : "userID"
+    },
+    {
+      "value" : "Online payment only. Monthly limit: 500,000 yen. Overseas use requires prior notification. Card lost: immediate notification. Must use 3D Secure authentication. Card misuse detection system in place. Automatic card suspension if abnormal transaction patterns are detected. One-time transaction limit: 100,000 yen. Daily transaction limit: 300,000 yen. Monthly transaction limit: 500,000 yen. Prohibited for specific industries (gambling, cryptocurrencies, etc.). Point redemption rate: 1%. Free annual fee (first year). Overseas transaction fee: 1.5%. Cashback function: once a month.",
+      "name" : "note",
+      "status" : "pending"
+    }
+  ],
+  "unexpected_fields" : [
+    {
+      "value" : "*******",
+      "name" : "password",
+      "status" : "unexpected"
+    },
+    {
+      "status" : "unexpected",
+      "value" : "https:\/\/www.visa.com\/jp\/online-payment\/login.do",
+      "name" : "url"
+    },
+    {
+      "name" : "host",
+      "value" : "visa.com",
+      "status" : "unexpected"
+    },
+    {
+      "status" : "unexpected",
+      "value" : "443",
+      "name" : "port"
+    },
+    {
+      "name" : "authKey",
+      "value" : "BEGIN:SSH-PRIVATE-KEY\\n-----BEGIN PRIVATE KEY-----\\n...\\nEND:SSH-PRIVATE-KEY\\n-----END PRIVATE KEY-----\\n",
+      "status" : "unexpected"
+    }
+  ],
+  "iteration" : 1,
+  "language" : "en"
+}
+💾 ログ保存: test_logs/test_202510031443/yaml_en_creditcard_level3_1.json
+⏱️  [テストケース3] ログ出力完了: 83.777秒
+⏱️  [テストケース3] 完了: 83.777秒
+============================================================
+📄 HTMLレポート生成: test_logs/test_202510031443/yaml_en_format_experiment_report.html
+⏱️  [特定実験全体] HTMLレポート生成完了: 161.518秒
+⏱️  [特定実験全体] 完了: 161.518秒
+
+📊 特定実験完了
+📁 テスト結果: test_logs/test_202510031443/
+⏰ タイムアウト: 300秒経過
+🛑 処理を中断します
+================================================================================
+✅ AITest コンソールアプリケーション完了

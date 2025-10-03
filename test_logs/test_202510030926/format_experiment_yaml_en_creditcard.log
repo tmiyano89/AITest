@@ -1,0 +1,323 @@
+Building for debugging...
+[0/3] Write swift-version--58304C5D6DBC2206.txt
+Build of product 'AITestApp' complete! (0.09s)
+🚀 AITest コンソールアプリケーション開始
+OS Version: Version 26.0 (Build 25A354)
+================================================================================
+✅ iOS 26+ / macOS 26+ の要件を満たしています
+🔍 FoundationModelsの利用可能性をチェック中...
+🔍 SystemLanguageModel.availability: available
+✅ AI利用可能 - ベンチマークを実行します
+🔍 コマンドライン引数をチェック中...
+   引数: [".build/arm64-apple-macosx/debug/AITestApp", "--test-extraction-methods", "--experiment=yaml_en", "--pattern=creditcard", "--timeout=300", "--test-dir=test_logs/test_202510030926"]
+🔍 extractExperimentFromArguments 開始
+   利用可能なExtractionMethod: ["generable", "json", "yaml"]
+   利用可能なPromptLanguage: ["ja", "en"]
+   --experiment= 形式を検出: yaml_en
+   コンポーネント: ["yaml", "en"]
+✅ experimentを抽出: yaml_en
+✅ 特定のexperimentを検出: yaml_en
+⏱️ タイムアウト設定: 300秒
+⏱️  [特定実験全体] 開始
+
+🔬 特定実験を開始: YAML形式 (English)
+📋 パターン指定: creditcard
+🔄 指定された抽出方法・言語のみを実行します
+------------------------------------------------------------
+⏱️  [特定実験全体] ディレクトリ作成完了: 0.000秒
+⏱️  [特定実験全体] テストケース読み込み完了: 0.000秒
+⏱️  [テストケース1] 開始
+
+📋 テストケース 1: Creditcard Level1 Basic
+📝 入力テキスト: MASTERCARD
+5321 4411 3290 2189
+03/26
+456
+YAMADA TAROSUKE
+...
+----------------------------------------
+🔍 期待値取得テスト:
+  title: ''
+  userID: ''
+  password: ''
+  url: ''
+  note: ''
+  host: ''
+  port: ''
+  authKey: ''
+
+🔍 抽出方法: YAML形式 (English)
+📝 説明: YAML形式での回答を要求し、YAMLパーサーでデコード - English prompt for extraction
+⏱️  [テストケース1] 抽出器作成完了: 0.000秒
+⏱️  [テストケース1] AI抽出完了: 69.127秒
+✅ 抽出成功
+  ⏱️  抽出時間: 69.125秒
+  ⏱️  総時間: 69.127秒
+  📊 抽出フィールド数: 7
+  ✅ バリデーション: 警告あり
+  📋 抽出結果:
+    title: MASTERCARD
+    userID: 5321 4411 3290 2189
+    url: https://mastercard.com/payments/login.html, https://www.mastercard.com/
+    note: MasterCardアカウントは、オンラインショッピングや支払いサービスに利用します。セキュリティのため、個人情報が保護されています。
+    host: mastercard.com
+    port: 456
+    authKey: BEGIN RSA PRIVATE KEY blabla END
+
+📊 構造化ログ:
+{
+  "pattern" : "creditcard",
+  "expected_fields" : [
+    {
+      "name" : "title",
+      "status" : "pending",
+      "value" : "MASTERCARD"
+    },
+    {
+      "name" : "userID",
+      "value" : "5321 4411 3290 2189",
+      "status" : "wrong"
+    },
+    {
+      "name" : "password",
+      "value" : null,
+      "status" : "missing"
+    },
+    {
+      "value" : "MasterCardアカウントは、オンラインショッピングや支払いサービスに利用します。セキュリティのため、個人情報が保護されています。",
+      "status" : "pending",
+      "name" : "note"
+    }
+  ],
+  "unexpected_fields" : [
+    {
+      "value" : "https:\/\/mastercard.com\/payments\/login.html, https:\/\/www.mastercard.com\/",
+      "status" : "unexpected",
+      "name" : "url"
+    },
+    {
+      "value" : "mastercard.com",
+      "status" : "unexpected",
+      "name" : "host"
+    },
+    {
+      "status" : "unexpected",
+      "value" : "456",
+      "name" : "port"
+    },
+    {
+      "name" : "authKey",
+      "value" : "BEGIN RSA PRIVATE KEY blabla END",
+      "status" : "unexpected"
+    }
+  ],
+  "level" : 1,
+  "method" : "yaml",
+  "language" : "en",
+  "iteration" : 1
+}
+💾 ログ保存: test_logs/test_202510030926/yaml_en_creditcard_level1_1.json
+⏱️  [テストケース1] ログ出力完了: 69.128秒
+⏱️  [テストケース1] 完了: 69.128秒
+============================================================
+⏱️  [テストケース2] 開始
+
+📋 テストケース 2: Creditcard Level2 General
+📝 入力テキスト: JCB
+5115 4321 8329 2382
+01/26
+406
+SAKAI MASASHI
+
+オンライン決済時のみ使用可能
+月間利用限度額 50万円
+海外利用時は事前に連絡が必要
+カード紛失時は即...
+----------------------------------------
+🔍 期待値取得テスト:
+  title: ''
+  userID: ''
+  password: ''
+  url: ''
+  note: ''
+  host: ''
+  port: ''
+  authKey: ''
+
+🔍 抽出方法: YAML形式 (English)
+📝 説明: YAML形式での回答を要求し、YAMLパーサーでデコード - English prompt for extraction
+⏱️  [テストケース2] 抽出器作成完了: 0.000秒
+⏱️  [テストケース2] AI抽出完了: 17.191秒
+✅ 抽出成功
+  ⏱️  抽出時間: 17.190秒
+  ⏱️  総時間: 17.191秒
+  📊 抽出フィールド数: 6
+  ✅ バリデーション: 警告あり
+  📋 抽出結果:
+    title: JCB
+    userID: 5115 4321 8329 2382
+    url: https://www.jcb.co.jp/jp/c/login.jsp,https://www.jcb.co.jp/jp/c/index.jsp
+    note: オンライン決済時のみ使用可能。月間利用限度額は50万円。
+    port: 406
+    authKey: BEGIN RSA PRIVATE KEY\nEND RSA PRIVATE KEY
+
+📊 構造化ログ:
+{
+  "pattern" : "creditcard",
+  "expected_fields" : [
+    {
+      "value" : "JCB",
+      "status" : "pending",
+      "name" : "title"
+    },
+    {
+      "name" : "userID",
+      "value" : "5115 4321 8329 2382",
+      "status" : "wrong"
+    },
+    {
+      "value" : null,
+      "status" : "missing",
+      "name" : "password"
+    },
+    {
+      "value" : "オンライン決済時のみ使用可能。月間利用限度額は50万円。",
+      "status" : "pending",
+      "name" : "note"
+    }
+  ],
+  "unexpected_fields" : [
+    {
+      "name" : "url",
+      "value" : "https:\/\/www.jcb.co.jp\/jp\/c\/login.jsp,https:\/\/www.jcb.co.jp\/jp\/c\/index.jsp",
+      "status" : "unexpected"
+    },
+    {
+      "status" : "unexpected",
+      "value" : "406",
+      "name" : "port"
+    },
+    {
+      "name" : "authKey",
+      "value" : "BEGIN RSA PRIVATE KEY\\nEND RSA PRIVATE KEY",
+      "status" : "unexpected"
+    }
+  ],
+  "level" : 2,
+  "method" : "yaml",
+  "language" : "en",
+  "iteration" : 1
+}
+💾 ログ保存: test_logs/test_202510030926/yaml_en_creditcard_level2_1.json
+⏱️  [テストケース2] ログ出力完了: 17.191秒
+⏱️  [テストケース2] 完了: 17.191秒
+============================================================
+⏱️  [テストケース3] 開始
+
+📋 テストケース 3: Creditcard Level3 Complex
+📝 入力テキスト: VISA
+4532-3234-5678-9112
+11/25
+125
+KEISUKE INOUE
+
+オンライン決済時のみ使用可能
+月間利用限度額: 50万円
+海外利用時は事前に連絡が必要
+カード紛失時...
+----------------------------------------
+🔍 期待値取得テスト:
+  title: ''
+  userID: ''
+  password: ''
+  url: ''
+  note: ''
+  host: ''
+  port: ''
+  authKey: ''
+
+🔍 抽出方法: YAML形式 (English)
+📝 説明: YAML形式での回答を要求し、YAMLパーサーでデコード - English prompt for extraction
+⏱️  [テストケース3] 抽出器作成完了: 0.000秒
+⏱️  [テストケース3] AI抽出完了: 23.621秒
+✅ 抽出成功
+  ⏱️  抽出時間: 23.620秒
+  ⏱️  総時間: 23.621秒
+  📊 抽出フィールド数: 8
+  ✅ バリデーション: 成功
+  📋 抽出結果:
+    title: VISA
+    userID: keisuke.inoue@gmail.com
+    password: *******
+    url: https://www.visa.co.jp/jp/visa/login/index.html, https://www.visa.co.jp/jp/visa/
+    note: 1回の取引上限: 10万円\n日次取引上限: 30万円\n月次取引上限: 50万円\n不正利用検知システムにより監視\n異常な取引パターンが検出された場合、自動的にカードを停止\nカードの物理的損傷時は無料で再発行可能\n定期的なパスワード変更を推奨\n不正利用が疑われる場合は即座に連絡すること
+    host: visa.co.jp
+    port: 443
+    authKey: BEGIN:SSH-PRIVATE-KEY\n-----BEGIN PRIVATE KEY-----\n...\nEND:SSH-PRIVATE-KEY\n-----END PRIVATE KEY-----
+
+📊 構造化ログ:
+{
+  "level" : 3,
+  "language" : "en",
+  "expected_fields" : [
+    {
+      "name" : "title",
+      "value" : "VISA",
+      "status" : "pending"
+    },
+    {
+      "value" : "keisuke.inoue@gmail.com",
+      "status" : "wrong",
+      "name" : "userID"
+    },
+    {
+      "name" : "password",
+      "value" : "*******",
+      "status" : "wrong"
+    },
+    {
+      "value" : "1回の取引上限: 10万円\\n日次取引上限: 30万円\\n月次取引上限: 50万円\\n不正利用検知システムにより監視\\n異常な取引パターンが検出された場合、自動的にカードを停止\\nカードの物理的損傷時は無料で再発行可能\\n定期的なパスワード変更を推奨\\n不正利用が疑われる場合は即座に連絡すること",
+      "status" : "pending",
+      "name" : "note"
+    },
+    {
+      "name" : "authKey",
+      "value" : "BEGIN:SSH-PRIVATE-KEY\\n-----BEGIN PRIVATE KEY-----\\n...\\nEND:SSH-PRIVATE-KEY\\n-----END PRIVATE KEY-----",
+      "status" : "wrong"
+    }
+  ],
+  "iteration" : 1,
+  "unexpected_fields" : [
+    {
+      "status" : "unexpected",
+      "value" : "https:\/\/www.visa.co.jp\/jp\/visa\/login\/index.html, https:\/\/www.visa.co.jp\/jp\/visa\/",
+      "name" : "url"
+    },
+    {
+      "value" : "visa.co.jp",
+      "status" : "unexpected",
+      "name" : "host"
+    },
+    {
+      "name" : "port",
+      "status" : "unexpected",
+      "value" : "443"
+    }
+  ],
+  "method" : "yaml",
+  "pattern" : "creditcard"
+}
+💾 ログ保存: test_logs/test_202510030926/yaml_en_creditcard_level3_1.json
+⏱️  [テストケース3] ログ出力完了: 23.622秒
+⏱️  [テストケース3] 完了: 23.622秒
+============================================================
+📄 HTMLレポート生成: test_logs/test_202510030926/yaml_en_format_experiment_report.html
+⏱️  [特定実験全体] HTMLレポート生成完了: 109.942秒
+⏱️  [特定実験全体] 完了: 109.942秒
+
+📊 特定実験完了
+📁 テスト結果: test_logs/test_202510030926/
+⏰ タイムアウト: 300秒経過
+🛑 処理を中断します
+================================================================================
+✅ AITest コンソールアプリケーション完了

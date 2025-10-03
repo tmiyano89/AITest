@@ -1,0 +1,1317 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FoundationModels フォーマット実験レポート</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 20px; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+        .test-case { margin-bottom: 30px; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; }
+        .test-case-header { background: #f8f9fa; padding: 15px; font-weight: bold; font-size: 1.2em; }
+        .method-group { margin: 10px 0; }
+        .method-header { background: #e9ecef; padding: 10px; font-weight: bold; }
+        .result-content { padding: 15px; background: #f8f9fa; }
+        .metrics { padding: 10px; background: #e9ecef; font-family: monospace; font-size: 0.9em; }
+        .error { color: #dc3545; background: #f8d7da; padding: 10px; border-radius: 4px; }
+        pre { white-space: pre-wrap; word-wrap: break-word; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔬 FoundationModels フォーマット実験レポート</h1>
+        <p>生成日時: </p>
+        <p>総テストケース数: 90</p>
+    </div><div class="test-case">
+    <div class="test-case-header">📋 Chat Level1 Basic</div><div class="method-group">
+    <div class="method-header">🔍 @Generableマクロ (English)</div><div class="error">
+    <h4>言語: English</h4>
+    <h5>抽出結果:</h5>
+    <pre>エラー: Detected content likely to be unsafe</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出失敗</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 @Generableマクロ (日本語)</div><div class="error">
+    <h4>言語: 日本語</h4>
+    <h5>抽出結果:</h5>
+    <pre>エラー: Detected content likely to be unsafe</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出失敗</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 JSON形式 (English)</div><div class="result-content">
+    <h4>言語: English</h4>
+    <h5>抽出結果:</h5>
+    <pre>title: AWS EC2 Login Information
+userID: admin/SecurePass18329
+password: SecurePass18329
+url: https://aws.amazon.com/ec2/v2/
+note: Account is for AWS EC2 login.
+host: ec2.amazonaws.com
+port: 22
+authKey: BEGIN:SSH PRIVATE KEY
+-----BEGIN RSA PRIVATE KEY-----
+...
+END:SSH PRIVATE KEY
+confidence: 1.0</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出時間: 7.314秒
+総時間: 7.314秒
+メモリ使用量: 0.39MB
+抽出フィールド数: 8
+バリデーション: 成功</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 JSON形式 (日本語)</div><div class="result-content">
+    <h4>言語: 日本語</h4>
+    <h5>抽出結果:</h5>
+    <pre>title: AWS EC2
+userID: admin@securepass.example.com
+password: SecurePass18329
+url: https://ec2.amazonaws.com/login
+note: AWS EC2アカウントの管理について注意してください。管理者権限を持つ場合は、セキュリティを強化するために定期的なバックアップとアクセス制御を確認してください。
+host: ec2.amazonaws.com
+port: 22
+authKey: BEGIN
+SSH-RSA
+------
+YourSecureKey
+END
+confidence: 0.95</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出時間: 9.814秒
+総時間: 9.815秒
+メモリ使用量: -0.48MB
+抽出フィールド数: 8
+バリデーション: 警告あり</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 YAML形式 (English)</div><div class="result-content">
+    <h4>言語: English</h4>
+    <h5>抽出結果:</h5>
+    <pre>title: AWS EC2 Account Information
+userID: admin@example.com, SecurePass18329
+password: SecurePass18329
+url: https://my-ec2-instance.amazonaws.com/login, https://my-ec2-instance.amazonaws.com/
+note: For accessing AWS EC2 instances.
+host: my-ec2-instance.amazonaws.com
+port: 22
+authKey: BEGIN:SSH-PRIVATE-KEY\nHost: my-ec2-instance.amazonaws.com\nUser: admin\nIdentityFile: /path/to/securepass18329.pem\nEND:SSH-PRIVATE-KEY
+confidence: 1.0</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出時間: 5.925秒
+総時間: 5.927秒
+メモリ使用量: 1.23MB
+抽出フィールド数: 8
+バリデーション: 警告あり</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 YAML形式 (日本語)</div><div class="result-content">
+    <h4>言語: 日本語</h4>
+    <h5>抽出結果:</h5>
+    <pre>title: AWS EC2 ログイン
+userID: admin@securepass18329.example.com
+password: SecurePass18329
+url: https://ec2.amazonaws.com/login/ - https://aws.amazon.com
+note: 注意：このアカウントはAWS EC2の管理に使用されるため、セキュリティを厳格に管理してください。
+host: ec2.amazonaws.com
+port: 22
+authKey: BEGIN/SSH秘密鍵 - END
+confidence: 0.9</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出時間: 14.323秒
+総時間: 14.324秒
+メモリ使用量: -1.42MB
+抽出フィールド数: 8
+バリデーション: 警告あり</div>
+</div></div></div><div class="test-case">
+    <div class="test-case-header">📋 Chat Level2 General</div><div class="method-group">
+    <div class="method-header">🔍 @Generableマクロ (English)</div><div class="error">
+    <h4>言語: English</h4>
+    <h5>抽出結果:</h5>
+    <pre>エラー: Detected content likely to be unsafe</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出失敗</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 @Generableマクロ (日本語)</div><div class="error">
+    <h4>言語: 日本語</h4>
+    <h5>抽出結果:</h5>
+    <pre>エラー: Detected content likely to be unsafe</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出失敗</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 JSON形式 (English)</div><div class="result-content">
+    <h4>言語: English</h4>
+    <h5>抽出結果:</h5>
+    <pre>title: AWS EC2 - DevOps Project
+userID: devops@company.com / MySecret2024!
+password: MySecret2024!
+url: https://console.aws.amazon.com/ec2/
+note: AWS EC2インスタンスのサーバー設定が完了しました。データベースの設定は来週に完了予定です。セキュリティグループはポート22でSSH接続を許可しています。
+host: aws-ec2-instance.company.com
+port: 22
+authKey: BEGIN PRIVATE KEY:-----END PRIVATE KEY-----
+confidence: 1.0</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出時間: 7.114秒
+総時間: 7.114秒
+メモリ使用量: 0.30MB
+抽出フィールド数: 8
+バリデーション: 警告あり</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 JSON形式 (日本語)</div><div class="result-content">
+    <h4>言語: 日本語</h4>
+    <h5>抽出結果:</h5>
+    <pre>title: AWS EC2 サーバー設定
+userID: devops@company.com
+password: MySecret2024!
+url: https://console.aws.amazon.com/ec2/
+note: このアカウントはAWS EC2インスタンスの管理に使用されます。セキュリティグループが設定されており、SSH接続はポート22で開放されています。
+host: aws.amazon.com
+port: 22
+authKey: BEGIN MySecret2024! END
+confidence: 1.0</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出時間: 6.276秒
+総時間: 6.276秒
+メモリ使用量: 0.09MB
+抽出フィールド数: 8
+バリデーション: 警告あり</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 YAML形式 (English)</div><div class="result-content">
+    <h4>言語: English</h4>
+    <h5>抽出結果:</h5>
+    <pre>title: AWS EC2 Server Setup
+userID: devops@company.com
+password: MySecret2024!
+url: https://console.aws.amazon.com/ec2/", "https://console.aws.amazon.com
+note: AWS EC2 server setup completed. Database setup is pending.
+host: aws-instance
+port: 22
+authKey: |
+confidence: 0.9</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出時間: 11.483秒
+総時間: 11.485秒
+メモリ使用量: 0.28MB
+抽出フィールド数: 8
+バリデーション: 警告あり</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 YAML形式 (日本語)</div><div class="result-content">
+    <h4>言語: 日本語</h4>
+    <h5>抽出結果:</h5>
+    <pre>title: AWS EC2サーバー設定
+userID: devops@company.com
+password: MySecret2024!
+url: https://console.aws.amazon.com/ec2/", "https://console.aws.amazon.com/
+note: このアカウントはAWS EC2インスタンスの管理に使用されます。セキュリティグループとSSH接続を管理してください。
+host: aws.amazon.com
+port: 22
+authKey: BEGIN:SSH PRIVATE KEY:-----END:SSH PRIVATE KEY-----
+confidence: 1.0</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出時間: 8.695秒
+総時間: 8.697秒
+メモリ使用量: -2.30MB
+抽出フィールド数: 8
+バリデーション: 警告あり</div>
+</div></div></div><div class="test-case">
+    <div class="test-case-header">📋 Chat Level3 Complex</div><div class="method-group">
+    <div class="method-header">🔍 @Generableマクロ (English)</div><div class="error">
+    <h4>言語: English</h4>
+    <h5>抽出結果:</h5>
+    <pre>エラー: Detected content likely to be unsafe</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出失敗</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 @Generableマクロ (日本語)</div><div class="error">
+    <h4>言語: 日本語</h4>
+    <h5>抽出結果:</h5>
+    <pre>エラー: Detected content likely to be unsafe</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出失敗</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 JSON形式 (English)</div><div class="result-content">
+    <h4>言語: English</h4>
+    <h5>抽出結果:</h5>
+    <pre>title: AWS EC2 Infrastructure Setup
+userID: user: root
+password: SuperSecure2024#
+url: https://console.aws.amazon.com/ec2/
+note: AWS EC2インスタンスのセットアップが完了しました。t3.mediumインスタンスを立ち上げて、アクセス情報を設定しました。システム管理者のアカウントは root を使用しています。セキュリティの観点から、パスワード認証を無効にし、SSH鍵認証のみに切り替えました。ファイアウォール設定により、特定のIPアドレスからのみアクセス可能にしています。データベースの設定は来週までに完了予定です。監視システムの設定も並行して進めておりますので、問題が発生した場合は、すぐに連絡してください。
+host: ec2-54-123-45-67.compute-1.amazonaws.com
+port: 22
+authKey: BEGIN OPENSSH PRIVATE KEY
+b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABFwAAAAdzc2gtcn
+NhAAAAAwEAAQAAAQEA1234567890abcdef
+END OPENSSH PRIVATE KEY
+confidence: 0.95</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出時間: 9.521秒
+総時間: 9.523秒
+メモリ使用量: -1.25MB
+抽出フィールド数: 8
+バリデーション: 警告あり</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 JSON形式 (日本語)</div><div class="result-content">
+    <h4>言語: 日本語</h4>
+    <h5>抽出結果:</h5>
+    <pre>title: AWS EC2 Instance Setup
+userID: root
+password: SuperSecure2024#
+url: https://console.aws.amazon.com/ec2/
+note: AWS EC2インスタンスのセットアップ完了。t3.mediumインスタンスの設定完了。RDS MySQLインスタンスのデータベース接続情報も準備中。セキュリティの観点から、パスワード認証は無効にし、SSH鍵認証のみにする。ファイアウォールの設定で特定のIPアドレスからのみアクセス可能に。監視システムの設定も進めており、ログ確認方法も後日共有予定。
+host: ec2-54-123-45-67.compute-1.amazonaws.com(197.78.64.33)
+port: 22
+authKey: BEGIN OPENSSH PRIVATE KEY b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABFwAAAAdzc2gtcn NhAAAAAwEAAQAAAQEA1234567890abcdef END OPENSSH PRIVATE KEY
+confidence: 0.9</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出時間: 10.719秒
+総時間: 10.720秒
+メモリ使用量: 0.55MB
+抽出フィールド数: 8
+バリデーション: 警告あり</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 YAML形式 (English)</div><div class="result-content">
+    <h4>言語: English</h4>
+    <h5>抽出結果:</h5>
+    <pre>title: AWS EC2 Instance Management
+userID: ec2-user@example.com
+password: SuperSecure2024#
+url: https://console.aws.amazon.com/ec2/
+note: The account is used for managing AWS EC2 instances. Security groups and SSH keys have been configured. Database and monitoring systems are also being set up.
+host: ec2-54-123-45-67.compute-1.amazonaws.com
+port: 22
+authKey: |
+confidence: 0.9</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出時間: 10.616秒
+総時間: 10.617秒
+メモリ使用量: -0.69MB
+抽出フィールド数: 8
+バリデーション: 警告あり</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 YAML形式 (日本語)</div><div class="result-content">
+    <h4>言語: 日本語</h4>
+    <h5>抽出結果:</h5>
+    <pre>title: AWS EC2 環境の設定と管理
+userID: user@example.com, root, t3.medium
+password: SuperSecure2024#
+url: https://console.aws.amazon.com/ec2/, https://console.aws.amazon.com/rds/
+note: AWS環境の管理とセキュリティ強化に関する作業進捗報告。EC2インスタンスのセットアップ、RDSデータベースの作成、SSH鍵認証の導入、セキュリティグループの設定が完了。
+host: ec2-54-123-45-67.compute-1.amazonaws.com(197.78.64.33)
+port: 22
+authKey: BEGIN OPENSSH PRIVATE KEY\nb3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABFwAAAAdzc2gtcn\nNhAAAAAwEAAQAAAQEA1234567890abcdef\nEND OPENSSH PRIVATE KEY
+confidence: 0.9</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出時間: 9.214秒
+総時間: 9.217秒
+メモリ使用量: 0.62MB
+抽出フィールド数: 8
+バリデーション: 警告あり</div>
+</div></div></div><div class="test-case">
+    <div class="test-case-header">📋 Contract Level1 Basic</div><div class="method-group">
+    <div class="method-header">🔍 @Generableマクロ (English)</div><div class="error">
+    <h4>言語: English</h4>
+    <h5>抽出結果:</h5>
+    <pre>エラー: Detected content likely to be unsafe</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出失敗</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 @Generableマクロ (日本語)</div><div class="error">
+    <h4>言語: 日本語</h4>
+    <h5>抽出結果:</h5>
+    <pre>エラー: Detected content likely to be unsafe</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出失敗</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 JSON形式 (English)</div><div class="result-content">
+    <h4>言語: English</h4>
+    <h5>抽出結果:</h5>
+    <pre>title: SSH Service
+userID: employee_2024
+password: CorpAccess#789
+url: https://example.com/login
+note: Access for internal system
+host: internal-system.example.com
+port: 22
+authKey: BEGIN ssh-rsa AAAAB3NzaC1yc2EAAAACgkIDAQABAAAB..END
+confidence: 1.0</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出時間: 7.628秒
+総時間: 7.629秒
+メモリ使用量: 1.16MB
+抽出フィールド数: 8
+バリデーション: 警告あり</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 JSON形式 (日本語)</div><div class="result-content">
+    <h4>言語: 日本語</h4>
+    <h5>抽出結果:</h5>
+    <pre>title: 社内システムアクセス権限
+userID: employee_2024
+password: CorpAccess#789
+url: https://example.com/login
+note: 社内システムへのアクセス権限付与。注意: パスワードは機密扱い、不審なアクセスを防ぐため、定期的に変更する。
+host: internal-system.example.com
+port: 22
+authKey: BEGIN CorpAccess#789 END
+confidence: 0.95</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出時間: 8.680秒
+総時間: 8.680秒
+メモリ使用量: -1.42MB
+抽出フィールド数: 8
+バリデーション: 警告あり</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 YAML形式 (English)</div><div class="result-content">
+    <h4>言語: English</h4>
+    <h5>抽出結果:</h5>
+    <pre>title: Employee Access to Internal System
+userID: employee_2024
+password: CorpAccess#789
+url: login_page_url, internal_system_url
+note: Access to internal system
+host: internal_system_hostname
+port: 22
+authKey: BEGIN CorpAccess#789END
+confidence: 1.0</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出時間: 56.503秒
+総時間: 56.505秒
+メモリ使用量: -0.12MB
+抽出フィールド数: 8
+バリデーション: 警告あり</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 YAML形式 (日本語)</div><div class="result-content">
+    <h4>言語: 日本語</h4>
+    <h5>抽出結果:</h5>
+    <pre>title: CorpAccess
+userID: employee_2024
+password: CorpAccess#789
+url: https://www.corpaccess.com/login,https://www.corpaccess.com/
+note: 社内システムへのアクセスを許可する
+host: corpaccess.com
+port: 8443
+authKey: BEGIN CorpAccess#789 END
+confidence: 0.9</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出時間: 61.762秒
+総時間: 61.763秒
+メモリ使用量: -1.27MB
+抽出フィールド数: 8
+バリデーション: 警告あり</div>
+</div></div></div><div class="test-case">
+    <div class="test-case-header">📋 Contract Level2 General</div><div class="method-group">
+    <div class="method-header">🔍 @Generableマクロ (English)</div><div class="error">
+    <h4>言語: English</h4>
+    <h5>抽出結果:</h5>
+    <pre>エラー: Detected content likely to be unsafe</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出失敗</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 @Generableマクロ (日本語)</div><div class="error">
+    <h4>言語: 日本語</h4>
+    <h5>抽出結果:</h5>
+    <pre>エラー: Detected content likely to be unsafe</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出失敗</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 JSON形式 (English)</div><div class="result-content">
+    <h4>言語: English</h4>
+    <h5>抽出結果:</h5>
+    <pre>title: 社内基幹システム
+userID: manager@company.co.jp
+password: SecureLogin2024!
+url: https://system.company.com/login
+note: 業務目的でのみ利用可能。私的利用は禁止。
+host: system.company.com
+port: 8000
+authKey: BEGIN
+MIIBIjANBgkqhkiG9w0BAQsMA4GCSqGSIAMhCCAmEAAEBAQWU5xJ6p8z7H1Wn7W
+5kJFxj3IYrV2nLf3hx14fQpCkZ4nWbQgX9i2yS5YVXwXz84tBfZ067VYQjT92Q7
+X1853698yD6wZf7p0f0D16r4O1e5t3jJ2Qe45ZQ6gY9s/V3Q33jJmWc3wKZ5y7G
+Q04cYFw3fS1vqKz0w92ZvJjM5b6hBQK70Q5uUq6JQ7fXjN+1Yr8wT0z7iT2H6hI
+N3l333rQ9q61e6Xv5FyY6zV1RtP66YhYG54K406Wjg==
+END
+confidence: 0.95</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出時間: 15.291秒
+総時間: 15.292秒
+メモリ使用量: -0.61MB
+抽出フィールド数: 8
+バリデーション: 警告あり</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 JSON形式 (日本語)</div><div class="result-content">
+    <h4>言語: 日本語</h4>
+    <h5>抽出結果:</h5>
+    <pre>title: 社内基幹システム
+userID: manager@company.co.jp
+password: SecureLogin2024!
+url: https://system.company.com/login
+note: 業務目的でのみ利用可能。セキュリティ要件を守り、パスワードを定期的に変更する。
+host: system.company.com
+port: 80
+authKey: BEGIN SecureLogin2024!END
+confidence: 0.9</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出時間: 3.841秒
+総時間: 3.842秒
+メモリ使用量: -0.03MB
+抽出フィールド数: 8
+バリデーション: 警告あり</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 YAML形式 (English)</div><div class="result-content">
+    <h4>言語: English</h4>
+    <h5>抽出結果:</h5>
+    <pre>title: Company internal system
+userID: manager@company.co.jp / SecureLogin2024!
+password: nil
+url: https://system.company.com/login
+note: For business purposes only. Private use is prohibited.
+host: company.co.jp
+port: 8000
+authKey: BEGIN SecureLogin2024!END
+confidence: 1.0</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出時間: 11.336秒
+総時間: 11.337秒
+メモリ使用量: -0.53MB
+抽出フィールド数: 7
+バリデーション: 警告あり</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 YAML形式 (日本語)</div><div class="result-content">
+    <h4>言語: 日本語</h4>
+    <h5>抽出結果:</h5>
+    <pre>title: 社内基幹システム、管理者アカウント、会社サイト
+userID: manager@company.co.jp
+password: SecureLogin2024!
+url: https://system.company.com/login
+note: 業務目的でのみ利用可能、私的利用は禁止
+host: nil
+port: nil
+authKey: BEGIN SecureLogin2024! END
+confidence: nil</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出時間: 7.719秒
+総時間: 7.723秒
+メモリ使用量: 0.48MB
+抽出フィールド数: 6
+バリデーション: 警告あり</div>
+</div></div></div><div class="test-case">
+    <div class="test-case-header">📋 Contract Level3 Complex</div><div class="method-group">
+    <div class="method-header">🔍 @Generableマクロ (English)</div><div class="error">
+    <h4>言語: English</h4>
+    <h5>抽出結果:</h5>
+    <pre>エラー: Detected content likely to be unsafe</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出失敗</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 @Generableマクロ (日本語)</div><div class="error">
+    <h4>言語: 日本語</h4>
+    <h5>抽出結果:</h5>
+    <pre>エラー: Detected content likely to be unsafe</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出失敗</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 JSON形式 (English)</div><div class="result-content">
+    <h4>言語: English</h4>
+    <h5>抽出結果:</h5>
+    <pre>title: 社内基幹システム
+userID: user001
+password: CompanyPass2024!@#
+url: https://system.company.com/login
+note: 業務目的でのみ利用可能。VPN経由で接続、同時接続は最大5セッション、ログイン試行は5回まで。異常アクセスで無効化可能。
+host: 192.168.1.100
+port: 443
+authKey: BEGIN OPENSSH PRIVATE KEY
+b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABFwAAAAdzc2gtcnNhAAAAAwEAAQAAAQEA1234567890abcdef...
+END OPENSSH PRIVATE KEY
+confidence: 1.0</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出時間: 5.880秒
+総時間: 5.881秒
+メモリ使用量: 1.36MB
+抽出フィールド数: 8
+バリデーション: 警告あり</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 JSON形式 (日本語)</div><div class="result-content">
+    <h4>言語: 日本語</h4>
+    <h5>抽出結果:</h5>
+    <pre>title: 社内基幹システム
+userID: user001@example.com
+password: CompanyPass2024!@#
+url: https://system.company.com/login
+note: 業務目的でのみ利用、VPN経由で接続、同時接続最大5セッション、ログイン試行5回まで（それ以上は1時間ロック）
+host: 192.168.1.100
+port: 443
+authKey: BEGIN OPENSSH PRIVATE KEY
+b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABFwAAAAdzc2gtcnNhAAAAAwEAAQAAAQEA1234567890abcdef...
+END OPENSSH PRIVATE KEY
+confidence: 0.9</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出時間: 13.788秒
+総時間: 13.790秒
+メモリ使用量: -0.72MB
+抽出フィールド数: 8
+バリデーション: 警告あり</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 YAML形式 (English)</div><div class="result-content">
+    <h4>言語: English</h4>
+    <h5>抽出結果:</h5>
+    <pre>title: 社内基幹システム（本番環境）
+userID: user001
+password: CompanyPass2024!@#
+url: https://system.company.com/login, https://system.company.com
+note: 業務目的でのみ利用可能。VPN経由で接続、同時接続は最大5セッション、ログイン試行は5回まで。
+host: 192.168.1.100
+port: 443
+authKey: BEGIN OPENSSH PRIVATE KEY\nb3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABFwAAAAdzc2gtcnNhAAAAAwEAAQAAAQEA1234567890abcdef...\nEND OPENSSH PRIVATE KEY
+confidence: 1.0</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出時間: 7.021秒
+総時間: 7.021秒
+メモリ使用量: 0.80MB
+抽出フィールド数: 8
+バリデーション: 警告あり</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 YAML形式 (日本語)</div><div class="result-content">
+    <h4>言語: 日本語</h4>
+    <h5>抽出結果:</h5>
+    <pre>title: 社内基幹システム（本番環境）
+userID: user001
+password: CompanyPass2024!@#
+url: nil
+note: nil
+host: 192.168.1.100
+port: 443
+authKey: BEGIN OPENSSH PRIVATE KEY\nb3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABFwAAAAdzc2gtcnNhAAAAAwEAAQAAAQEA1234567890abcdef...\nEND OPENSSH PRIVATE KEY
+confidence: 0.9</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出時間: 7.062秒
+総時間: 7.063秒
+メモリ使用量: -0.86MB
+抽出フィールド数: 6
+バリデーション: 警告あり</div>
+</div></div></div><div class="test-case">
+    <div class="test-case-header">📋 CreditCard Level1 Basic</div><div class="method-group">
+    <div class="method-header">🔍 @Generableマクロ (English)</div><div class="error">
+    <h4>言語: English</h4>
+    <h5>抽出結果:</h5>
+    <pre>エラー: Detected content likely to be unsafe</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出失敗</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 @Generableマクロ (日本語)</div><div class="error">
+    <h4>言語: 日本語</h4>
+    <h5>抽出結果:</h5>
+    <pre>エラー: Detected content likely to be unsafe</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出失敗</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 JSON形式 (English)</div><div class="result-content">
+    <h4>言語: English</h4>
+    <h5>抽出結果:</h5>
+    <pre>title: MASTERCARD
+userID: 5321 4411 3290 2189
+password: nil
+url: https://www.mastercard.com/
+note: MasterCardのアカウントはクレジットカードの支払いや会員特典の利用を目的としています。セキュリティは厳重に管理されています。
+host: https://www.mastercard.com
+port: 456
+authKey: BEGIN RSA PRIVATE KEY----END RSA PRIVATE KEY
+confidence: 1.0</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出時間: 2.648秒
+総時間: 2.649秒
+メモリ使用量: -0.09MB
+抽出フィールド数: 7
+バリデーション: 警告あり</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 JSON形式 (日本語)</div><div class="result-content">
+    <h4>言語: 日本語</h4>
+    <h5>抽出結果:</h5>
+    <pre>title: MASTERCARD
+userID: YAMADA TAROSUKE
+password: 5321 4411 3290 2189
+url: https://www.mastercard.com/jp/login
+note: MASTERCARDの顧客サービスに連絡し、アカウントのセキュリティを確認してください。
+host: https://www.mastercard.com
+port: 456
+authKey: BEGIN SSH-RSA-2048-X509-cert:AQAB
+confidence: 0.95</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出時間: 4.898秒
+総時間: 4.899秒
+メモリ使用量: -0.16MB
+抽出フィールド数: 8
+バリデーション: 警告あり</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 YAML形式 (English)</div><div class="result-content">
+    <h4>言語: English</h4>
+    <h5>抽出結果:</h5>
+    <pre>title: MASTERCARD
+userID: 5321441132902189
+password: nil
+url: https://www.mastercard.com/jp/login.jsp,https://www.mastercard.com/
+note: MasterCard account for financial transactions.
+host: https://www.mastercard.com
+port: 456
+authKey: BEGIN:SSH PRIVATE KEY\nEND:SSH PRIVATE KEY
+confidence: 1.0</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出時間: 2.090秒
+総時間: 2.090秒
+メモリ使用量: -0.09MB
+抽出フィールド数: 7
+バリデーション: 警告あり</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 YAML形式 (日本語)</div><div class="result-content">
+    <h4>言語: 日本語</h4>
+    <h5>抽出結果:</h5>
+    <pre>title: MASTERCARD
+userID: yamazatarosuke@example.com
+password: null
+url: https://example.com/login,https://example.com
+note: カード会員サービス、セキュリティのため個人情報を保護してください。
+host: example.com
+port: 456
+authKey: BEGIN:SSH:-----END:
+confidence: 0.95</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出時間: 1.997秒
+総時間: 1.999秒
+メモリ使用量: 0.08MB
+抽出フィールド数: 8
+バリデーション: 警告あり</div>
+</div></div></div><div class="test-case">
+    <div class="test-case-header">📋 CreditCard Level2 General</div><div class="method-group">
+    <div class="method-header">🔍 @Generableマクロ (English)</div><div class="error">
+    <h4>言語: English</h4>
+    <h5>抽出結果:</h5>
+    <pre>エラー: Detected content likely to be unsafe</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出失敗</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 @Generableマクロ (日本語)</div><div class="error">
+    <h4>言語: 日本語</h4>
+    <h5>抽出結果:</h5>
+    <pre>エラー: Detected content likely to be unsafe</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出失敗</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 JSON形式 (English)</div><div class="result-content">
+    <h4>言語: English</h4>
+    <h5>抽出結果:</h5>
+    <pre>title: JCB
+userID: 5115 4321 8329 2382
+password: ****
+url: https://www.jcb.co.jp/shop/login/index.jsp?reqType=JCB_INDEX_LOGIN&reqSubType=JCB_INDEX_LOGIN&reqSubType=JCB_INDEX_LOGIN
+note: オンライン決済時のみ使用可能。月間利用限度額は50万円。海外利用時は事前に連絡が必要。カード紛失時は即座に連絡すること
+host: www.jcb.co.jp
+port: 406
+authKey: BEGIN RSA PRIVATE KEY
+END RSA PRIVATE KEY
+confidence: 0.9</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出時間: 3.170秒
+総時間: 3.172秒
+メモリ使用量: 0.23MB
+抽出フィールド数: 8
+バリデーション: 警告あり</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 JSON形式 (日本語)</div><div class="result-content">
+    <h4>言語: 日本語</h4>
+    <h5>抽出結果:</h5>
+    <pre>title: JCB
+userID: SAKAI MASASHI
+password: 5115 4321 8329 2382
+url: https://online.jcb.co.jp/login
+note: オンライン決済時のみ使用可能、月間利用限度額 50万円、海外利用時は事前に連絡が必要、カード紛失時は即座に連絡すること
+host: online.jcb.co.jp
+port: 406
+authKey: BEGIN\n5115 4321 8329 2382\nEND
+confidence: 0.9</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出時間: 3.043秒
+総時間: 3.044秒
+メモリ使用量: -0.16MB
+抽出フィールド数: 8
+バリデーション: 警告あり</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 YAML形式 (English)</div><div class="error">
+    <h4>言語: English</h4>
+    <h5>抽出結果:</h5>
+    <pre>エラー: Exceeded model context window size</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出失敗</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 YAML形式 (日本語)</div><div class="error">
+    <h4>言語: 日本語</h4>
+    <h5>抽出結果:</h5>
+    <pre>エラー: Exceeded model context window size</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出失敗</div>
+</div></div></div><div class="test-case">
+    <div class="test-case-header">📋 CreditCard Level3 Complex</div><div class="method-group">
+    <div class="method-header">🔍 @Generableマクロ (English)</div><div class="error">
+    <h4>言語: English</h4>
+    <h5>抽出結果:</h5>
+    <pre>エラー: Detected content likely to be unsafe</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出失敗</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 @Generableマクロ (日本語)</div><div class="error">
+    <h4>言語: 日本語</h4>
+    <h5>抽出結果:</h5>
+    <pre>エラー: Detected content likely to be unsafe</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出失敗</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 JSON形式 (English)</div><div class="result-content">
+    <h4>言語: English</h4>
+    <h5>抽出結果:</h5>
+    <pre>title: VISA
+userID: keisuke.inoue@example.com
+password: 4532-3234-5678-9112
+url: https://www.visa.com/jp/login.html
+note: Online payments only
+Monthly limit: 500,000 yen
+International transactions require prior notification
+Report lost cards immediately
+3D Secure authentication required
+Monitored by an anti-fraud detection system
+Automated card suspension if unusual transaction patterns are detected
+Transaction limits: 10,000 yen per transaction, 30,000 yen per day, 50,000 yen per month
+Prohibited for certain industries (gambling, cryptocurrency, etc.)
+Reward rate: 1%
+Annual fee: Free (initial year)
+International transaction fee: 1.5%
+Cashback: Up to once per month
+host: visa-global.com
+port: 443
+authKey: BEGIN:SSH-PRIVATE-KEY
+-----BEGIN RSA PRIVATE KEY-----
+...
+END:SSH-PRIVATE-KEY
+confidence: 0.95</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出時間: 5.853秒
+総時間: 5.854秒
+メモリ使用量: -1.28MB
+抽出フィールド数: 8
+バリデーション: 成功</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 JSON形式 (日本語)</div><div class="result-content">
+    <h4>言語: 日本語</h4>
+    <h5>抽出結果:</h5>
+    <pre>title: VISA
+userID: keisuke.inoue@example.com
+password: nil
+url: https://www.visa.com/jp/online-payment/
+note: カード情報の第三者への開示を禁止。定期的なパスワード変更を推奨。不正利用が疑われる場合は即座に連絡すること。カードの物理的損傷時は無料で再発行可能。
+host: www.visa.com
+port: 443
+authKey: BEGIN:SSH-RSA-KEY AAAA-NlMxNzU5MzYwYzg2MzA4Mzc4NzM1.END
+confidence: 0.9</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出時間: 3.834秒
+総時間: 3.835秒
+メモリ使用量: -0.34MB
+抽出フィールド数: 7
+バリデーション: 警告あり</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 YAML形式 (English)</div><div class="result-content">
+    <h4>言語: English</h4>
+    <h5>抽出結果:</h5>
+    <pre>title: Online Payment Service
+userID: keisuke.inoue@example.com
+password: ***
+url: https://online-payment-service.com/login,https://online-payment-service.com/
+note: Online payment service for VISA cards. Important: Monthly limit: 500,000 yen. Contact us if lost or damaged. 3D Secure authentication required. Automatic card suspension in case of suspicious transactions. Daily transaction limit: 300,000 yen. Annual fee: Free (first year). Cashback: 1% monthly. International fees: 1.5%.
+host: online-payment-service.com
+port: 8443
+authKey: BEGIN:-----BEGIN PRIVATE KEY-----END:-----END PRIVATE KEY-----
+confidence: 0.9</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出時間: 3.809秒
+総時間: 3.811秒
+メモリ使用量: 0.23MB
+抽出フィールド数: 8
+バリデーション: 成功</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 YAML形式 (日本語)</div><div class="result-content">
+    <h4>言語: 日本語</h4>
+    <h5>抽出結果:</h5>
+    <pre>title: VISAカード
+userID: keisuke_inoue@example.com
+password: 4532-3234-5678-9112
+url: https://www.visa.com/jp/online-payment/login/index.jsp,https://www.visa.com/
+note: nil
+host: www.visa.com
+port: 443
+authKey: BEGIN\n4532-3234-5678-9112\nEND
+confidence: 0.9</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出時間: 5.678秒
+総時間: 5.679秒
+メモリ使用量: 0.91MB
+抽出フィールド数: 7
+バリデーション: 警告あり</div>
+</div></div></div><div class="test-case">
+    <div class="test-case-header">📋 PasswordManager Level1 Basic</div><div class="method-group">
+    <div class="method-header">🔍 @Generableマクロ (English)</div><div class="error">
+    <h4>言語: English</h4>
+    <h5>抽出結果:</h5>
+    <pre>エラー: Detected content likely to be unsafe</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出失敗</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 @Generableマクロ (日本語)</div><div class="error">
+    <h4>言語: 日本語</h4>
+    <h5>抽出結果:</h5>
+    <pre>エラー: Detected content likely to be unsafe</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出失敗</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 JSON形式 (English)</div><div class="result-content">
+    <h4>言語: English</h4>
+    <h5>抽出結果:</h5>
+    <pre>title: GitHub
+userID: john.doe
+password: GitHubPass2024!
+url: https://github.com
+note: For version control and collaboration on code projects.
+host: github.com
+port: 443
+authKey: BEGIN RSA PRIVATE KEY
+END RSA PRIVATE KEY
+confidence: 0.95</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出時間: 2.009秒
+総時間: 2.010秒
+メモリ使用量: 0.70MB
+抽出フィールド数: 8
+バリデーション: 警告あり</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 JSON形式 (日本語)</div><div class="result-content">
+    <h4>言語: 日本語</h4>
+    <h5>抽出結果:</h5>
+    <pre>title: GitHub
+userID: john.doe@github.com
+password: GitHubPass2024!
+url: https://github.com
+note: このアカウントはGitHubのソースコード管理に使用されています。セキュリティのため、パスワードを定期的に変更してください。
+host: github.com
+port: 443
+authKey: BEGINssh-rsa AAAAB3NzaC1yc2EAAAACgkQ8qB6Wr9z4p8Gq1lA3kR0mKZp3b4Vw17bMl2JG3j3kqjT2XJ6p8t3U6kU4pZP5L6X4n5W3oJ7G1X2P4N8c8P8h8U6V6l7W7p6V6v7X7w8Y8z8Z808182838485868788898A8B8C8D8E8F909192939495969798999A9B9C9D9E9F
+confidence: 0.9</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出時間: 7.160秒
+総時間: 7.161秒
+メモリ使用量: -3.30MB
+抽出フィールド数: 8
+バリデーション: 警告あり</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 YAML形式 (English)</div><div class="result-content">
+    <h4>言語: English</h4>
+    <h5>抽出結果:</h5>
+    <pre>title: GitHub
+userID: john.doe@example.com, john.doe, john
+password: GitHubPass2024!
+url: https://github.com, https://github.com
+note: Account for version control and collaboration on projects.
+host: github.com
+port: 443
+authKey: BEGIN:SSH PRIVATE KEY\n\n-----BEGIN RSA PRIVATE KEY-----\nMIICXQIBADANBgkqhkiG9w0BAQEFAASCBQ8AIIBAQDExVy1ZU7k3B3RwFz5X1\nQ8gqjWn4xqP1C9T45J97tJ634gTfV5Hr018hBQw9v4g2F9Uu49rF08t5XK7m4w\nMz91Hh1Mjg8GJ1nXqO1m1fVZxL9b2QyHxOYbXd2Gj6uL2WlMvKb7Yy761lz8x\nG23B9F0vj0n9K855G2g7VXZP2aL4d9TQ/zFmPx25Z5H+UaV/j+Q8uDm1Z5Vr9\nWvK+gWz65Q0vWg654Zj2fX3V4pXmJgV8/I4+h63jY6Zj5S3/Q3QlPnK8l6r7I\n8H49o0xC58XG7Jb58Vl1C4k0Tq36a/w==
+confidence: 0.95</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出時間: 13.469秒
+総時間: 13.472秒
+メモリ使用量: -1.50MB
+抽出フィールド数: 8
+バリデーション: 警告あり</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 YAML形式 (日本語)</div><div class="result-content">
+    <h4>言語: 日本語</h4>
+    <h5>抽出結果:</h5>
+    <pre>title: GitHub
+userID: john.doe@github.com
+password: GitHubPass2024!
+url: https://github.com
+note: GitHubはバージョン管理やコード共有に広く利用されているサービスです。
+host: github.com
+port: 443
+authKey: BEGIN\nSSH-RSA AAAAB3NzaC1yc2EAAAADAQABAAABAQCWgF9FnqT7h4IYVvj4lB0xJ3Pj8tK7r6g98H28JQlH4903839y3Rq0Yw6DpIw09FzDpY1Lm4nD88w0j4Fh3l6jq7V2K46654v4R3mB9bHc6rXkL6eXW6dQY5i9Xr05j232wRjN1gDl51qzj8GjVgHvG0gW6629dKfQVhJ354q3w3V9832W829V0XbC2pQH0F9N21kHZ4K7S1Y03K27r2ZzL66W0CzVQw0Hwj8q6s86rR9G4tRjVx7Xb5C7153u48Fq25vHhG6lVlS1F75I1r4Z7JXg==
+confidence: 0.95</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出時間: 10.911秒
+総時間: 10.911秒
+メモリ使用量: -0.02MB
+抽出フィールド数: 8
+バリデーション: 警告あり</div>
+</div></div></div><div class="test-case">
+    <div class="test-case-header">📋 PasswordManager Level2 General</div><div class="method-group">
+    <div class="method-header">🔍 @Generableマクロ (English)</div><div class="error">
+    <h4>言語: English</h4>
+    <h5>抽出結果:</h5>
+    <pre>エラー: Detected content likely to be unsafe</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出失敗</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 @Generableマクロ (日本語)</div><div class="error">
+    <h4>言語: 日本語</h4>
+    <h5>抽出結果:</h5>
+    <pre>エラー: An unsupported language or locale was used</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出失敗</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 JSON形式 (English)</div><div class="error">
+    <h4>言語: English</h4>
+    <h5>抽出結果:</h5>
+    <pre>エラー: 無効なJSON形式です</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出失敗</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 JSON形式 (日本語)</div><div class="error">
+    <h4>言語: 日本語</h4>
+    <h5>抽出結果:</h5>
+    <pre>エラー: An unsupported language or locale was used</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出失敗</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 YAML形式 (English)</div><div class="result-content">
+    <h4>言語: English</h4>
+    <h5>抽出結果:</h5>
+    <pre>title: nil
+userID: team_member@example.com
+password: SlackPass789
+url: https://company.slack.com
+note: Team communication
+host: company.slack.com
+port: 80
+authKey: BEGIN RSA PRIVATE KEY blabla\nEND RSA PRIVATE KEY blabla
+confidence: 0.7</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出時間: 4.953秒
+総時間: 4.954秒
+メモリ使用量: 0.06MB
+抽出フィールド数: 7
+バリデーション: 警告あり</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 YAML形式 (日本語)</div><div class="error">
+    <h4>言語: 日本語</h4>
+    <h5>抽出結果:</h5>
+    <pre>エラー: An unsupported language or locale was used</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出失敗</div>
+</div></div></div><div class="test-case">
+    <div class="test-case-header">📋 PasswordManager Level3 Complex</div><div class="method-group">
+    <div class="method-header">🔍 @Generableマクロ (English)</div><div class="error">
+    <h4>言語: English</h4>
+    <h5>抽出結果:</h5>
+    <pre>エラー: Detected content likely to be unsafe</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出失敗</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 @Generableマクロ (日本語)</div><div class="error">
+    <h4>言語: 日本語</h4>
+    <h5>抽出結果:</h5>
+    <pre>エラー: An unsupported language or locale was used</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出失敗</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 JSON形式 (English)</div><div class="error">
+    <h4>言語: English</h4>
+    <h5>抽出結果:</h5>
+    <pre>エラー: 無効なJSON形式です</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出失敗</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 JSON形式 (日本語)</div><div class="error">
+    <h4>言語: 日本語</h4>
+    <h5>抽出結果:</h5>
+    <pre>エラー: An unsupported language or locale was used</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出失敗</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 YAML形式 (English)</div><div class="result-content">
+    <h4>言語: English</h4>
+    <h5>抽出結果:</h5>
+    <pre>title: Service name, app name, site name
+userID: vpn_user
+password: VpnPass456!@#
+url: https://vpn.company.com/
+note: Corporate VPN access
+host: vpn.company.com
+port: 443
+authKey: 
+confidence: 0.5</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出時間: 8.342秒
+総時間: 8.343秒
+メモリ使用量: 0.62MB
+抽出フィールド数: 8
+バリデーション: 成功</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 YAML形式 (日本語)</div><div class="error">
+    <h4>言語: 日本語</h4>
+    <h5>抽出結果:</h5>
+    <pre>エラー: An unsupported language or locale was used</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出失敗</div>
+</div></div></div><div class="test-case">
+    <div class="test-case-header">📋 VoiceRecognition Level1 Basic</div><div class="method-group">
+    <div class="method-header">🔍 @Generableマクロ (English)</div><div class="error">
+    <h4>言語: English</h4>
+    <h5>抽出結果:</h5>
+    <pre>エラー: Detected content likely to be unsafe</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出失敗</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 @Generableマクロ (日本語)</div><div class="error">
+    <h4>言語: 日本語</h4>
+    <h5>抽出結果:</h5>
+    <pre>エラー: Detected content likely to be unsafe</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出失敗</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 JSON形式 (English)</div><div class="result-content">
+    <h4>言語: English</h4>
+    <h5>抽出結果:</h5>
+    <pre>title: AWS EC2 Account Information
+userID: admin
+password: SecurePass18329
+url: https://aws.amazon.com/ec2/
+note: AWS EC2へのログインに使用するアカウント情報です。特に重要な点は、パスワードの安全管理です。
+host: aws-instance.us-east-1.compute.amazonaws.com
+port: 22
+authKey: BEGIN RSA PRIVATE KEY...END
+confidence: 0.9</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出時間: 2.565秒
+総時間: 2.567秒
+メモリ使用量: 3.33MB
+抽出フィールド数: 8
+バリデーション: 警告あり</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 JSON形式 (日本語)</div><div class="error">
+    <h4>言語: 日本語</h4>
+    <h5>抽出結果:</h5>
+    <pre>エラー: Exceeded model context window size</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出失敗</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 YAML形式 (English)</div><div class="result-content">
+    <h4>言語: English</h4>
+    <h5>抽出結果:</h5>
+    <pre>title: AWS EC2
+userID: admin/SecurePass18329
+password: SecurePass18329
+url: https://my-aws-instance.amazonaws.com/login, https://my-aws-instance.amazonaws.com/
+note: For logging into AWS EC2 instance.
+host: my-aws-instance.amazonaws.com
+port: 22
+authKey: BEGIN RSA PRIVATE KEY\nEND
+confidence: 1.0</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出時間: 1.948秒
+総時間: 1.949秒
+メモリ使用量: 0.11MB
+抽出フィールド数: 8
+バリデーション: 警告あり</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 YAML形式 (日本語)</div><div class="result-content">
+    <h4>言語: 日本語</h4>
+    <h5>抽出結果:</h5>
+    <pre>title: AWS EC2
+userID: admin/SecurePass18329
+password: SecurePass18329
+url: https://aws.amazon.com/ec2/v2/access
+note: AWS EC2アカウントの認証に使用される。注意: 安全な環境で管理してください。
+host: aws.amazon.com
+port: 22
+authKey: BEGIN<SSH秘密鍵>END
+confidence: 0.9</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出時間: 2.068秒
+総時間: 2.069秒
+メモリ使用量: 0.36MB
+抽出フィールド数: 8
+バリデーション: 警告あり</div>
+</div></div></div><div class="test-case">
+    <div class="test-case-header">📋 VoiceRecognition Level2 General</div><div class="method-group">
+    <div class="method-header">🔍 @Generableマクロ (English)</div><div class="error">
+    <h4>言語: English</h4>
+    <h5>抽出結果:</h5>
+    <pre>エラー: Detected content likely to be unsafe</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出失敗</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 @Generableマクロ (日本語)</div><div class="error">
+    <h4>言語: 日本語</h4>
+    <h5>抽出結果:</h5>
+    <pre>エラー: Detected content likely to be unsafe</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出失敗</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 JSON形式 (English)</div><div class="result-content">
+    <h4>言語: English</h4>
+    <h5>抽出結果:</h5>
+    <pre>title: AWS EC2 Server Configuration
+userID: devops@company.com
+password: MySecret2024!
+url: https://console.aws.amazon.com/ec2/
+note: Account is for AWS EC2 server configuration. SSH access is available on port 22.
+host: aws-instance.company.com
+port: 22
+authKey: BEGIN RSA PRIVATE KEY...END
+confidence: 1.0</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出時間: 2.435秒
+総時間: 2.436秒
+メモリ使用量: 0.12MB
+抽出フィールド数: 8
+バリデーション: 警告あり</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 JSON形式 (日本語)</div><div class="result-content">
+    <h4>言語: 日本語</h4>
+    <h5>抽出結果:</h5>
+    <pre>title: AWS EC2 ログイン - DevOps
+userID: devops@company.com
+password: MySecret2024!
+url: https://console.aws.amazon.com/ec2/
+note: このアカウントはAWS EC2サーバーへのログイン専用です。セキュリティグループ設定を確認してください。
+host: aws.amazon.com
+port: 22
+authKey: BEGIN MySecret2024! END
+confidence: 0.9</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出時間: 2.400秒
+総時間: 2.400秒
+メモリ使用量: 0.14MB
+抽出フィールド数: 8
+バリデーション: 警告あり</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 YAML形式 (English)</div><div class="error">
+    <h4>言語: English</h4>
+    <h5>抽出結果:</h5>
+    <pre>エラー: Exceeded model context window size</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出失敗</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 YAML形式 (日本語)</div><div class="result-content">
+    <h4>言語: 日本語</h4>
+    <h5>抽出結果:</h5>
+    <pre>title: AWS EC2 ユーザーアカウント設定
+userID: devops@company.com
+password: MySecret2024!
+url: https://console.aws.amazon.com/ec2/
+note: AWS EC2インスタンスのサーバー設定が完了しました。セキュリティグループが設定され、SSH接続はポート22で開放されています。
+host: aws.amazon.com
+port: 22
+authKey: BEGIN MySecret2024! END
+confidence: 0.95</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出時間: 2.163秒
+総時間: 2.163秒
+メモリ使用量: -0.05MB
+抽出フィールド数: 8
+バリデーション: 警告あり</div>
+</div></div></div><div class="test-case">
+    <div class="test-case-header">📋 VoiceRecognition Level3 Complex</div><div class="method-group">
+    <div class="method-header">🔍 @Generableマクロ (English)</div><div class="error">
+    <h4>言語: English</h4>
+    <h5>抽出結果:</h5>
+    <pre>エラー: Detected content likely to be unsafe</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出失敗</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 @Generableマクロ (日本語)</div><div class="error">
+    <h4>言語: 日本語</h4>
+    <h5>抽出結果:</h5>
+    <pre>エラー: Detected content likely to be unsafe</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出失敗</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 JSON形式 (English)</div><div class="result-content">
+    <h4>言語: English</h4>
+    <h5>抽出結果:</h5>
+    <pre>title: AWS EC2 Instance Setup Report
+userID: admin
+password: SecurePass123!@#
+url: https://console.aws.amazon.com/ec2/
+note: AWS EC2インスタンスのセットアップ完了。t3.mediumインスタンスを立ち上げてアクセス情報を設定。RDS MySQLインスタンスも作成中。監視システムの設定も並行中。
+host: ec2-54-123-45-67.compute-1.amazonaws.com
+port: 22
+authKey: BEGIN OPENSSH PRIVATE KEY
+b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABFwAAAAdzc2gtcnNhAAAAAwEAAQAAAQEA1234567890abcdef...
+END OPENSSH PRIVATE KEY
+confidence: 0.9</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出時間: 3.766秒
+総時間: 3.767秒
+メモリ使用量: 0.08MB
+抽出フィールド数: 8
+バリデーション: 警告あり</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 JSON形式 (日本語)</div><div class="result-content">
+    <h4>言語: 日本語</h4>
+    <h5>抽出結果:</h5>
+    <pre>title: AWS EC2とRDSの設定と管理
+userID: admin@example.com
+password: SecurePass123!@#
+url: https://console.aws.amazon.com/ec2/
+note: セキュリティの観点から、パスワード認証は無効にしてSSH鍵認証のみにした。また、ファイアウォールの設定で特定のIPアドレスからのみアクセス可能にしている。データベースの設定は来週までに完了予定で、接続情報も共有する。何か問題があったら、すぐに連絡してね。あと、監視システムの設定も並行して進めてるから、ログの確認方法も後日共有する予定だ。
+host: ec2-54-123-45-67.compute-1.amazonaws.com
+port: 22
+authKey: BEGIN OPENSSH PRIVATE KEY
+b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABFwAAAAdzc2gtcn
+NhAAAAAwEAAQAAAQEA1234567890abcdef...
+END OPENSSH PRIVATE KEY
+confidence: 0.9</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出時間: 4.617秒
+総時間: 4.618秒
+メモリ使用量: 0.41MB
+抽出フィールド数: 8
+バリデーション: 警告あり</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 YAML形式 (English)</div><div class="result-content">
+    <h4>言語: English</h4>
+    <h5>抽出結果:</h5>
+    <pre>title: AWS EC2 Instance Setup and Database Configuration
+userID: admin
+password: SecurePass123!@#
+url: https://console.aws.amazon.com/ec2/, https://console.aws.amazon.com/rds/
+note: AWS EC2インスタンスのセットアップ完了。セキュリティグループを設定し、SSH接続はポート22で開放済み。MySQLインスタンスも作成済み。データベース接続情報は来週までに完了予定。
+host: ec2-54-123-45-67.compute-1.amazonaws.com
+port: 22
+authKey: BEGIN OPENSSH PRIVATE KEY\nb3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABFwAAAAdzc2gtcnNhAAAAAwEAAQAAAQEA1234567890abcdef...\nEND OPENSSH PRIVATE KEY
+confidence: 0.9</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出時間: 3.851秒
+総時間: 3.851秒
+メモリ使用量: 0.33MB
+抽出フィールド数: 8
+バリデーション: 警告あり</div>
+</div></div><div class="method-group">
+    <div class="method-header">🔍 YAML形式 (日本語)</div><div class="result-content">
+    <h4>言語: 日本語</h4>
+    <h5>抽出結果:</h5>
+    <pre>title: AWS EC2 Instance Access
+userID: メールアドレス、ユーザー名、ログインID
+password: パスワード文字列
+url: https://console.aws.amazon.com/ec2/
+note: AWS EC2インスタンスのセットアップが完了しました。セキュリティグループを設定し、SSH接続をポート22で開放しました。RDSインスタンスも作成中です。
+host: ec2-54-123-45-67.compute-1.amazonaws.com
+port: 22
+authKey: BEGIN OPENSSH PRIVATE KEY\nb3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABFwAAAAdzc2gtcnNhAAAAAwEAAQAAAQEA1234567890abcdef...\nEND OPENSSH PRIVATE KEY
+confidence: 0.9</pre>
+    <h5>メトリクス:</h5>
+    <div class="metrics">抽出時間: 3.497秒
+総時間: 3.499秒
+メモリ使用量: -0.50MB
+抽出フィールド数: 8
+バリデーション: 警告あり</div>
+</div></div></div>    <div class="header">
+        <h2>📊 実験完了</h2>
+        <p>@ai[2024-12-19 17:45] FoundationModels フォーマット実験レポート</p>
+    </div>
+</body>
+</html>

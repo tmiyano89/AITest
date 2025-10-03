@@ -1,0 +1,308 @@
+Building for debugging...
+[0/3] Write swift-version--58304C5D6DBC2206.txt
+Build of product 'AITestApp' complete! (0.08s)
+🚀 AITest コンソールアプリケーション開始
+OS Version: Version 26.0 (Build 25A354)
+================================================================================
+✅ iOS 26+ / macOS 26+ の要件を満たしています
+🔍 FoundationModelsの利用可能性をチェック中...
+🔍 SystemLanguageModel.availability: available
+✅ AI利用可能 - ベンチマークを実行します
+🔍 コマンドライン引数をチェック中...
+   引数: [".build/arm64-apple-macosx/debug/AITestApp", "--test-extraction-methods", "--experiment=generable_en", "--pattern=voicerecognition", "--timeout=300", "--test-dir=test_logs/test_202510030926"]
+🔍 extractExperimentFromArguments 開始
+   利用可能なExtractionMethod: ["generable", "json", "yaml"]
+   利用可能なPromptLanguage: ["ja", "en"]
+   --experiment= 形式を検出: generable_en
+   コンポーネント: ["generable", "en"]
+✅ experimentを抽出: generable_en
+✅ 特定のexperimentを検出: generable_en
+⏱️ タイムアウト設定: 300秒
+⏱️  [特定実験全体] 開始
+
+🔬 特定実験を開始: @Generableマクロ (English)
+📋 パターン指定: voicerecognition
+🔄 指定された抽出方法・言語のみを実行します
+------------------------------------------------------------
+⏱️  [特定実験全体] ディレクトリ作成完了: 0.000秒
+⏱️  [特定実験全体] テストケース読み込み完了: 0.000秒
+⏱️  [テストケース1] 開始
+
+📋 テストケース 1: Voicerecognition Level1 Basic
+📝 入力テキスト: えー 新しいサーバーのアカウント情報を送るね
+
+AWS EC2にログインするには
+アカウントはadmin/SecurePass18329です
+でアクセスできるよ
+
+よろしく
+...
+----------------------------------------
+🔍 期待値取得テスト:
+  title: ''
+  userID: ''
+  password: ''
+  url: ''
+  note: ''
+  host: ''
+  port: ''
+  authKey: ''
+
+🔍 抽出方法: @Generableマクロ (English)
+📝 説明: FoundationModelsの@Generableマクロを使用した構造化抽出 - English prompt for extraction
+⏱️  [テストケース1] 抽出器作成完了: 0.000秒
+⏱️  [テストケース1] AI抽出完了: 21.711秒
+✅ 抽出成功
+  ⏱️  抽出時間: 21.709秒
+  ⏱️  総時間: 21.710秒
+  📊 抽出フィールド数: 5
+  ✅ バリデーション: 成功
+  📋 抽出結果:
+    title: AWS EC2
+    userID: admin
+    password: SecurePass18329
+    note: AWS EC2へのログイン用アカウント情報。注意：パスワードは安全に保管してください。
+    authKey: -----BEGIN OPENSSH PRIVATE KEY-----
+
+📊 構造化ログ:
+{
+  "method" : "generable",
+  "level" : 1,
+  "expected_fields" : [
+    {
+      "status" : "pending",
+      "value" : "AWS EC2",
+      "name" : "title"
+    },
+    {
+      "status" : "wrong",
+      "name" : "userID",
+      "value" : "admin"
+    },
+    {
+      "status" : "wrong",
+      "value" : "SecurePass18329",
+      "name" : "password"
+    },
+    {
+      "value" : "AWS EC2へのログイン用アカウント情報。注意：パスワードは安全に保管してください。",
+      "name" : "note",
+      "status" : "pending"
+    }
+  ],
+  "iteration" : 1,
+  "language" : "en",
+  "pattern" : "voicerecognition",
+  "unexpected_fields" : [
+    {
+      "value" : "-----BEGIN OPENSSH PRIVATE KEY-----",
+      "status" : "unexpected",
+      "name" : "authKey"
+    }
+  ]
+}
+💾 ログ保存: test_logs/test_202510030926/generable_en_voicerecognition_level1_1.json
+⏱️  [テストケース1] ログ出力完了: 21.711秒
+⏱️  [テストケース1] 完了: 21.711秒
+============================================================
+⏱️  [テストケース2] 開始
+
+📋 テストケース 2: Voicerecognition Level2 General
+📝 入力テキスト: えー お疲れ様 昨日話してた新しいプロジェクトのサーバー設定が完了したよ
+
+AWS EC2インスタンスを立ち上げたから ログイン用のアカウントは devops@company.com / MySecr...
+----------------------------------------
+🔍 期待値取得テスト:
+  title: ''
+  userID: ''
+  password: ''
+  url: 'https://console.aws.amazon.com/ec2/ からアクセスできるよ'
+  note: ''
+  host: ''
+  port: ''
+  authKey: ''
+
+🔍 抽出方法: @Generableマクロ (English)
+📝 説明: FoundationModelsの@Generableマクロを使用した構造化抽出 - English prompt for extraction
+⏱️  [テストケース2] 抽出器作成完了: 0.000秒
+⏱️  [テストケース2] AI抽出完了: 25.897秒
+✅ 抽出成功
+  ⏱️  抽出時間: 25.896秒
+  ⏱️  総時間: 25.897秒
+  📊 抽出フィールド数: 8
+  ✅ バリデーション: 成功
+  📋 抽出結果:
+    title: AWS EC2 Instance
+    userID: devops@company.com
+    password: MySecret2024!
+    url: https://console.aws.amazon.com/ec2/
+    note: このアカウントはAWS EC2インスタンスの管理に使用されます。セキュリティグループとSSH接続が設定されています。データベースの設定は来週に完了予定です。
+    host: aws-instance-id
+    port: 22
+    authKey: -----BEGIN OPENSSH PRIVATE KEY-----
+
+📊 構造化ログ:
+{
+  "level" : 2,
+  "iteration" : 1,
+  "unexpected_fields" : [
+    {
+      "status" : "unexpected",
+      "name" : "url",
+      "value" : "https:\/\/console.aws.amazon.com\/ec2\/"
+    },
+    {
+      "name" : "authKey",
+      "status" : "unexpected",
+      "value" : "-----BEGIN OPENSSH PRIVATE KEY-----"
+    }
+  ],
+  "method" : "generable",
+  "language" : "en",
+  "expected_fields" : [
+    {
+      "value" : "AWS EC2 Instance",
+      "name" : "title",
+      "status" : "pending"
+    },
+    {
+      "status" : "wrong",
+      "value" : "devops@company.com",
+      "name" : "userID"
+    },
+    {
+      "status" : "wrong",
+      "value" : "MySecret2024!",
+      "name" : "password"
+    },
+    {
+      "status" : "pending",
+      "name" : "note",
+      "value" : "このアカウントはAWS EC2インスタンスの管理に使用されます。セキュリティグループとSSH接続が設定されています。データベースの設定は来週に完了予定です。"
+    },
+    {
+      "value" : "aws-instance-id",
+      "status" : "wrong",
+      "name" : "host"
+    },
+    {
+      "value" : "22",
+      "name" : "port",
+      "status" : "wrong"
+    }
+  ],
+  "pattern" : "voicerecognition"
+}
+💾 ログ保存: test_logs/test_202510030926/generable_en_voicerecognition_level2_1.json
+⏱️  [テストケース2] ログ出力完了: 25.898秒
+⏱️  [テストケース2] 完了: 25.898秒
+============================================================
+⏱️  [テストケース3] 開始
+
+📋 テストケース 3: Voicerecognition Level3 Complex
+📝 入力テキスト: えー お疲れ様 昨日の会議で話してた新しいプロジェクトのインフラ構築について 進捗を報告するね
+
+まず AWS EC2インスタンスのセットアップが完了したよ t3.mediumのインスタンスを立ち上げ...
+----------------------------------------
+🔍 期待値取得テスト:
+  title: ''
+  userID: ''
+  password: ''
+  url: 'https://console.aws.amazon.com/ec2/'
+  note: ''
+  host: 'ec2-54-123-45-67.compute-1.amazonaws.com'
+  port: ''
+  authKey: 'BEGIN OPENSSH PRIVATE KEY
+b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABFwAAAAdzc2gtcn
+NhAAAAAwEAAQAAAQEA1234567890abcdef...
+END OPENSSH PRIVATE KEY'
+
+🔍 抽出方法: @Generableマクロ (English)
+📝 説明: FoundationModelsの@Generableマクロを使用した構造化抽出 - English prompt for extraction
+⏱️  [テストケース3] 抽出器作成完了: 0.000秒
+⏱️  [テストケース3] AI抽出完了: 18.115秒
+✅ 抽出成功
+  ⏱️  抽出時間: 18.114秒
+  ⏱️  総時間: 18.115秒
+  📊 抽出フィールド数: 8
+  ✅ バリデーション: 警告あり
+  📋 抽出結果:
+    title: AWS
+    userID: admin
+    password: SecurePass123!@#
+    url: https://console.aws.amazon.com/ec2/
+    note: Firewall allows port 22
+Security groups and RDS MySQL instances setup completed.
+Database setup is expected to be finished by next week.
+    host: ec2-54-123-45-67.compute-1.amazonaws.com
+    port: 22
+    authKey: BEGIN OPENSSH PRIVATE KEY
+b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABFwAAAAdzc2gtcnNhAAAAAwEAAQAAAQEA1234567890abcdef...
+END OPENSSH PRIVATE KEY
+
+📊 構造化ログ:
+{
+  "level" : 3,
+  "iteration" : 1,
+  "unexpected_fields" : [
+    {
+      "status" : "unexpected",
+      "name" : "url",
+      "value" : "https:\/\/console.aws.amazon.com\/ec2\/"
+    }
+  ],
+  "method" : "generable",
+  "language" : "en",
+  "expected_fields" : [
+    {
+      "value" : "AWS",
+      "name" : "title",
+      "status" : "pending"
+    },
+    {
+      "status" : "wrong",
+      "value" : "admin",
+      "name" : "userID"
+    },
+    {
+      "status" : "wrong",
+      "name" : "password",
+      "value" : "SecurePass123!@#"
+    },
+    {
+      "status" : "pending",
+      "value" : "Firewall allows port 22\nSecurity groups and RDS MySQL instances setup completed.\nDatabase setup is expected to be finished by next week.",
+      "name" : "note"
+    },
+    {
+      "value" : "ec2-54-123-45-67.compute-1.amazonaws.com",
+      "name" : "host",
+      "status" : "correct"
+    },
+    {
+      "value" : "22",
+      "status" : "wrong",
+      "name" : "port"
+    },
+    {
+      "name" : "authKey",
+      "status" : "wrong",
+      "value" : "BEGIN OPENSSH PRIVATE KEY\nb3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABFwAAAAdzc2gtcnNhAAAAAwEAAQAAAQEA1234567890abcdef...\nEND OPENSSH PRIVATE KEY"
+    }
+  ],
+  "pattern" : "voicerecognition"
+}
+💾 ログ保存: test_logs/test_202510030926/generable_en_voicerecognition_level3_1.json
+⏱️  [テストケース3] ログ出力完了: 18.117秒
+⏱️  [テストケース3] 完了: 18.117秒
+============================================================
+📄 HTMLレポート生成: test_logs/test_202510030926/generable_en_format_experiment_report.html
+⏱️  [特定実験全体] HTMLレポート生成完了: 65.728秒
+⏱️  [特定実験全体] 完了: 65.728秒
+
+📊 特定実験完了
+📁 テスト結果: test_logs/test_202510030926/
+⏰ タイムアウト: 300秒経過
+🛑 処理を中断します
+================================================================================
+✅ AITest コンソールアプリケーション完了

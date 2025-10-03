@@ -1,0 +1,2611 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FoundationModels 性能評価レポート</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f7;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+        }
+        .content {
+            padding: 30px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            border-left: 4px solid #007AFF;
+        }
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #007AFF;
+            margin-bottom: 5px;
+        }
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+        }
+        .test-results {
+            margin-top: 30px;
+        }
+        .test-card {
+            background: white;
+            border: 1px solid #e1e5e9;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        .test-header {
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-bottom: 1px solid #e1e5e9;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .test-title {
+            font-weight: 600;
+            color: #1d1d1f;
+        }
+        .test-meta {
+            color: #666;
+            font-size: 0.9em;
+        }
+        .test-content {
+            padding: 20px;
+        }
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .metric {
+            text-align: center;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+        .metric-value {
+            font-weight: bold;
+            color: #007AFF;
+        }
+        .metric-label {
+            font-size: 0.8em;
+            color: #666;
+            margin-top: 2px;
+        }
+        .success-rate {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+        .success-high { background: #d4edda; color: #155724; }
+        .success-medium { background: #fff3cd; color: #856404; }
+        .success-low { background: #f8d7da; color: #721c24; }
+        .chart-container {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e1e5e9;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #007AFF, #5AC8FA);
+            transition: width 0.3s ease;
+        }
+        .warning-list {
+            margin-top: 15px;
+        }
+        .warning-item {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 4px;
+            padding: 8px 12px;
+            margin: 5px 0;
+            font-size: 0.9em;
+        }
+        .footer {
+            background: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            border-top: 1px solid #e1e5e9;
+        }
+        
+        /* note内容分析スタイル */
+        .note-analysis {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e8f4fd;
+            border-radius: 8px;
+            border: 1px solid #b3d9ff;
+        }
+        
+        .note-analysis h4 {
+            margin: 0 0 15px 0;
+            color: #0066cc;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .note-metrics {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+        
+        .note-metric {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .note-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .note-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: #0066cc;
+        }
+        
+        .note-content {
+            background: white;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #b3d9ff;
+        }
+        
+        .note-text {
+            font-size: 12px;
+            color: #333;
+            line-height: 1.4;
+        }
+        
+        /* AI回答分析スタイル */
+        .ai-analysis {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f0f8f0;
+            border-radius: 8px;
+            border: 1px solid #90ee90;
+        }
+        
+        .ai-analysis h4 {
+            margin: 0 0 15px 0;
+            color: #228b22;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .ai-insights {
+            background: white;
+            padding: 15px;
+            border-radius: 4px;
+            border: 1px solid #90ee90;
+            font-size: 13px;
+            line-height: 1.5;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .ai-issues, .ai-patterns {
+            margin-bottom: 15px;
+        }
+        
+        .ai-issues h5, .ai-patterns h5 {
+            margin: 0 0 10px 0;
+            font-size: 13px;
+            color: #228b22;
+            font-weight: 600;
+        }
+        
+        .ai-issues ul, .ai-patterns ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        
+        .ai-issues li, .ai-patterns li {
+            font-size: 12px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .field-accuracy, .field-expected {
+            font-size: 10px;
+            color: #666;
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 FoundationModels 性能評価レポート</h1>
+            <p>Apple Intelligence Foundation Model の Account 情報抽出性能測定</p>
+            <p>生成日時: 2025/10/02 10:37:58</p>
+        </div>
+        
+        <div class="content">
+            <div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-value">150</div>
+        <div class="stat-label">総テスト数</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">83</div>
+        <div class="stat-label">成功テスト数</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">55.3%</div>
+        <div class="stat-label">成功率</div>
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: 55.333333333333336%"></div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">2.610s</div>
+        <div class="stat-label">平均抽出時間</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">0.1MB</div>
+        <div class="stat-label">平均メモリ使用量</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">0.99</div>
+        <div class="stat-label">平均信頼度</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">6.2</div>
+        <div class="stat-label">平均抽出フィールド数</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">1.371s</div>
+        <div class="stat-label">最短抽出時間</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">5.091s</div>
+        <div class="stat-label">最長抽出時間</div>
+    </div>
+</div>
+
+<div class="chart-container">
+    <h3>✅ バリデーション警告分析</h3>
+    <p>警告なし - すべての抽出結果が正常です</p>
+</div>
+            <div class="test-results">
+    <h2>📊 テスト結果詳細</h2>
+    <div class="test-card">
+    <div class="test-header">
+        <div class="test-title">Chat Level 1 (Basic)</div>
+        <div class="test-meta">
+            <span class="success-rate success-high">100.0%</span>
+        </div>
+    </div>
+    <div class="test-content">
+        <div class="metrics-grid">
+            <div class="metric">
+                <div class="metric-value">2.571s</div>
+                <div class="metric-label">平均抽出時間</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">0.97</div>
+                <div class="metric-label">平均信頼度</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">10</div>
+                <div class="metric-label">実行回数</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">10</div>
+                <div class="metric-label">成功回数</div>
+            </div>
+        </div>
+        
+        <!-- 項目レベル分析 -->
+        <div class="field-analysis">
+            <h4>📊 項目別成功率</h4>
+            <div class="field-grid">
+                <div class="field-card">
+    <div class="field-name">サービス名</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-success">100.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:0</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 100.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">ユーザーID</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-success">100.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:0</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 100.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">パスワード</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-success">100.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:0</span>
+        </div>    <div class="field-accuracy">文字精度:33.3%</div>    <div class="field-expected">期待値:Optional("18329")</div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 100.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">備考</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-success">100.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:0</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 100.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">ホスト</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-error">30.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:3</span>
+            <span class="error-count">エラー:7</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 30.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">ポート</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-error">30.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:3</span>
+            <span class="error-count">エラー:7</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 30.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">認証キー</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-success">100.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:0</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 100.0%"></div>
+    </div>
+</div>
+            </div>
+        </div>
+        
+        <!-- note内容分析 -->
+        <div class="note-analysis">
+    <h4>📝 note内容分析</h4>
+    <div class="note-metrics">
+        <div class="note-metric">
+            <span class="note-label">多様性スコア:</span>
+            <span class="note-value">1.00</span>
+        </div>
+        <div class="note-metric">
+            <span class="note-label">抽出数:</span>
+            <span class="note-value">10</span>
+        </div>
+    </div>
+    <div class="note-content">
+        <div class="note-label">最頻出内容:</div>
+        <div class="note-text">AWS EC2にログインするための用途情報...</div>
+    </div>
+</div>
+        
+        <!-- AI回答分析 -->
+        <div class="ai-analysis">
+    <h4>🤖 AI回答分析</h4>
+    <div class="ai-insights">AI抽出性能分析結果:<br>• 成功率: 100.0% (10/10)<br>• 成功パターン:<br>  - portフィールドで一貫した抽出<br>  - passwordフィールドで一貫した抽出<br>  - userIDフィールドで一貫した抽出<br>• 主要な問題:<br>  - titleフィールドで一貫性がない - 2種類の異なる値<br>  - authKeyフィールドで一貫性がない - 2種類の異なる値<br>  - noteフィールドで一貫性がない - 10種類の異なる値<br>• 総評: 良好な抽出性能を示している</div>
+    <div class="ai-issues">
+    <h5>主要な問題:</h5>
+    <ul>
+        <li>titleフィールドで一貫性がない - 2種類の異なる値</li><li>authKeyフィールドで一貫性がない - 2種類の異なる値</li><li>noteフィールドで一貫性がない - 10種類の異なる値</li>
+    </ul>
+</div>
+    <div class="ai-patterns">
+    <h5>成功パターン:</h5>
+    <ul>
+        <li>portフィールドで一貫した抽出</li><li>passwordフィールドで一貫した抽出</li><li>userIDフィールドで一貫した抽出</li>
+    </ul>
+</div>
+</div>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: 100.0%"></div>
+        </div>
+    </div>
+</div><div class="test-card">
+    <div class="test-header">
+        <div class="test-title">Chat Level 2 (General)</div>
+        <div class="test-meta">
+            <span class="success-rate success-high">90.0%</span>
+        </div>
+    </div>
+    <div class="test-content">
+        <div class="metrics-grid">
+            <div class="metric">
+                <div class="metric-value">2.712s</div>
+                <div class="metric-label">平均抽出時間</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">1.00</div>
+                <div class="metric-label">平均信頼度</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">10</div>
+                <div class="metric-label">実行回数</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">9</div>
+                <div class="metric-label">成功回数</div>
+            </div>
+        </div>
+        
+        <!-- 項目レベル分析 -->
+        <div class="field-analysis">
+            <h4>📊 項目別成功率</h4>
+            <div class="field-grid">
+                <div class="field-card">
+    <div class="field-name">サービス名</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-success">90.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:1</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 90.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">ユーザーID</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-success">90.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:1</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 90.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">パスワード</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-success">90.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:1</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 90.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">URL</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-success">90.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:1</span>
+        </div>    <div class="field-accuracy">文字精度:100.0%</div>    <div class="field-expected">期待値:Optional("https://console.aws.amazon.com/ec2/")</div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 90.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">備考</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-success">90.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:1</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 90.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">ホスト</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-warning">60.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:7</span>
+            <span class="error-count">エラー:4</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 60.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">ポート</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-warning">60.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:7</span>
+            <span class="error-count">エラー:4</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 60.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">認証キー</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-success">90.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:1</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 90.0%"></div>
+    </div>
+</div>
+            </div>
+        </div>
+        
+        <!-- note内容分析 -->
+        <div class="note-analysis">
+    <h4>📝 note内容分析</h4>
+    <div class="note-metrics">
+        <div class="note-metric">
+            <span class="note-label">多様性スコア:</span>
+            <span class="note-value">1.00</span>
+        </div>
+        <div class="note-metric">
+            <span class="note-label">抽出数:</span>
+            <span class="note-value">10</span>
+        </div>
+    </div>
+    <div class="note-content">
+        <div class="note-label">最頻出内容:</div>
+        <div class="note-text">セキュリティグループでポート22を開放しています。データベースの設定は来週まで完了予定です。...</div>
+    </div>
+</div>
+        
+        <!-- AI回答分析 -->
+        <div class="ai-analysis">
+    <h4>🤖 AI回答分析</h4>
+    <div class="ai-insights">AI抽出性能分析結果:<br>• 成功率: 90.0% (9/10)<br>• 成功パターン:<br>  - urlフィールドで一貫した抽出<br>  - portフィールドで一貫した抽出<br>  - userIDフィールドで一貫した抽出<br>• 主要な問題:<br>  - titleフィールドで一貫性がない - 3種類の異なる値<br>  - passwordフィールドで一貫性がない - 2種類の異なる値<br>  - authKeyフィールドで一貫性がない - 4種類の異なる値<br>• 総評: 良好な抽出性能を示している</div>
+    <div class="ai-issues">
+    <h5>主要な問題:</h5>
+    <ul>
+        <li>titleフィールドで一貫性がない - 3種類の異なる値</li><li>passwordフィールドで一貫性がない - 2種類の異なる値</li><li>authKeyフィールドで一貫性がない - 4種類の異なる値</li>
+    </ul>
+</div>
+    <div class="ai-patterns">
+    <h5>成功パターン:</h5>
+    <ul>
+        <li>urlフィールドで一貫した抽出</li><li>portフィールドで一貫した抽出</li><li>userIDフィールドで一貫した抽出</li>
+    </ul>
+</div>
+</div>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: 90.0%"></div>
+        </div>
+    </div>
+</div><div class="test-card">
+    <div class="test-header">
+        <div class="test-title">Chat Level 3 (Complex)</div>
+        <div class="test-meta">
+            <span class="success-rate success-low">0.0%</span>
+        </div>
+    </div>
+    <div class="test-content">
+        <div class="metrics-grid">
+            <div class="metric">
+                <div class="metric-value">3.954s</div>
+                <div class="metric-label">平均抽出時間</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">1.00</div>
+                <div class="metric-label">平均信頼度</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">10</div>
+                <div class="metric-label">実行回数</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">0</div>
+                <div class="metric-label">成功回数</div>
+            </div>
+        </div>
+        
+        <!-- 項目レベル分析 -->
+        <div class="field-analysis">
+            <h4>📊 項目別成功率</h4>
+            <div class="field-grid">
+                <div class="field-card">
+    <div class="field-name">サービス名</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-error">0.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:10</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 0.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">ユーザーID</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-error">0.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:10</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 0.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">パスワード</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-error">0.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:10</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 0.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">URL</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-error">0.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:10</span>
+        </div>    <div class="field-accuracy">文字精度:100.0%</div>    <div class="field-expected">期待値:Optional("https://console.aws.amazon.com/ec2/")</div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 0.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">備考</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-error">0.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:7</span>
+            <span class="error-count">エラー:10</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 0.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">ホスト</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-error">0.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:10</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 0.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">ポート</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-error">0.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:10</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 0.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">認証キー</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-error">0.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:10</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 0.0%"></div>
+    </div>
+</div>
+            </div>
+        </div>
+        
+        <!-- note内容分析 -->
+        <div class="note-analysis">
+    <h4>📝 note内容分析</h4>
+    <div class="note-metrics">
+        <div class="note-metric">
+            <span class="note-label">多様性スコア:</span>
+            <span class="note-value">1.00</span>
+        </div>
+        <div class="note-metric">
+            <span class="note-label">抽出数:</span>
+            <span class="note-value">7</span>
+        </div>
+    </div>
+    <div class="note-content">
+        <div class="note-label">最頻出内容:</div>
+        <div class="note-text">AWSコンソールでEC2インスタンスの管理が可能です。ファイアウォール設定を確認し、特定のIPからのアクセスを制限してください。...</div>
+    </div>
+</div>
+        
+        <!-- AI回答分析 -->
+        <div class="ai-analysis">
+    <h4>🤖 AI回答分析</h4>
+    <div class="ai-insights">AI抽出性能分析結果:<br>• 成功率: 0.0% (0/10)<br>• 成功パターン:<br>  - authKeyフィールドで一貫した抽出<br>  - urlフィールドで一貫した抽出<br>  - hostフィールドで一貫した抽出<br>• 主要な問題:<br>  - passwordフィールドで一貫性がない - 2種類の異なる値<br>  - 10回のバリデーションエラー - データ形式の問題<br>  - 全テストで抽出失敗 - テストケースの複雑さが高すぎる可能性<br>• 総評: 大幅な改善が必要な抽出性能</div>
+    <div class="ai-issues">
+    <h5>主要な問題:</h5>
+    <ul>
+        <li>passwordフィールドで一貫性がない - 2種類の異なる値</li><li>10回のバリデーションエラー - データ形式の問題</li><li>全テストで抽出失敗 - テストケースの複雑さが高すぎる可能性</li>
+    </ul>
+</div>
+    <div class="ai-patterns">
+    <h5>成功パターン:</h5>
+    <ul>
+        <li>authKeyフィールドで一貫した抽出</li><li>urlフィールドで一貫した抽出</li><li>hostフィールドで一貫した抽出</li>
+    </ul>
+</div>
+</div>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: 0.0%"></div>
+        </div>
+    </div>
+</div><div class="test-card">
+    <div class="test-header">
+        <div class="test-title">Contract Level 1 (Basic)</div>
+        <div class="test-meta">
+            <span class="success-rate success-high">80.0%</span>
+        </div>
+    </div>
+    <div class="test-content">
+        <div class="metrics-grid">
+            <div class="metric">
+                <div class="metric-value">2.018s</div>
+                <div class="metric-label">平均抽出時間</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">1.00</div>
+                <div class="metric-label">平均信頼度</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">10</div>
+                <div class="metric-label">実行回数</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">8</div>
+                <div class="metric-label">成功回数</div>
+            </div>
+        </div>
+        
+        <!-- 項目レベル分析 -->
+        <div class="field-analysis">
+            <h4>📊 項目別成功率</h4>
+            <div class="field-grid">
+                <div class="field-card">
+    <div class="field-name">サービス名</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-success">80.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:2</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 80.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">ユーザーID</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-success">80.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:2</span>
+        </div>    <div class="field-accuracy">文字精度:100.0%</div>    <div class="field-expected">期待値:Optional("employee_2024")</div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 80.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">パスワード</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-success">80.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:2</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 80.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">備考</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-success">80.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:2</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 80.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">ホスト</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-error">30.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:4</span>
+            <span class="error-count">エラー:7</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 30.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">ポート</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-error">30.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:4</span>
+            <span class="error-count">エラー:7</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 30.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">認証キー</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-success">80.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:2</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 80.0%"></div>
+    </div>
+</div>
+            </div>
+        </div>
+        
+        <!-- note内容分析 -->
+        <div class="note-analysis">
+    <h4>📝 note内容分析</h4>
+    <div class="note-metrics">
+        <div class="note-metric">
+            <span class="note-label">多様性スコア:</span>
+            <span class="note-value">0.60</span>
+        </div>
+        <div class="note-metric">
+            <span class="note-label">抽出数:</span>
+            <span class="note-value">10</span>
+        </div>
+    </div>
+    <div class="note-content">
+        <div class="note-label">最頻出内容:</div>
+        <div class="note-text">社内システムへのアクセスを許可...</div>
+    </div>
+</div>
+        
+        <!-- AI回答分析 -->
+        <div class="ai-analysis">
+    <h4>🤖 AI回答分析</h4>
+    <div class="ai-insights">AI抽出性能分析結果:<br>• 成功率: 80.0% (8/10)<br>• 成功パターン:<br>  - userIDフィールドで一貫した抽出<br>  - portフィールドで一貫した抽出<br>• 主要な問題:<br>  - passwordフィールドで一貫性がない - 2種類の異なる値<br>  - authKeyフィールドで一貫性がない - 5種類の異なる値<br>  - noteフィールドで一貫性がない - 6種類の異なる値<br>• 総評: 良好な抽出性能を示している</div>
+    <div class="ai-issues">
+    <h5>主要な問題:</h5>
+    <ul>
+        <li>passwordフィールドで一貫性がない - 2種類の異なる値</li><li>authKeyフィールドで一貫性がない - 5種類の異なる値</li><li>noteフィールドで一貫性がない - 6種類の異なる値</li>
+    </ul>
+</div>
+    <div class="ai-patterns">
+    <h5>成功パターン:</h5>
+    <ul>
+        <li>userIDフィールドで一貫した抽出</li><li>portフィールドで一貫した抽出</li>
+    </ul>
+</div>
+</div>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: 80.0%"></div>
+        </div>
+    </div>
+</div><div class="test-card">
+    <div class="test-header">
+        <div class="test-title">Contract Level 2 (General)</div>
+        <div class="test-meta">
+            <span class="success-rate success-medium">70.0%</span>
+        </div>
+    </div>
+    <div class="test-content">
+        <div class="metrics-grid">
+            <div class="metric">
+                <div class="metric-value">2.370s</div>
+                <div class="metric-label">平均抽出時間</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">1.00</div>
+                <div class="metric-label">平均信頼度</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">10</div>
+                <div class="metric-label">実行回数</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">7</div>
+                <div class="metric-label">成功回数</div>
+            </div>
+        </div>
+        
+        <!-- 項目レベル分析 -->
+        <div class="field-analysis">
+            <h4>📊 項目別成功率</h4>
+            <div class="field-grid">
+                <div class="field-card">
+    <div class="field-name">サービス名</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-warning">70.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:3</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 70.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">ユーザーID</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-warning">70.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:3</span>
+        </div>    <div class="field-expected">期待値:Optional("2024")</div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 70.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">パスワード</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-warning">70.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:3</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 70.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">URL</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-warning">70.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:3</span>
+        </div>    <div class="field-accuracy">文字精度:100.0%</div>    <div class="field-expected">期待値:Optional("https://system.company.com/login")</div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 70.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">備考</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-warning">70.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:3</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 70.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">ホスト</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-error">20.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:3</span>
+            <span class="error-count">エラー:8</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 20.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">ポート</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-error">20.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:3</span>
+            <span class="error-count">エラー:8</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 20.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">認証キー</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-warning">70.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:3</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 70.0%"></div>
+    </div>
+</div>
+            </div>
+        </div>
+        
+        <!-- note内容分析 -->
+        <div class="note-analysis">
+    <h4>📝 note内容分析</h4>
+    <div class="note-metrics">
+        <div class="note-metric">
+            <span class="note-label">多様性スコア:</span>
+            <span class="note-value">0.70</span>
+        </div>
+        <div class="note-metric">
+            <span class="note-label">抽出数:</span>
+            <span class="note-value">10</span>
+        </div>
+    </div>
+    <div class="note-content">
+        <div class="note-label">最頻出内容:</div>
+        <div class="note-text">業務目的でのみ利用可能とし、私的利用を禁止...</div>
+    </div>
+</div>
+        
+        <!-- AI回答分析 -->
+        <div class="ai-analysis">
+    <h4>🤖 AI回答分析</h4>
+    <div class="ai-insights">AI抽出性能分析結果:<br>• 成功率: 70.0% (7/10)<br>• 成功パターン:<br>  - titleフィールドで一貫した抽出<br>  - hostフィールドで一貫した抽出<br>  - passwordフィールドで一貫した抽出<br>• 主要な問題:<br>  - portフィールドで一貫性がない - 2種類の異なる値<br>  - noteフィールドで一貫性がない - 7種類の異なる値<br>  - authKeyフィールドで一貫性がない - 6種類の異なる値<br>• 総評: 改善の余地がある抽出性能</div>
+    <div class="ai-issues">
+    <h5>主要な問題:</h5>
+    <ul>
+        <li>portフィールドで一貫性がない - 2種類の異なる値</li><li>noteフィールドで一貫性がない - 7種類の異なる値</li><li>authKeyフィールドで一貫性がない - 6種類の異なる値</li>
+    </ul>
+</div>
+    <div class="ai-patterns">
+    <h5>成功パターン:</h5>
+    <ul>
+        <li>titleフィールドで一貫した抽出</li><li>hostフィールドで一貫した抽出</li><li>passwordフィールドで一貫した抽出</li>
+    </ul>
+</div>
+</div>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: 70.0%"></div>
+        </div>
+    </div>
+</div><div class="test-card">
+    <div class="test-header">
+        <div class="test-title">Contract Level 3 (Complex)</div>
+        <div class="test-meta">
+            <span class="success-rate success-low">0.0%</span>
+        </div>
+    </div>
+    <div class="test-content">
+        <div class="metrics-grid">
+            <div class="metric">
+                <div class="metric-value">4.773s</div>
+                <div class="metric-label">平均抽出時間</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">1.00</div>
+                <div class="metric-label">平均信頼度</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">10</div>
+                <div class="metric-label">実行回数</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">0</div>
+                <div class="metric-label">成功回数</div>
+            </div>
+        </div>
+        
+        <!-- 項目レベル分析 -->
+        <div class="field-analysis">
+            <h4>📊 項目別成功率</h4>
+            <div class="field-grid">
+                <div class="field-card">
+    <div class="field-name">サービス名</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-error">0.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:10</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 0.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">ユーザーID</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-error">0.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:10</span>
+        </div>    <div class="field-accuracy">文字精度:42.9%</div>    <div class="field-expected">期待値:Optional("001")</div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 0.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">パスワード</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-error">0.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:10</span>
+        </div>    <div class="field-accuracy">文字精度:38.9%</div>    <div class="field-expected">期待値:Optional("2024!@#")</div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 0.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">URL</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-error">0.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:10</span>
+        </div>    <div class="field-accuracy">文字精度:100.0%</div>    <div class="field-expected">期待値:Optional("https://system.company.com/login")</div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 0.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">備考</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-error">0.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:8</span>
+            <span class="error-count">エラー:10</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 0.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">ホスト</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-error">0.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:10</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 0.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">ポート</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-error">0.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:10</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 0.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">認証キー</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-error">0.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:10</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 0.0%"></div>
+    </div>
+</div>
+            </div>
+        </div>
+        
+        <!-- note内容分析 -->
+        <div class="note-analysis">
+    <h4>📝 note内容分析</h4>
+    <div class="note-metrics">
+        <div class="note-metric">
+            <span class="note-label">多様性スコア:</span>
+            <span class="note-value">0.62</span>
+        </div>
+        <div class="note-metric">
+            <span class="note-label">抽出数:</span>
+            <span class="note-value">8</span>
+        </div>
+    </div>
+    <div class="note-content">
+        <div class="note-label">最頻出内容:</div>
+        <div class="note-text">業務目的でのみ利用可能...</div>
+    </div>
+</div>
+        
+        <!-- AI回答分析 -->
+        <div class="ai-analysis">
+    <h4>🤖 AI回答分析</h4>
+    <div class="ai-insights">AI抽出性能分析結果:<br>• 成功率: 0.0% (0/10)<br>• 成功パターン:<br>  - userIDフィールドで一貫した抽出<br>  - passwordフィールドで一貫した抽出<br>  - urlフィールドで一貫した抽出<br>• 主要な問題:<br>  - 全テストで抽出失敗 - テストケースの複雑さが高すぎる可能性<br>  - noteフィールドで一貫性がない - 5種類の異なる値<br>  - titleフィールドで一貫性がない - 2種類の異なる値<br>• 総評: 大幅な改善が必要な抽出性能</div>
+    <div class="ai-issues">
+    <h5>主要な問題:</h5>
+    <ul>
+        <li>全テストで抽出失敗 - テストケースの複雑さが高すぎる可能性</li><li>noteフィールドで一貫性がない - 5種類の異なる値</li><li>titleフィールドで一貫性がない - 2種類の異なる値</li>
+    </ul>
+</div>
+    <div class="ai-patterns">
+    <h5>成功パターン:</h5>
+    <ul>
+        <li>userIDフィールドで一貫した抽出</li><li>passwordフィールドで一貫した抽出</li><li>urlフィールドで一貫した抽出</li>
+    </ul>
+</div>
+</div>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: 0.0%"></div>
+        </div>
+    </div>
+</div><div class="test-card">
+    <div class="test-header">
+        <div class="test-title">Credit Card Level 1 (Basic)</div>
+        <div class="test-meta">
+            <span class="success-rate success-medium">70.0%</span>
+        </div>
+    </div>
+    <div class="test-content">
+        <div class="metrics-grid">
+            <div class="metric">
+                <div class="metric-value">2.568s</div>
+                <div class="metric-label">平均抽出時間</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">0.99</div>
+                <div class="metric-label">平均信頼度</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">10</div>
+                <div class="metric-label">実行回数</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">7</div>
+                <div class="metric-label">成功回数</div>
+            </div>
+        </div>
+        
+        <!-- 項目レベル分析 -->
+        <div class="field-analysis">
+            <h4>📊 項目別成功率</h4>
+            <div class="field-grid">
+                <div class="field-card">
+    <div class="field-name">サービス名</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-warning">70.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:3</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 70.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">ユーザーID</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-warning">70.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:3</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 70.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">パスワード</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-warning">70.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:3</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 70.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">URL</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-error">0.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:1</span>
+            <span class="error-count">エラー:10</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 0.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">備考</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-warning">70.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:3</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 70.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">ホスト</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-error">50.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:8</span>
+            <span class="error-count">エラー:5</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 50.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">ポート</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-error">50.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:8</span>
+            <span class="error-count">エラー:5</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 50.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">認証キー</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-warning">70.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:3</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 70.0%"></div>
+    </div>
+</div>
+            </div>
+        </div>
+        
+        <!-- note内容分析 -->
+        <div class="note-analysis">
+    <h4>📝 note内容分析</h4>
+    <div class="note-metrics">
+        <div class="note-metric">
+            <span class="note-label">多様性スコア:</span>
+            <span class="note-value">1.00</span>
+        </div>
+        <div class="note-metric">
+            <span class="note-label">抽出数:</span>
+            <span class="note-value">10</span>
+        </div>
+    </div>
+    <div class="note-content">
+        <div class="note-label">最頻出内容:</div>
+        <div class="note-text">このアカウントはメール通知機能が利用可能です。
+注意事項：アカウントのセキュリティを定期的に確認し、パスワードを変更してください。...</div>
+    </div>
+</div>
+        
+        <!-- AI回答分析 -->
+        <div class="ai-analysis">
+    <h4>🤖 AI回答分析</h4>
+    <div class="ai-insights">AI抽出性能分析結果:<br>• 成功率: 70.0% (7/10)<br>• 成功パターン:<br>  - hostフィールドで一貫した抽出<br>  - portフィールドで一貫した抽出<br>  - urlフィールドで一貫した抽出<br>• 主要な問題:<br>  - userIDフィールドで一貫性がない - 5種類の異なる値<br>  - noteフィールドで一貫性がない - 10種類の異なる値<br>  - authKeyフィールドで一貫性がない - 6種類の異なる値<br>• 総評: 改善の余地がある抽出性能</div>
+    <div class="ai-issues">
+    <h5>主要な問題:</h5>
+    <ul>
+        <li>userIDフィールドで一貫性がない - 5種類の異なる値</li><li>noteフィールドで一貫性がない - 10種類の異なる値</li><li>authKeyフィールドで一貫性がない - 6種類の異なる値</li>
+    </ul>
+</div>
+    <div class="ai-patterns">
+    <h5>成功パターン:</h5>
+    <ul>
+        <li>hostフィールドで一貫した抽出</li><li>portフィールドで一貫した抽出</li><li>urlフィールドで一貫した抽出</li>
+    </ul>
+</div>
+</div>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: 70.0%"></div>
+        </div>
+    </div>
+</div><div class="test-card">
+    <div class="test-header">
+        <div class="test-title">Credit Card Level 2 (General)</div>
+        <div class="test-meta">
+            <span class="success-rate success-low">20.0%</span>
+        </div>
+    </div>
+    <div class="test-content">
+        <div class="metrics-grid">
+            <div class="metric">
+                <div class="metric-value">2.189s</div>
+                <div class="metric-label">平均抽出時間</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">1.00</div>
+                <div class="metric-label">平均信頼度</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">10</div>
+                <div class="metric-label">実行回数</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">2</div>
+                <div class="metric-label">成功回数</div>
+            </div>
+        </div>
+        
+        <!-- 項目レベル分析 -->
+        <div class="field-analysis">
+            <h4>📊 項目別成功率</h4>
+            <div class="field-grid">
+                <div class="field-card">
+    <div class="field-name">サービス名</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-error">20.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:8</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 20.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">ユーザーID</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-error">20.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:8</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 20.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">パスワード</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-error">20.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:8</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 20.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">備考</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-error">20.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:8</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 20.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">ホスト</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-error">0.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:3</span>
+            <span class="error-count">エラー:10</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 0.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">ポート</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-error">0.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:3</span>
+            <span class="error-count">エラー:10</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 0.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">認証キー</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-error">20.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:8</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 20.0%"></div>
+    </div>
+</div>
+            </div>
+        </div>
+        
+        <!-- note内容分析 -->
+        <div class="note-analysis">
+    <h4>📝 note内容分析</h4>
+    <div class="note-metrics">
+        <div class="note-metric">
+            <span class="note-label">多様性スコア:</span>
+            <span class="note-value">0.10</span>
+        </div>
+        <div class="note-metric">
+            <span class="note-label">抽出数:</span>
+            <span class="note-value">10</span>
+        </div>
+    </div>
+    <div class="note-content">
+        <div class="note-label">最頻出内容:</div>
+        <div class="note-text">オンライン決済時のみ使用可能
+月間利用限度額 50万円
+海外利用時は事前に連絡が必要
+カード紛失時は即座に連絡すること...</div>
+    </div>
+</div>
+        
+        <!-- AI回答分析 -->
+        <div class="ai-analysis">
+    <h4>🤖 AI回答分析</h4>
+    <div class="ai-insights">AI抽出性能分析結果:<br>• 成功率: 20.0% (2/10)<br>• 成功パターン:<br>  - noteフィールドで一貫した抽出<br>• 主要な問題:<br>  - passwordフィールドで一貫性がない - 2種類の異なる値<br>  - authKeyフィールドで一貫性がない - 9種類の異なる値<br>  - hostフィールドで一貫性がない - 2種類の異なる値<br>• 総評: 大幅な改善が必要な抽出性能</div>
+    <div class="ai-issues">
+    <h5>主要な問題:</h5>
+    <ul>
+        <li>passwordフィールドで一貫性がない - 2種類の異なる値</li><li>authKeyフィールドで一貫性がない - 9種類の異なる値</li><li>hostフィールドで一貫性がない - 2種類の異なる値</li>
+    </ul>
+</div>
+    <div class="ai-patterns">
+    <h5>成功パターン:</h5>
+    <ul>
+        <li>noteフィールドで一貫した抽出</li>
+    </ul>
+</div>
+</div>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: 20.0%"></div>
+        </div>
+    </div>
+</div><div class="test-card">
+    <div class="test-header">
+        <div class="test-title">Credit Card Level 3 (Complex)</div>
+        <div class="test-meta">
+            <span class="success-rate success-high">100.0%</span>
+        </div>
+    </div>
+    <div class="test-content">
+        <div class="metrics-grid">
+            <div class="metric">
+                <div class="metric-value">4.665s</div>
+                <div class="metric-label">平均抽出時間</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">1.00</div>
+                <div class="metric-label">平均信頼度</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">10</div>
+                <div class="metric-label">実行回数</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">10</div>
+                <div class="metric-label">成功回数</div>
+            </div>
+        </div>
+        
+        <!-- 項目レベル分析 -->
+        <div class="field-analysis">
+            <h4>📊 項目別成功率</h4>
+            <div class="field-grid">
+                <div class="field-card">
+    <div class="field-name">サービス名</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-success">100.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:0</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 100.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">ユーザーID</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-success">100.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:0</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 100.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">パスワード</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-success">100.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:0</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 100.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">備考</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-success">100.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:0</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 100.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">ホスト</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-error">20.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:2</span>
+            <span class="error-count">エラー:8</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 20.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">ポート</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-error">20.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:2</span>
+            <span class="error-count">エラー:8</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 20.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">認証キー</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-success">100.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:0</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 100.0%"></div>
+    </div>
+</div>
+            </div>
+        </div>
+        
+        <!-- note内容分析 -->
+        <div class="note-analysis">
+    <h4>📝 note内容分析</h4>
+    <div class="note-metrics">
+        <div class="note-metric">
+            <span class="note-label">多様性スコア:</span>
+            <span class="note-value">0.20</span>
+        </div>
+        <div class="note-metric">
+            <span class="note-label">抽出数:</span>
+            <span class="note-value">10</span>
+        </div>
+    </div>
+    <div class="note-content">
+        <div class="note-label">最頻出内容:</div>
+        <div class="note-text">オンライン決済時のみ使用可能
+月間利用限度額: 50万円
+海外利用時は事前に連絡が必要
+カード紛失時は即座に連絡すること
+3Dセキュア認証が必須
+不正利用検知システムにより監視
+異常な取引パターンが検...</div>
+    </div>
+</div>
+        
+        <!-- AI回答分析 -->
+        <div class="ai-analysis">
+    <h4>🤖 AI回答分析</h4>
+    <div class="ai-insights">AI抽出性能分析結果:<br>• 成功率: 100.0% (10/10)<br>• 成功パターン:<br>  - 100%成功 - テストケースが適切な難易度<br>• 主要な問題:<br>  - noteフィールドで一貫性がない - 2種類の異なる値<br>  - authKeyフィールドで一貫性がない - 4種類の異なる値<br>  - passwordフィールドで一貫性がない - 2種類の異なる値<br>• 総評: 良好な抽出性能を示している</div>
+    <div class="ai-issues">
+    <h5>主要な問題:</h5>
+    <ul>
+        <li>noteフィールドで一貫性がない - 2種類の異なる値</li><li>authKeyフィールドで一貫性がない - 4種類の異なる値</li><li>passwordフィールドで一貫性がない - 2種類の異なる値</li>
+    </ul>
+</div>
+    <div class="ai-patterns">
+    <h5>成功パターン:</h5>
+    <ul>
+        <li>100%成功 - テストケースが適切な難易度</li>
+    </ul>
+</div>
+</div>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: 100.0%"></div>
+        </div>
+    </div>
+</div><div class="test-card">
+    <div class="test-header">
+        <div class="test-title">Voice Recognition Level 1 (Basic)</div>
+        <div class="test-meta">
+            <span class="success-rate success-high">100.0%</span>
+        </div>
+    </div>
+    <div class="test-content">
+        <div class="metrics-grid">
+            <div class="metric">
+                <div class="metric-value">1.938s</div>
+                <div class="metric-label">平均抽出時間</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">0.97</div>
+                <div class="metric-label">平均信頼度</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">10</div>
+                <div class="metric-label">実行回数</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">10</div>
+                <div class="metric-label">成功回数</div>
+            </div>
+        </div>
+        
+        <!-- 項目レベル分析 -->
+        <div class="field-analysis">
+            <h4>📊 項目別成功率</h4>
+            <div class="field-grid">
+                <div class="field-card">
+    <div class="field-name">サービス名</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-success">100.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:0</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 100.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">ユーザーID</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-success">100.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:0</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 100.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">パスワード</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-success">100.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:0</span>
+        </div>    <div class="field-accuracy">文字精度:33.3%</div>    <div class="field-expected">期待値:Optional("18329")</div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 100.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">備考</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-success">100.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:0</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 100.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">ホスト</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-error">30.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:3</span>
+            <span class="error-count">エラー:7</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 30.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">ポート</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-error">30.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:3</span>
+            <span class="error-count">エラー:7</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 30.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">認証キー</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-success">90.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:9</span>
+            <span class="error-count">エラー:1</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 90.0%"></div>
+    </div>
+</div>
+            </div>
+        </div>
+        
+        <!-- note内容分析 -->
+        <div class="note-analysis">
+    <h4>📝 note内容分析</h4>
+    <div class="note-metrics">
+        <div class="note-metric">
+            <span class="note-label">多様性スコア:</span>
+            <span class="note-value">1.00</span>
+        </div>
+        <div class="note-metric">
+            <span class="note-label">抽出数:</span>
+            <span class="note-value">10</span>
+        </div>
+    </div>
+    <div class="note-content">
+        <div class="note-label">最頻出内容:</div>
+        <div class="note-text">AWS EC2へのログインに利用します。セキュリティのため、定期的にパスワードを変更してください。...</div>
+    </div>
+</div>
+        
+        <!-- AI回答分析 -->
+        <div class="ai-analysis">
+    <h4>🤖 AI回答分析</h4>
+    <div class="ai-insights">AI抽出性能分析結果:<br>• 成功率: 100.0% (10/10)<br>• 成功パターン:<br>  - userIDフィールドで一貫した抽出<br>  - passwordフィールドで一貫した抽出<br>  - 100%成功 - テストケースが適切な難易度<br>• 主要な問題:<br>  - noteフィールドで一貫性がない - 10種類の異なる値<br>  - hostフィールドで一貫性がない - 2種類の異なる値<br>  - titleフィールドで一貫性がない - 4種類の異なる値<br>• 総評: 良好な抽出性能を示している</div>
+    <div class="ai-issues">
+    <h5>主要な問題:</h5>
+    <ul>
+        <li>noteフィールドで一貫性がない - 10種類の異なる値</li><li>hostフィールドで一貫性がない - 2種類の異なる値</li><li>titleフィールドで一貫性がない - 4種類の異なる値</li>
+    </ul>
+</div>
+    <div class="ai-patterns">
+    <h5>成功パターン:</h5>
+    <ul>
+        <li>userIDフィールドで一貫した抽出</li><li>passwordフィールドで一貫した抽出</li><li>100%成功 - テストケースが適切な難易度</li>
+    </ul>
+</div>
+</div>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: 100.0%"></div>
+        </div>
+    </div>
+</div><div class="test-card">
+    <div class="test-header">
+        <div class="test-title">Voice Recognition Level 2 (General)</div>
+        <div class="test-meta">
+            <span class="success-rate success-high">100.0%</span>
+        </div>
+    </div>
+    <div class="test-content">
+        <div class="metrics-grid">
+            <div class="metric">
+                <div class="metric-value">2.412s</div>
+                <div class="metric-label">平均抽出時間</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">1.00</div>
+                <div class="metric-label">平均信頼度</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">10</div>
+                <div class="metric-label">実行回数</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">10</div>
+                <div class="metric-label">成功回数</div>
+            </div>
+        </div>
+        
+        <!-- 項目レベル分析 -->
+        <div class="field-analysis">
+            <h4>📊 項目別成功率</h4>
+            <div class="field-grid">
+                <div class="field-card">
+    <div class="field-name">サービス名</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-success">100.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:0</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 100.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">ユーザーID</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-success">100.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:0</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 100.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">パスワード</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-success">100.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:0</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 100.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">URL</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-success">100.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:0</span>
+        </div>    <div class="field-accuracy">文字精度:100.0%</div>    <div class="field-expected">期待値:Optional("https://console.aws.amazon.com/ec2/")</div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 100.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">備考</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-success">100.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:0</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 100.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">ホスト</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-success">80.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:8</span>
+            <span class="error-count">エラー:2</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 80.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">ポート</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-success">80.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:8</span>
+            <span class="error-count">エラー:2</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 80.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">認証キー</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-success">100.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:0</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 100.0%"></div>
+    </div>
+</div>
+            </div>
+        </div>
+        
+        <!-- note内容分析 -->
+        <div class="note-analysis">
+    <h4>📝 note内容分析</h4>
+    <div class="note-metrics">
+        <div class="note-metric">
+            <span class="note-label">多様性スコア:</span>
+            <span class="note-value">1.00</span>
+        </div>
+        <div class="note-metric">
+            <span class="note-label">抽出数:</span>
+            <span class="note-value">10</span>
+        </div>
+    </div>
+    <div class="note-content">
+        <div class="note-label">最頻出内容:</div>
+        <div class="note-text">Security group configured. SSH access allowed on port 22. Database setup expected by next week....</div>
+    </div>
+</div>
+        
+        <!-- AI回答分析 -->
+        <div class="ai-analysis">
+    <h4>🤖 AI回答分析</h4>
+    <div class="ai-insights">AI抽出性能分析結果:<br>• 成功率: 100.0% (10/10)<br>• 成功パターン:<br>  - portフィールドで一貫した抽出<br>  - 100%成功 - テストケースが適切な難易度<br>  - userIDフィールドで一貫した抽出<br>• 主要な問題:<br>  - passwordフィールドで一貫性がない - 2種類の異なる値<br>  - titleフィールドで一貫性がない - 3種類の異なる値<br>  - hostフィールドで一貫性がない - 4種類の異なる値<br>• 総評: 良好な抽出性能を示している</div>
+    <div class="ai-issues">
+    <h5>主要な問題:</h5>
+    <ul>
+        <li>passwordフィールドで一貫性がない - 2種類の異なる値</li><li>titleフィールドで一貫性がない - 3種類の異なる値</li><li>hostフィールドで一貫性がない - 4種類の異なる値</li>
+    </ul>
+</div>
+    <div class="ai-patterns">
+    <h5>成功パターン:</h5>
+    <ul>
+        <li>portフィールドで一貫した抽出</li><li>100%成功 - テストケースが適切な難易度</li><li>userIDフィールドで一貫した抽出</li>
+    </ul>
+</div>
+</div>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: 100.0%"></div>
+        </div>
+    </div>
+</div><div class="test-card">
+    <div class="test-header">
+        <div class="test-title">Voice Recognition Level 3 (Complex)</div>
+        <div class="test-meta">
+            <span class="success-rate success-low">0.0%</span>
+        </div>
+    </div>
+    <div class="test-content">
+        <div class="metrics-grid">
+            <div class="metric">
+                <div class="metric-value">3.618s</div>
+                <div class="metric-label">平均抽出時間</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">1.00</div>
+                <div class="metric-label">平均信頼度</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">10</div>
+                <div class="metric-label">実行回数</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">0</div>
+                <div class="metric-label">成功回数</div>
+            </div>
+        </div>
+        
+        <!-- 項目レベル分析 -->
+        <div class="field-analysis">
+            <h4>📊 項目別成功率</h4>
+            <div class="field-grid">
+                <div class="field-card">
+    <div class="field-name">サービス名</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-error">0.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:10</span>
+        </div>    <div class="field-accuracy">文字精度:6.8%</div>    <div class="field-expected">期待値:Optional("https")</div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 0.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">ユーザーID</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-error">0.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:10</span>
+        </div>    <div class="field-accuracy">文字精度:100.0%</div>    <div class="field-expected">期待値:Optional("admin")</div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 0.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">パスワード</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-error">0.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:10</span>
+        </div>    <div class="field-accuracy">文字精度:37.5%</div>    <div class="field-expected">期待値:Optional("123!@#")</div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 0.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">URL</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-error">0.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:10</span>
+        </div>    <div class="field-accuracy">文字精度:100.0%</div>    <div class="field-expected">期待値:Optional("https://console.aws.amazon.com/ec2/")</div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 0.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">備考</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-error">0.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:7</span>
+            <span class="error-count">エラー:10</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 0.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">ホスト</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-error">0.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:10</span>
+        </div>    <div class="field-accuracy">文字精度:100.0%</div>    <div class="field-expected">期待値:Optional("ec2-54-123-45-67.compute-1.amazonaws.com")</div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 0.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">ポート</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-error">0.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:10</span>
+        </div>    <div class="field-accuracy">文字精度:100.0%</div>    <div class="field-expected">期待値:Optional("22")</div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 0.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">認証キー</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-error">0.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:10</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 0.0%"></div>
+    </div>
+</div>
+            </div>
+        </div>
+        
+        <!-- note内容分析 -->
+        <div class="note-analysis">
+    <h4>📝 note内容分析</h4>
+    <div class="note-metrics">
+        <div class="note-metric">
+            <span class="note-label">多様性スコア:</span>
+            <span class="note-value">1.00</span>
+        </div>
+        <div class="note-metric">
+            <span class="note-label">抽出数:</span>
+            <span class="note-value">7</span>
+        </div>
+    </div>
+    <div class="note-content">
+        <div class="note-label">最頻出内容:</div>
+        <div class="note-text">セキュリティの観点から、パスワード認証は無効にしてSSH鍵認証のみにした。ファイアウォールの設定で特定のIPアドレスからのみアクセス可能にしている。データベースの設定は来週までに完了予定で、接続情報も...</div>
+    </div>
+</div>
+        
+        <!-- AI回答分析 -->
+        <div class="ai-analysis">
+    <h4>🤖 AI回答分析</h4>
+    <div class="ai-insights">AI抽出性能分析結果:<br>• 成功率: 0.0% (0/10)<br>• 成功パターン:<br>  - portフィールドで一貫した抽出<br>  - passwordフィールドで一貫した抽出<br>  - hostフィールドで一貫した抽出<br>• 主要な問題:<br>  - 10回のバリデーションエラー - データ形式の問題<br>  - noteフィールドで一貫性がない - 7種類の異なる値<br>  - 全テストで抽出失敗 - テストケースの複雑さが高すぎる可能性<br>• 総評: 大幅な改善が必要な抽出性能</div>
+    <div class="ai-issues">
+    <h5>主要な問題:</h5>
+    <ul>
+        <li>10回のバリデーションエラー - データ形式の問題</li><li>noteフィールドで一貫性がない - 7種類の異なる値</li><li>全テストで抽出失敗 - テストケースの複雑さが高すぎる可能性</li>
+    </ul>
+</div>
+    <div class="ai-patterns">
+    <h5>成功パターン:</h5>
+    <ul>
+        <li>portフィールドで一貫した抽出</li><li>passwordフィールドで一貫した抽出</li><li>hostフィールドで一貫した抽出</li>
+    </ul>
+</div>
+</div>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: 0.0%"></div>
+        </div>
+    </div>
+</div><div class="test-card">
+    <div class="test-header">
+        <div class="test-title">Password Manager Level 1 (Basic)</div>
+        <div class="test-meta">
+            <span class="success-rate success-high">100.0%</span>
+        </div>
+    </div>
+    <div class="test-content">
+        <div class="metrics-grid">
+            <div class="metric">
+                <div class="metric-value">2.190s</div>
+                <div class="metric-label">平均抽出時間</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">0.99</div>
+                <div class="metric-label">平均信頼度</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">10</div>
+                <div class="metric-label">実行回数</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">10</div>
+                <div class="metric-label">成功回数</div>
+            </div>
+        </div>
+        
+        <!-- 項目レベル分析 -->
+        <div class="field-analysis">
+            <h4>📊 項目別成功率</h4>
+            <div class="field-grid">
+                <div class="field-card">
+    <div class="field-name">サービス名</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-success">100.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:0</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 100.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">ユーザーID</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-success">100.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:0</span>
+        </div>    <div class="field-accuracy">文字精度:25.0%</div>    <div class="field-expected">期待値:Optional("name")</div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 100.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">パスワード</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-success">100.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:0</span>
+        </div>    <div class="field-expected">期待値:Optional("word,url")</div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 100.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">URL</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-success">100.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:0</span>
+        </div>    <div class="field-accuracy">文字精度:100.0%</div>    <div class="field-expected">期待値:Optional("https://github.com")</div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 100.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">備考</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-success">100.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:0</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 100.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">ホスト</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-error">20.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:2</span>
+            <span class="error-count">エラー:8</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 20.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">ポート</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-error">20.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:2</span>
+            <span class="error-count">エラー:8</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 20.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">認証キー</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-success">100.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:10</span>
+            <span class="error-count">エラー:0</span>
+        </div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 100.0%"></div>
+    </div>
+</div>
+            </div>
+        </div>
+        
+        <!-- note内容分析 -->
+        <div class="note-analysis">
+    <h4>📝 note内容分析</h4>
+    <div class="note-metrics">
+        <div class="note-metric">
+            <span class="note-label">多様性スコア:</span>
+            <span class="note-value">1.00</span>
+        </div>
+        <div class="note-metric">
+            <span class="note-label">抽出数:</span>
+            <span class="note-value">10</span>
+        </div>
+    </div>
+    <div class="note-content">
+        <div class="note-label">最頻出内容:</div>
+        <div class="note-text">GitHubアカウントの用途: コードのホスティング、バージョン管理、コラボレーション。注意事項: パスワードは定期的に変更し、2FAの有効化を推奨します。...</div>
+    </div>
+</div>
+        
+        <!-- AI回答分析 -->
+        <div class="ai-analysis">
+    <h4>🤖 AI回答分析</h4>
+    <div class="ai-insights">AI抽出性能分析結果:<br>• 成功率: 100.0% (10/10)<br>• 成功パターン:<br>  - hostフィールドで一貫した抽出<br>  - userIDフィールドで一貫した抽出<br>  - passwordフィールドで一貫した抽出<br>• 主要な問題:<br>  - noteフィールドで一貫性がない - 10種類の異なる値<br>  - authKeyフィールドで一貫性がない - 2種類の異なる値<br>• 総評: 良好な抽出性能を示している</div>
+    <div class="ai-issues">
+    <h5>主要な問題:</h5>
+    <ul>
+        <li>noteフィールドで一貫性がない - 10種類の異なる値</li><li>authKeyフィールドで一貫性がない - 2種類の異なる値</li>
+    </ul>
+</div>
+    <div class="ai-patterns">
+    <h5>成功パターン:</h5>
+    <ul>
+        <li>hostフィールドで一貫した抽出</li><li>userIDフィールドで一貫した抽出</li><li>passwordフィールドで一貫した抽出</li>
+    </ul>
+</div>
+</div>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: 100.0%"></div>
+        </div>
+    </div>
+</div><div class="test-card">
+    <div class="test-header">
+        <div class="test-title">Password Manager Level 2 (General)</div>
+        <div class="test-meta">
+            <span class="success-rate success-low">0.0%</span>
+        </div>
+    </div>
+    <div class="test-content">
+        <div class="metrics-grid">
+            <div class="metric">
+                <div class="metric-value">0.000s</div>
+                <div class="metric-label">平均抽出時間</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">0.00</div>
+                <div class="metric-label">平均信頼度</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">10</div>
+                <div class="metric-label">実行回数</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">0</div>
+                <div class="metric-label">成功回数</div>
+            </div>
+        </div>
+        
+        <!-- 項目レベル分析 -->
+        <div class="field-analysis">
+            <h4>📊 項目別成功率</h4>
+            <div class="field-grid">
+                <div class="field-card">
+    <div class="field-name">ユーザーID</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-error">0.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:0</span>
+            <span class="error-count">エラー:10</span>
+        </div>    <div class="field-expected">期待値:Optional("name")</div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 0.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">パスワード</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-error">0.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:0</span>
+            <span class="error-count">エラー:10</span>
+        </div>    <div class="field-expected">期待値:Optional("word,url,notes")</div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 0.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">URL</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-error">0.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:0</span>
+            <span class="error-count">エラー:10</span>
+        </div>    <div class="field-expected">期待値:Optional("https://console.aws.amazon.com/ec2/")</div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 0.0%"></div>
+    </div>
+</div>
+            </div>
+        </div>
+        
+        <!-- note内容分析 -->
+        
+        
+        <!-- AI回答分析 -->
+        <div class="ai-analysis">
+    <h4>🤖 AI回答分析</h4>
+    <div class="ai-insights">AI抽出性能分析結果:<br>• 成功率: 0.0% (0/10)<br>• 主要な問題:<br>  - 全テストで抽出失敗 - テストケースの複雑さが高すぎる可能性<br>• 総評: 大幅な改善が必要な抽出性能</div>
+    <div class="ai-issues">
+    <h5>主要な問題:</h5>
+    <ul>
+        <li>全テストで抽出失敗 - テストケースの複雑さが高すぎる可能性</li>
+    </ul>
+</div>
+    
+</div>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: 0.0%"></div>
+        </div>
+    </div>
+</div><div class="test-card">
+    <div class="test-header">
+        <div class="test-title">Password Manager Level 3 (Complex)</div>
+        <div class="test-meta">
+            <span class="success-rate success-low">0.0%</span>
+        </div>
+    </div>
+    <div class="test-content">
+        <div class="metrics-grid">
+            <div class="metric">
+                <div class="metric-value">0.000s</div>
+                <div class="metric-label">平均抽出時間</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">0.00</div>
+                <div class="metric-label">平均信頼度</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">10</div>
+                <div class="metric-label">実行回数</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">0</div>
+                <div class="metric-label">成功回数</div>
+            </div>
+        </div>
+        
+        <!-- 項目レベル分析 -->
+        <div class="field-analysis">
+            <h4>📊 項目別成功率</h4>
+            <div class="field-grid">
+                <div class="field-card">
+    <div class="field-name">ユーザーID</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-error">0.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:0</span>
+            <span class="error-count">エラー:10</span>
+        </div>    <div class="field-expected">期待値:Optional("name")</div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 0.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">パスワード</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-error">0.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:0</span>
+            <span class="error-count">エラー:10</span>
+        </div>    <div class="field-expected">期待値:Optional("word,url,notes,host,port,auth_key")</div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 0.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">URL</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-error">0.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:0</span>
+            <span class="error-count">エラー:10</span>
+        </div>    <div class="field-expected">期待値:Optional("https://console.aws.amazon.com/ec2/")</div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 0.0%"></div>
+    </div>
+</div><div class="field-card">
+    <div class="field-name">ホスト</div>
+    <div class="field-metrics">
+        <div class="field-success-rate field-error">0.0%</div>
+        <div class="field-counts">
+            <span class="extraction-count">抽出:0</span>
+            <span class="error-count">エラー:10</span>
+        </div>    <div class="field-expected">期待値:Optional("with")</div>    </div>
+    <div class="field-progress">
+        <div class="field-progress-fill" style="width: 0.0%"></div>
+    </div>
+</div>
+            </div>
+        </div>
+        
+        <!-- note内容分析 -->
+        
+        
+        <!-- AI回答分析 -->
+        <div class="ai-analysis">
+    <h4>🤖 AI回答分析</h4>
+    <div class="ai-insights">AI抽出性能分析結果:<br>• 成功率: 0.0% (0/10)<br>• 主要な問題:<br>  - 全テストで抽出失敗 - テストケースの複雑さが高すぎる可能性<br>• 総評: 大幅な改善が必要な抽出性能</div>
+    <div class="ai-issues">
+    <h5>主要な問題:</h5>
+    <ul>
+        <li>全テストで抽出失敗 - テストケースの複雑さが高すぎる可能性</li>
+    </ul>
+</div>
+    
+</div>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" style="width: 0.0%"></div>
+        </div>
+    </div>
+</div>
+</div>
+        </div>
+        
+        <div class="footer">
+            <p>Generated by AITest - FoundationModels Performance Evaluation Tool</p>
+        </div>
+    </div>
+</body>
+</html>

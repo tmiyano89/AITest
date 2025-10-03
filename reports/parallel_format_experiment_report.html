@@ -1,0 +1,305 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FoundationModels 精度分析レポート</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 20px; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+        .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px; }
+        .summary-card { background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center; }
+        .metrics-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        .metrics-table th, .metrics-table td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+        .metrics-table th { background: #f8f9fa; font-weight: bold; }
+        .correct { color: #28a745; font-weight: bold; }
+        .wrong { color: #dc3545; font-weight: bold; }
+        .missing { color: #ffc107; font-weight: bold; }
+        .unexpected { color: #6f42c1; font-weight: bold; }
+        .pending { color: #17a2b8; font-weight: bold; }
+        .section { margin: 30px 0; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        .section h3 { margin-top: 0; color: #333; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔬 FoundationModels 精度分析レポート</h1>
+        <p>生成日時: 2025-10-03 06:15:50</p>
+        <p>実験数: 24</p>
+    </div>
+    
+    <div class="summary">
+        <div class="summary-card">
+            <h3>総フィールド数</h3>
+            <p style="font-size: 2em; margin: 0;">272</p>
+        </div>
+        <div class="summary-card">
+            <h3>正解率</h3>
+            <p style="font-size: 2em; margin: 0; color: #28a745;">50.0%</p>
+        </div>
+        <div class="summary-card">
+            <h3>誤り率</h3>
+            <p style="font-size: 2em; margin: 0; color: #dc3545;">0.0%</p>
+        </div>
+        <div class="summary-card">
+            <h3>欠落率</h3>
+            <p style="font-size: 2em; margin: 0; color: #ffc107;">7.4%</p>
+        </div>
+        <div class="summary-card">
+            <h3>過剰抽出率</h3>
+            <p style="font-size: 2em; margin: 0; color: #6f42c1;">19.1%</p>
+        </div>
+        <div class="summary-card">
+            <h3>Precision</h3>
+            <p style="font-size: 2em; margin: 0;">0.723</p>
+        </div>
+        <div class="summary-card">
+            <h3>Recall</h3>
+            <p style="font-size: 2em; margin: 0;">0.872</p>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>📊 実験別精度分析</h3>
+        <table class="metrics-table">
+            <thead>
+                <tr>
+                    <th>実験</th>
+                    <th>方法</th>
+                    <th>言語</th>
+                    <th>正解率</th>
+                    <th>誤り率</th>
+                    <th>欠落率</th>
+                    <th>過剰抽出率</th>
+                    <th>Precision</th>
+                    <th>Recall</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                <tr>
+                    <td>yaml_en_chat</td>
+                    <td>yaml_en</td>
+                    <td>chat</td>
+                    <td class="correct">54.2%</td>
+                    <td class="wrong">0.0%</td>
+                    <td class="missing">0.0%</td>
+                    <td class="unexpected">20.8%</td>
+                    <td>0.722</td>
+                    <td>1.000</td>
+                </tr>
+
+                <tr>
+                    <td>yaml_ja_chat</td>
+                    <td>yaml_ja</td>
+                    <td>chat</td>
+                    <td class="correct">54.2%</td>
+                    <td class="wrong">0.0%</td>
+                    <td class="missing">0.0%</td>
+                    <td class="unexpected">20.8%</td>
+                    <td>0.722</td>
+                    <td>1.000</td>
+                </tr>
+
+                <tr>
+                    <td>generable_ja_chat</td>
+                    <td>generable_ja</td>
+                    <td>chat</td>
+                    <td class="correct">47.8%</td>
+                    <td class="wrong">0.0%</td>
+                    <td class="missing">8.7%</td>
+                    <td class="unexpected">17.4%</td>
+                    <td>0.733</td>
+                    <td>0.846</td>
+                </tr>
+
+                <tr>
+                    <td>json_ja_chat</td>
+                    <td>json_ja</td>
+                    <td>chat</td>
+                    <td class="correct">43.8%</td>
+                    <td class="wrong">0.0%</td>
+                    <td class="missing">0.0%</td>
+                    <td class="unexpected">31.2%</td>
+                    <td>0.583</td>
+                    <td>1.000</td>
+                </tr>
+
+                <tr>
+                    <td>json_en_chat</td>
+                    <td>json_en</td>
+                    <td>chat</td>
+                    <td class="correct">54.2%</td>
+                    <td class="wrong">0.0%</td>
+                    <td class="missing">0.0%</td>
+                    <td class="unexpected">20.8%</td>
+                    <td>0.722</td>
+                    <td>1.000</td>
+                </tr>
+
+                <tr>
+                    <td>generable_en_chat</td>
+                    <td>generable_en</td>
+                    <td>chat</td>
+                    <td class="correct">52.4%</td>
+                    <td class="wrong">0.0%</td>
+                    <td class="missing">19.0%</td>
+                    <td class="unexpected">9.5%</td>
+                    <td>0.846</td>
+                    <td>0.733</td>
+                </tr>
+
+                <tr>
+                    <td>test_202510030614</td>
+                    <td>test</td>
+                    <td>202510030614</td>
+                    <td class="correct">48.6%</td>
+                    <td class="wrong">0.0%</td>
+                    <td class="missing">10.0%</td>
+                    <td class="unexpected">18.6%</td>
+                    <td>0.723</td>
+                    <td>0.829</td>
+                </tr>
+
+            </tbody>
+        </table>
+    </div>
+
+    <div class="section">
+        <h3>📋 パターン別精度分析</h3>
+        <table class="metrics-table">
+            <thead>
+                <tr>
+                    <th>パターン</th>
+                    <th>正解率</th>
+                    <th>誤り率</th>
+                    <th>欠落率</th>
+                    <th>過剰抽出率</th>
+                    <th>Precision</th>
+                    <th>Recall</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                <tr>
+                    <td>chat</td>
+                    <td class="correct">50.0%</td>
+                    <td class="wrong">0.0%</td>
+                    <td class="missing">7.4%</td>
+                    <td class="unexpected">19.1%</td>
+                    <td>0.723</td>
+                    <td>0.872</td>
+                </tr>
+
+            </tbody>
+        </table>
+    </div>
+
+    <div class="section">
+        <h3>🏷️ フィールド別精度分析</h3>
+        <table class="metrics-table">
+            <thead>
+                <tr>
+                    <th>フィールド</th>
+                    <th>正解率</th>
+                    <th>誤り率</th>
+                    <th>欠落率</th>
+                    <th>過剰抽出率</th>
+                    <th>Precision</th>
+                    <th>Recall</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                <tr>
+                    <td>title</td>
+                    <td class="correct">0.0%</td>
+                    <td class="wrong">0.0%</td>
+                    <td class="missing">8.6%</td>
+                    <td class="unexpected">0.0%</td>
+                    <td>0.000</td>
+                    <td>0.000</td>
+                </tr>
+
+                <tr>
+                    <td>userID</td>
+                    <td class="correct">97.1%</td>
+                    <td class="wrong">0.0%</td>
+                    <td class="missing">2.9%</td>
+                    <td class="unexpected">0.0%</td>
+                    <td>1.000</td>
+                    <td>0.971</td>
+                </tr>
+
+                <tr>
+                    <td>password</td>
+                    <td class="correct">97.1%</td>
+                    <td class="wrong">0.0%</td>
+                    <td class="missing">2.9%</td>
+                    <td class="unexpected">0.0%</td>
+                    <td>1.000</td>
+                    <td>0.971</td>
+                </tr>
+
+                <tr>
+                    <td>note</td>
+                    <td class="correct">0.0%</td>
+                    <td class="wrong">0.0%</td>
+                    <td class="missing">8.6%</td>
+                    <td class="unexpected">0.0%</td>
+                    <td>0.000</td>
+                    <td>0.000</td>
+                </tr>
+
+                <tr>
+                    <td>url</td>
+                    <td class="correct">71.0%</td>
+                    <td class="wrong">0.0%</td>
+                    <td class="missing">3.2%</td>
+                    <td class="unexpected">25.8%</td>
+                    <td>0.733</td>
+                    <td>0.957</td>
+                </tr>
+
+                <tr>
+                    <td>host</td>
+                    <td class="correct">54.5%</td>
+                    <td class="wrong">0.0%</td>
+                    <td class="missing">15.2%</td>
+                    <td class="unexpected">30.3%</td>
+                    <td>0.643</td>
+                    <td>0.783</td>
+                </tr>
+
+                <tr>
+                    <td>port</td>
+                    <td class="correct">54.5%</td>
+                    <td class="wrong">0.0%</td>
+                    <td class="missing">15.2%</td>
+                    <td class="unexpected">30.3%</td>
+                    <td>0.643</td>
+                    <td>0.783</td>
+                </tr>
+
+                <tr>
+                    <td>authKey</td>
+                    <td class="correct">28.6%</td>
+                    <td class="wrong">0.0%</td>
+                    <td class="missing">2.9%</td>
+                    <td class="unexpected">68.6%</td>
+                    <td>0.294</td>
+                    <td>0.909</td>
+                </tr>
+
+            </tbody>
+        </table>
+    </div>
+
+    <div class="header">
+        <h2>📊 分析完了</h2>
+        <p>@ai[2024-12-19 18:30] FoundationModels 精度分析レポート</p>
+        <p><strong>注意:</strong> pending項目はAIによる詳細検証が必要です。</p>
+    </div>
+</body>
+</html>

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FoundationModels フォーマット実験レポート</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 20px; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+        .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px; }
+        .summary-card { background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center; }
+        .test-case { margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        .test-case h3 { margin-top: 0; color: #333; }
+        .result { background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 10px 0; }
+        .success { border-left: 4px solid #28a745; }
+        .error { border-left: 4px solid #dc3545; }
+        .field { margin: 5px 0; padding: 5px; background: #e9ecef; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔬 FoundationModels フォーマット実験レポート</h1>
+        <p>生成日時: 2025-10-03 14:55:59</p>
+        <p>抽出方法: YAML形式</p>
+        <p>言語: 日本語</p>
+    </div>
+    
+    <div class="summary">
+        <div class="summary-card">
+            <h3>テストケース数</h3>
+            <p style="font-size: 2em; margin: 0;">3</p>
+        </div>
+        <div class="summary-card">
+            <h3>抽出方法</h3>
+            <p style="font-size: 1.5em; margin: 0;">YAML形式</p>
+        </div>
+        <div class="summary-card">
+            <h3>言語</h3>
+            <p style="font-size: 1.5em; margin: 0;">日本語</p>
+        </div>
+    </div><div class="test-case">
+    <h3>📋 テストケース 1: Chat Level1 Basic</h3>
+    <div class="result">
+        <h4>入力テキスト:</h4>
+        <pre>Hey! 新しいサーバーのアカウント情報を送るね
+
+AWS EC2にログインするには
+アカウントはadmin/SecurePass18329です
+でアクセスできるよ
+
+よろしく！
+</pre>
+    </div>
+    <div class="result">
+        <h4>抽出結果:</h4>
+        <p>詳細な抽出結果は個別のJSONログファイルを確認してください。</p>
+    </div>
+</div><div class="test-case">
+    <h3>📋 テストケース 2: Chat Level2 General</h3>
+    <div class="result">
+        <h4>入力テキスト:</h4>
+        <pre>お疲れ様！昨日話してた新しいプロジェクトのサーバー設定が完了したよ。
+
+AWS EC2インスタンスを立ち上げたから、ログイン情報を共有するね。
+ログイン用のアカウントは devops@company.com / MySecret2024! です
+管理画面は https://console.aws.amazon.com/ec2/ からアクセスできます
+
+セキュリティグループも設定済みで、SSH接続はポート22で開放してる。何か問題があったら連絡してね！
+
+あと、データベースの設定も来週までに完了予定だから、その時また連絡する。
+</pre>
+    </div>
+    <div class="result">
+        <h4>抽出結果:</h4>
+        <p>詳細な抽出結果は個別のJSONログファイルを確認してください。</p>
+    </div>
+</div><div class="test-case">
+    <h3>📋 テストケース 3: Chat Level3 Complex</h3>
+    <div class="result">
+        <h4>入力テキスト:</h4>
+        <pre>お疲れ様！昨日の会議で話してた新しいプロジェクトのインフラ構築について、進捗を報告するね。
+
+まず、AWS EC2インスタンスのセットアップが完了したよ。t3.mediumのインスタンスを立ち上げて、アクセス情報を設定した。
+システム管理者のアカウントは 
+user: root
+pass: SuperSecure2024#
+で設定しました
+AWSコンソールは https://console.aws.amazon.com/ec2/ にあります
+
+サーバーのホストは情報はこちら
+ec2-54-123-45-67.compute-1.amazonaws.com(197.78.64.33)
+ssh port: 22
+
+セキュリティグループの設定も完了して、SSH接続はポート22で開放済み。また、RDSのMySQLインスタンスも作成して、データベース接続情報も準備した。
+
+SSH秘密鍵も生成して、以下の内容で保存しておいた：
+
+BEGIN OPENSSH PRIVATE KEY
+b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABFwAAAAdzc2gtcn
+NhAAAAAwEAAQAAAQEA1234567890abcdef
+END OPENSSH PRIVATE KEY
+
+セキュリティの観点から、パスワード認証は無効にして、SSH鍵認証のみにした。また、ファイアウォールの設定で、特定のIPアドレスからのみアクセス可能にしている。
+
+データベースの設定は来週までに完了予定で、その時には接続情報も共有する。何か問題があったら、すぐに連絡してね！
+
+あと、監視システムの設定も並行して進めてるから、ログの確認方法も後日共有する予定だ。
+</pre>
+    </div>
+    <div class="result">
+        <h4>抽出結果:</h4>
+        <p>詳細な抽出結果は個別のJSONログファイルを確認してください。</p>
+    </div>
+</div>    </body>
+</html>
