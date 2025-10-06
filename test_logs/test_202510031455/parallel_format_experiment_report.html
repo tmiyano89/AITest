@@ -1,0 +1,1347 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FoundationModels 精度分析レポート</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 20px; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+        .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px; }
+        .summary-card { background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center; }
+        .metrics-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        .metrics-table th, .metrics-table td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+        .metrics-table th { background: #f8f9fa; font-weight: bold; }
+        .correct { color: #28a745; font-weight: bold; }
+        .wrong { color: #dc3545; font-weight: bold; }
+        .missing { color: #ffc107; font-weight: bold; }
+        .unexpected { color: #6f42c1; font-weight: bold; }
+        .pending { color: #17a2b8; font-weight: bold; }
+        .section { margin: 30px 0; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        .section h3 { margin-top: 0; color: #333; }
+        .chart-container { position: relative; height: 400px; margin: 20px 0; }
+        .chart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)); gap: 20px; }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="header">
+        <h1>🔬 FoundationModels 精度分析レポート</h1>
+        <p>生成日時: 2025-10-03 14:56:52</p>
+        <p>実験数: 65</p>
+    </div>
+    
+    <div class="summary">
+        <div class="summary-card">
+            <h3>総フィールド数</h3>
+            <p style="font-size: 2em; margin: 0;">512</p>
+        </div>
+        <div class="summary-card">
+            <h3>正解率</h3>
+            <p style="font-size: 2em; margin: 0; color: #28a745;">51.8%</p>
+        </div>
+        <div class="summary-card">
+            <h3>誤り率</h3>
+            <p style="font-size: 2em; margin: 0; color: #dc3545;">9.5%</p>
+        </div>
+        <div class="summary-card">
+            <h3>欠落率</h3>
+            <p style="font-size: 2em; margin: 0; color: #ffc107;">7.5%</p>
+        </div>
+        <div class="summary-card">
+            <h3>過剰抽出率</h3>
+            <p style="font-size: 2em; margin: 0; color: #6f42c1;">45.3%</p>
+        </div>
+        <div class="summary-card">
+            <h3>Precision</h3>
+            <p style="font-size: 2em; margin: 0;">0.560</p>
+        </div>
+        <div class="summary-card">
+            <h3>Recall</h3>
+            <p style="font-size: 2em; margin: 0;">0.874</p>
+        </div>
+    </div>
+    
+    <!-- 全体情報サマリー -->
+    <div class="summary">
+        <div class="summary-card">
+            <h3>総テストケース数</h3>
+            <p style="font-size: 2em; margin: 0; color: #007bff;">68</p>
+        </div>
+        <div class="summary-card">
+            <h3>総抽出項目数</h3>
+            <p style="font-size: 2em; margin: 0; color: #28a745;">512</p>
+        </div>
+        <div class="summary-card">
+            <h3>総抽出時間</h3>
+            <p style="font-size: 2em; margin: 0; color: #dc3545;">0.000秒</p>
+        </div>
+        <div class="summary-card">
+            <h3>平均抽出時間</h3>
+            <p style="font-size: 2em; margin: 0; color: #6f42c1;">0.000秒</p>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>📊 実験別精度分析</h3>
+        <table class="metrics-table">
+            <thead>
+                <tr>
+                    <th>実験</th>
+                    <th>方法</th>
+                    <th>言語</th>
+                    <th>正解率</th>
+                    <th>誤り率</th>
+                    <th>欠落率</th>
+                    <th>過剰抽出率</th>
+                    <th>Precision</th>
+                    <th>Recall</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                <tr>
+                    <td>yaml_en_contract</td>
+                    <td>yaml_en</td>
+                    <td>contract</td>
+                    <td class="correct">33.3%</td>
+                    <td class="wrong">0.0%</td>
+                    <td class="missing">0.0%</td>
+                    <td class="unexpected">200.0%</td>
+                    <td>0.333</td>
+                    <td>1.000</td>
+                </tr>
+
+                <tr>
+                    <td>yaml_ja_contract</td>
+                    <td>yaml_ja</td>
+                    <td>contract</td>
+                    <td class="correct">36.8%</td>
+                    <td class="wrong">15.8%</td>
+                    <td class="missing">10.5%</td>
+                    <td class="unexpected">58.3%</td>
+                    <td>0.412</td>
+                    <td>0.778</td>
+                </tr>
+
+                <tr>
+                    <td>generable_ja_contract</td>
+                    <td>generable_ja</td>
+                    <td>contract</td>
+                    <td class="correct">78.6%</td>
+                    <td class="wrong">0.0%</td>
+                    <td class="missing">7.1%</td>
+                    <td class="unexpected">16.7%</td>
+                    <td>0.846</td>
+                    <td>0.917</td>
+                </tr>
+
+                <tr>
+                    <td>generable_en_contract</td>
+                    <td>generable_en</td>
+                    <td>contract</td>
+                    <td class="correct">66.7%</td>
+                    <td class="wrong">6.7%</td>
+                    <td class="missing">0.0%</td>
+                    <td class="unexpected">36.4%</td>
+                    <td>0.667</td>
+                    <td>1.000</td>
+                </tr>
+
+                <tr>
+                    <td>json_ja_contract</td>
+                    <td>json_ja</td>
+                    <td>contract</td>
+                    <td class="correct">55.6%</td>
+                    <td class="wrong">5.6%</td>
+                    <td class="missing">0.0%</td>
+                    <td class="unexpected">63.6%</td>
+                    <td>0.556</td>
+                    <td>1.000</td>
+                </tr>
+
+                <tr>
+                    <td>json_en_contract</td>
+                    <td>json_en</td>
+                    <td>contract</td>
+                    <td class="correct">55.6%</td>
+                    <td class="wrong">5.6%</td>
+                    <td class="missing">0.0%</td>
+                    <td class="unexpected">63.6%</td>
+                    <td>0.556</td>
+                    <td>1.000</td>
+                </tr>
+
+                <tr>
+                    <td>yaml_en_chat</td>
+                    <td>yaml_en</td>
+                    <td>chat</td>
+                    <td class="correct">50.0%</td>
+                    <td class="wrong">16.7%</td>
+                    <td class="missing">0.0%</td>
+                    <td class="unexpected">50.0%</td>
+                    <td>0.500</td>
+                    <td>1.000</td>
+                </tr>
+
+                <tr>
+                    <td>yaml_ja_chat</td>
+                    <td>yaml_ja</td>
+                    <td>chat</td>
+                    <td class="correct">38.9%</td>
+                    <td class="wrong">22.2%</td>
+                    <td class="missing">11.1%</td>
+                    <td class="unexpected">38.5%</td>
+                    <td>0.438</td>
+                    <td>0.778</td>
+                </tr>
+
+                <tr>
+                    <td>generable_ja_chat</td>
+                    <td>generable_ja</td>
+                    <td>chat</td>
+                    <td class="correct">66.7%</td>
+                    <td class="wrong">13.3%</td>
+                    <td class="missing">0.0%</td>
+                    <td class="unexpected">25.0%</td>
+                    <td>0.667</td>
+                    <td>1.000</td>
+                </tr>
+
+                <tr>
+                    <td>json_ja_chat</td>
+                    <td>json_ja</td>
+                    <td>chat</td>
+                    <td class="correct">41.7%</td>
+                    <td class="wrong">8.3%</td>
+                    <td class="missing">0.0%</td>
+                    <td class="unexpected">100.0%</td>
+                    <td>0.417</td>
+                    <td>1.000</td>
+                </tr>
+
+                <tr>
+                    <td>json_en_chat</td>
+                    <td>json_en</td>
+                    <td>chat</td>
+                    <td class="correct">55.6%</td>
+                    <td class="wrong">11.1%</td>
+                    <td class="missing">0.0%</td>
+                    <td class="unexpected">50.0%</td>
+                    <td>0.556</td>
+                    <td>1.000</td>
+                </tr>
+
+                <tr>
+                    <td>generable_en_chat</td>
+                    <td>generable_en</td>
+                    <td>chat</td>
+                    <td class="correct">56.2%</td>
+                    <td class="wrong">0.0%</td>
+                    <td class="missing">31.2%</td>
+                    <td class="unexpected">14.3%</td>
+                    <td>0.818</td>
+                    <td>0.643</td>
+                </tr>
+
+                <tr>
+                    <td>generable_en</td>
+                    <td>generable</td>
+                    <td>en</td>
+                    <td class="correct">61.3%</td>
+                    <td class="wrong">3.2%</td>
+                    <td class="missing">16.1%</td>
+                    <td class="unexpected">24.0%</td>
+                    <td>0.731</td>
+                    <td>0.792</td>
+                </tr>
+
+                <tr>
+                    <td>generable_ja</td>
+                    <td>generable</td>
+                    <td>ja</td>
+                    <td class="correct">72.4%</td>
+                    <td class="wrong">6.9%</td>
+                    <td class="missing">3.4%</td>
+                    <td class="unexpected">20.8%</td>
+                    <td>0.750</td>
+                    <td>0.955</td>
+                </tr>
+
+                <tr>
+                    <td>yaml_ja</td>
+                    <td>yaml</td>
+                    <td>ja</td>
+                    <td class="correct">37.8%</td>
+                    <td class="wrong">18.9%</td>
+                    <td class="missing">10.8%</td>
+                    <td class="unexpected">48.0%</td>
+                    <td>0.424</td>
+                    <td>0.778</td>
+                </tr>
+
+                <tr>
+                    <td>json_en</td>
+                    <td>json</td>
+                    <td>en</td>
+                    <td class="correct">55.6%</td>
+                    <td class="wrong">8.3%</td>
+                    <td class="missing">0.0%</td>
+                    <td class="unexpected">56.5%</td>
+                    <td>0.556</td>
+                    <td>1.000</td>
+                </tr>
+
+                <tr>
+                    <td>yaml_en</td>
+                    <td>yaml</td>
+                    <td>en</td>
+                    <td class="correct">40.0%</td>
+                    <td class="wrong">13.3%</td>
+                    <td class="missing">3.3%</td>
+                    <td class="unexpected">76.5%</td>
+                    <td>0.414</td>
+                    <td>0.923</td>
+                </tr>
+
+                <tr>
+                    <td>json_ja</td>
+                    <td>json</td>
+                    <td>ja</td>
+                    <td class="correct">39.5%</td>
+                    <td class="wrong">5.3%</td>
+                    <td class="missing">21.1%</td>
+                    <td class="unexpected">52.0%</td>
+                    <td>0.500</td>
+                    <td>0.652</td>
+                </tr>
+
+            </tbody>
+        </table>
+    </div>
+
+    <div class="section">
+        <h3>📋 パターン別精度分析</h3>
+        <table class="metrics-table">
+            <thead>
+                <tr>
+                    <th>パターン</th>
+                    <th>正解率</th>
+                    <th>誤り率</th>
+                    <th>欠落率</th>
+                    <th>過剰抽出率</th>
+                    <th>Precision</th>
+                    <th>Recall</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                <tr>
+                    <td>Contract</td>
+                    <td class="correct">54.3%</td>
+                    <td class="wrong">7.0%</td>
+                    <td class="missing">3.8%</td>
+                    <td class="unexpected">53.7%</td>
+                    <td>0.564</td>
+                    <td>0.935</td>
+                </tr>
+
+                <tr>
+                    <td>Chat</td>
+                    <td class="correct">49.5%</td>
+                    <td class="wrong">11.9%</td>
+                    <td class="missing">10.9%</td>
+                    <td class="unexpected">38.4%</td>
+                    <td>0.556</td>
+                    <td>0.820</td>
+                </tr>
+
+            </tbody>
+        </table>
+    </div>
+
+    <div class="section">
+        <h3>🏷️ フィールド別精度分析</h3>
+        <table class="metrics-table">
+            <thead>
+                <tr>
+                    <th>フィールド</th>
+                    <th>正解率</th>
+                    <th>誤り率</th>
+                    <th>欠落率</th>
+                    <th>過剰抽出率</th>
+                    <th>Precision</th>
+                    <th>Recall</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                <tr>
+                    <td>title</td>
+                    <td class="correct">0.0%</td>
+                    <td class="wrong">0.0%</td>
+                    <td class="missing">100.0%</td>
+                    <td class="unexpected">0.0%</td>
+                    <td>0.000</td>
+                    <td>0.000</td>
+                </tr>
+
+                <tr>
+                    <td>userID</td>
+                    <td class="correct">73.5%</td>
+                    <td class="wrong">25.0%</td>
+                    <td class="missing">1.5%</td>
+                    <td class="unexpected">0.0%</td>
+                    <td>0.746</td>
+                    <td>0.980</td>
+                </tr>
+
+                <tr>
+                    <td>password</td>
+                    <td class="correct">88.2%</td>
+                    <td class="wrong">5.9%</td>
+                    <td class="missing">5.9%</td>
+                    <td class="unexpected">0.0%</td>
+                    <td>0.938</td>
+                    <td>0.938</td>
+                </tr>
+
+                <tr>
+                    <td>note</td>
+                    <td class="correct">0.0%</td>
+                    <td class="wrong">0.0%</td>
+                    <td class="missing">100.0%</td>
+                    <td class="unexpected">0.0%</td>
+                    <td>0.000</td>
+                    <td>0.000</td>
+                </tr>
+
+                <tr>
+                    <td>url</td>
+                    <td class="correct">63.8%</td>
+                    <td class="wrong">6.9%</td>
+                    <td class="missing">5.2%</td>
+                    <td class="unexpected">31.8%</td>
+                    <td>0.673</td>
+                    <td>0.925</td>
+                </tr>
+
+                <tr>
+                    <td>host</td>
+                    <td class="correct">32.1%</td>
+                    <td class="wrong">0.0%</td>
+                    <td class="missing">5.4%</td>
+                    <td class="unexpected">166.7%</td>
+                    <td>0.340</td>
+                    <td>0.857</td>
+                </tr>
+
+                <tr>
+                    <td>port</td>
+                    <td class="correct">48.3%</td>
+                    <td class="wrong">0.0%</td>
+                    <td class="missing">8.6%</td>
+                    <td class="unexpected">75.8%</td>
+                    <td>0.528</td>
+                    <td>0.848</td>
+                </tr>
+
+                <tr>
+                    <td>authKey</td>
+                    <td class="correct">11.8%</td>
+                    <td class="wrong">17.6%</td>
+                    <td class="missing">1.5%</td>
+                    <td class="unexpected">223.8%</td>
+                    <td>0.119</td>
+                    <td>0.889</td>
+                </tr>
+
+            </tbody>
+        </table>
+    </div>
+
+    <div class="section">
+        <h3>📊 レベル別精度分析</h3>
+        <table class="metrics-table">
+            <thead>
+                <tr>
+                    <th>レベル</th>
+                    <th>正解率</th>
+                    <th>誤り率</th>
+                    <th>欠落率</th>
+                    <th>過剰抽出率</th>
+                    <th>Precision</th>
+                    <th>Recall</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                <tr>
+                    <td>Level 1</td>
+                    <td class="correct">31.7%</td>
+                    <td class="wrong">8.3%</td>
+                    <td class="missing">1.7%</td>
+                    <td class="unexpected">140.0%</td>
+                    <td>0.322</td>
+                    <td>0.950</td>
+                </tr>
+
+                <tr>
+                    <td>Level 2</td>
+                    <td class="correct">52.3%</td>
+                    <td class="wrong">6.8%</td>
+                    <td class="missing">2.3%</td>
+                    <td class="unexpected">63.0%</td>
+                    <td>0.535</td>
+                    <td>0.958</td>
+                </tr>
+
+                <tr>
+                    <td>Level 3</td>
+                    <td class="correct">69.1%</td>
+                    <td class="wrong">13.2%</td>
+                    <td class="missing">17.6%</td>
+                    <td class="unexpected">0.0%</td>
+                    <td>0.839</td>
+                    <td>0.797</td>
+                </tr>
+
+            </tbody>
+        </table>
+    </div>
+
+    <div class="section">
+        <h3>📊 パターン・レベル別精度分析</h3>
+        <table class="metrics-table">
+            <thead>
+                <tr>
+                    <th>パターン</th>
+                    <th>レベル</th>
+                    <th>正解率</th>
+                    <th>誤り率</th>
+                    <th>欠落率</th>
+                    <th>過剰抽出率</th>
+                    <th>Precision</th>
+                    <th>Recall</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                <tr>
+                    <td>Contract</td>
+                    <td>Level 1</td>
+                    <td class="correct">36.7%</td>
+                    <td class="wrong">3.3%</td>
+                    <td class="missing">0.0%</td>
+                    <td class="unexpected">150.0%</td>
+                    <td>0.367</td>
+                    <td>1.000</td>
+                </tr>
+
+                <tr>
+                    <td>Contract</td>
+                    <td>Level 2</td>
+                    <td class="correct">43.5%</td>
+                    <td class="wrong">8.1%</td>
+                    <td class="missing">1.6%</td>
+                    <td class="unexpected">87.9%</td>
+                    <td>0.443</td>
+                    <td>0.964</td>
+                </tr>
+
+                <tr>
+                    <td>Contract</td>
+                    <td>Level 3</td>
+                    <td class="correct">81.2%</td>
+                    <td class="wrong">9.4%</td>
+                    <td class="missing">9.4%</td>
+                    <td class="unexpected">0.0%</td>
+                    <td>0.897</td>
+                    <td>0.897</td>
+                </tr>
+
+                <tr>
+                    <td>Chat</td>
+                    <td>Level 1</td>
+                    <td class="correct">26.7%</td>
+                    <td class="wrong">13.3%</td>
+                    <td class="missing">3.3%</td>
+                    <td class="unexpected">130.8%</td>
+                    <td>0.276</td>
+                    <td>0.889</td>
+                </tr>
+
+                <tr>
+                    <td>Chat</td>
+                    <td>Level 2</td>
+                    <td class="correct">60.0%</td>
+                    <td class="wrong">5.7%</td>
+                    <td class="missing">2.9%</td>
+                    <td class="unexpected">45.8%</td>
+                    <td>0.618</td>
+                    <td>0.955</td>
+                </tr>
+
+                <tr>
+                    <td>Chat</td>
+                    <td>Level 3</td>
+                    <td class="correct">58.3%</td>
+                    <td class="wrong">16.7%</td>
+                    <td class="missing">25.0%</td>
+                    <td class="unexpected">0.0%</td>
+                    <td>0.778</td>
+                    <td>0.700</td>
+                </tr>
+
+            </tbody>
+        </table>
+    </div>
+
+    <div class="section">
+        <h3>📊 項目数ベース分析（パターン・レベル別）</h3>
+        <table class="metrics-table">
+            <thead>
+                <tr>
+                    <th>パターン</th>
+                    <th>レベル</th>
+                    <th>期待項目数</th>
+                    <th>正解項目数</th>
+                    <th>誤り項目数</th>
+                    <th>欠落項目数</th>
+                    <th>過剰項目数</th>
+                    <th>テストケース数</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                <tr>
+                    <td>Contract</td>
+                    <td>Level 1</td>
+                    <td>48</td>
+                    <td class="correct">22</td>
+                    <td class="wrong">2</td>
+                    <td class="missing">0</td>
+                    <td class="unexpected">36</td>
+                    <td>12</td>
+                </tr>
+
+                <tr>
+                    <td>Contract</td>
+                    <td>Level 2</td>
+                    <td>55</td>
+                    <td class="correct">27</td>
+                    <td class="wrong">5</td>
+                    <td class="missing">1</td>
+                    <td class="unexpected">29</td>
+                    <td>11</td>
+                </tr>
+
+                <tr>
+                    <td>Contract</td>
+                    <td>Level 3</td>
+                    <td>80</td>
+                    <td class="correct">52</td>
+                    <td class="wrong">6</td>
+                    <td class="missing">6</td>
+                    <td class="unexpected">0</td>
+                    <td>10</td>
+                </tr>
+
+                <tr>
+                    <td>Chat</td>
+                    <td>Level 1</td>
+                    <td>48</td>
+                    <td class="correct">16</td>
+                    <td class="wrong">8</td>
+                    <td class="missing">2</td>
+                    <td class="unexpected">34</td>
+                    <td>12</td>
+                </tr>
+
+                <tr>
+                    <td>Chat</td>
+                    <td>Level 2</td>
+                    <td>72</td>
+                    <td class="correct">42</td>
+                    <td class="wrong">4</td>
+                    <td class="missing">2</td>
+                    <td class="unexpected">22</td>
+                    <td>12</td>
+                </tr>
+
+                <tr>
+                    <td>Chat</td>
+                    <td>Level 3</td>
+                    <td>88</td>
+                    <td class="correct">42</td>
+                    <td class="wrong">12</td>
+                    <td class="missing">18</td>
+                    <td class="unexpected">0</td>
+                    <td>11</td>
+                </tr>
+
+            </tbody>
+        </table>
+    </div>
+
+    <div class="section">
+        <h3>📊 項目数ベース分析（レベル別）</h3>
+        <table class="metrics-table">
+            <thead>
+                <tr>
+                    <th>レベル</th>
+                    <th>期待項目数</th>
+                    <th>正解項目数</th>
+                    <th>誤り項目数</th>
+                    <th>欠落項目数</th>
+                    <th>過剰項目数</th>
+                    <th>テストケース数</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                <tr>
+                    <td>Level 1</td>
+                    <td>96</td>
+                    <td class="correct">38</td>
+                    <td class="wrong">10</td>
+                    <td class="missing">2</td>
+                    <td class="unexpected">70</td>
+                    <td>24</td>
+                </tr>
+
+                <tr>
+                    <td>Level 2</td>
+                    <td>127</td>
+                    <td class="correct">69</td>
+                    <td class="wrong">9</td>
+                    <td class="missing">3</td>
+                    <td class="unexpected">51</td>
+                    <td>23</td>
+                </tr>
+
+                <tr>
+                    <td>Level 3</td>
+                    <td>168</td>
+                    <td class="correct">94</td>
+                    <td class="wrong">18</td>
+                    <td class="missing">24</td>
+                    <td class="unexpected">0</td>
+                    <td>21</td>
+                </tr>
+
+            </tbody>
+        </table>
+    </div>
+
+    <div class="section">
+        <h3>📊 グラフ分析</h3>
+        <div class="chart-grid">
+            <div>
+                <h4>実験別精度比較</h4>
+                <div class="chart-container">
+                    <canvas id="accuracyChart"></canvas>
+                </div>
+            </div>
+            <div>
+                <h4>抽出時間比較</h4>
+                <div class="chart-container">
+                    <canvas id="timingChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="chart-grid">
+            <div>
+                <h4>レベル別精度分析</h4>
+                <div class="chart-container">
+                    <canvas id="levelChart"></canvas>
+                </div>
+            </div>
+            <div>
+                <h4>パターン別精度分析</h4>
+                <div class="chart-container">
+                    <canvas id="patternChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="chart-grid">
+            <div>
+                <h4>項目数ベース分析（レベル別）</h4>
+                <div class="chart-container">
+                    <canvas id="itemLevelChart"></canvas>
+                </div>
+            </div>
+            <div>
+                <h4>項目数ベース分析（パターン・レベル別）</h4>
+                <div class="chart-container">
+                    <canvas id="itemPatternLevelChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>📋 メトリクス定義</h3>
+        <div style="background: #f8f9fa; padding: 20px; border-radius: 8px;">
+            <h4>精度メトリクス</h4>
+            <ul>
+                <li><strong>正解率 (Correct Rate)</strong>: 抽出すべき項目のうち、正しく抽出された項目の割合</li>
+                <li><strong>誤り率 (Wrong Rate)</strong>: 抽出すべき項目のうち、値が間違って抽出された項目の割合</li>
+                <li><strong>欠落率 (Missing Rate)</strong>: 抽出すべき項目のうち、抽出されなかった項目の割合</li>
+                <li><strong>過剰抽出率 (Unexpected Rate)</strong>: 抽出すべきでない項目が抽出された割合（100%を超えることがある）</li>
+                <li><strong>Precision</strong>: 抽出した項目のうち、正しい項目の割合</li>
+                <li><strong>Recall</strong>: 抽出すべき項目のうち、実際に抽出された項目の割合</li>
+            </ul>
+            
+            <h4>抽出時間メトリクス</h4>
+            <ul>
+                <li><strong>平均抽出時間</strong>: 全テストケースの抽出時間の平均値</li>
+                <li><strong>最小抽出時間</strong>: 全テストケースの抽出時間の最小値</li>
+                <li><strong>最大抽出時間</strong>: 全テストケースの抽出時間の最大値</li>
+                <li><strong>総抽出時間</strong>: 全テストケースの抽出時間の合計</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="header">
+        <h2>📊 分析完了</h2>
+        <p>@ai[2024-12-19 18:30] FoundationModels 精度分析レポート</p>
+        <p><strong>注意:</strong> pending項目はAIによる詳細検証が必要です。</p>
+    </div>
+    
+    <script>
+        // グラフデータの準備
+        const experimentData = {
+            labels: [],
+            correct: [],
+            wrong: [],
+            missing: [],
+            unexpected: []
+        };
+        
+        const timingData = {
+            labels: [],
+            avgTime: [],
+            minTime: [],
+            maxTime: []
+        };
+        
+        const levelData = {
+            labels: [],
+            correct: [],
+            wrong: [],
+            missing: [],
+            unexpected: []
+        };
+        
+        const patternData = {
+            labels: [],
+            correct: [],
+            wrong: [],
+            missing: [],
+            unexpected: []
+        };
+        
+        // 項目数ベースのグラフデータ
+        const itemLevelData = {
+            labels: [],
+            expected: [],
+            correct: [],
+            wrong: [],
+            missing: [],
+            unexpected: []
+        };
+        
+        const itemPatternLevelData = {
+            labels: [],
+            expected: [],
+            correct: [],
+            wrong: [],
+            missing: [],
+            unexpected: []
+        };
+        
+        // データを設定
+
+        experimentData.labels.push('yaml_en_contract');
+        experimentData.correct.push(0.333);
+        experimentData.wrong.push(0.000);
+        experimentData.missing.push(0.000);
+        experimentData.unexpected.push(2.000);
+
+        experimentData.labels.push('yaml_ja_contract');
+        experimentData.correct.push(0.368);
+        experimentData.wrong.push(0.158);
+        experimentData.missing.push(0.105);
+        experimentData.unexpected.push(0.583);
+
+        experimentData.labels.push('generable_ja_contract');
+        experimentData.correct.push(0.786);
+        experimentData.wrong.push(0.000);
+        experimentData.missing.push(0.071);
+        experimentData.unexpected.push(0.167);
+
+        experimentData.labels.push('generable_en_contract');
+        experimentData.correct.push(0.667);
+        experimentData.wrong.push(0.067);
+        experimentData.missing.push(0.000);
+        experimentData.unexpected.push(0.364);
+
+        experimentData.labels.push('json_ja_contract');
+        experimentData.correct.push(0.556);
+        experimentData.wrong.push(0.056);
+        experimentData.missing.push(0.000);
+        experimentData.unexpected.push(0.636);
+
+        experimentData.labels.push('json_en_contract');
+        experimentData.correct.push(0.556);
+        experimentData.wrong.push(0.056);
+        experimentData.missing.push(0.000);
+        experimentData.unexpected.push(0.636);
+
+        experimentData.labels.push('yaml_en_chat');
+        experimentData.correct.push(0.500);
+        experimentData.wrong.push(0.167);
+        experimentData.missing.push(0.000);
+        experimentData.unexpected.push(0.500);
+
+        experimentData.labels.push('yaml_ja_chat');
+        experimentData.correct.push(0.389);
+        experimentData.wrong.push(0.222);
+        experimentData.missing.push(0.111);
+        experimentData.unexpected.push(0.385);
+
+        experimentData.labels.push('generable_ja_chat');
+        experimentData.correct.push(0.667);
+        experimentData.wrong.push(0.133);
+        experimentData.missing.push(0.000);
+        experimentData.unexpected.push(0.250);
+
+        experimentData.labels.push('json_ja_chat');
+        experimentData.correct.push(0.417);
+        experimentData.wrong.push(0.083);
+        experimentData.missing.push(0.000);
+        experimentData.unexpected.push(1.000);
+
+        experimentData.labels.push('json_en_chat');
+        experimentData.correct.push(0.556);
+        experimentData.wrong.push(0.111);
+        experimentData.missing.push(0.000);
+        experimentData.unexpected.push(0.500);
+
+        experimentData.labels.push('generable_en_chat');
+        experimentData.correct.push(0.562);
+        experimentData.wrong.push(0.000);
+        experimentData.missing.push(0.312);
+        experimentData.unexpected.push(0.143);
+
+        experimentData.labels.push('generable_en');
+        experimentData.correct.push(0.613);
+        experimentData.wrong.push(0.032);
+        experimentData.missing.push(0.161);
+        experimentData.unexpected.push(0.240);
+
+        experimentData.labels.push('generable_ja');
+        experimentData.correct.push(0.724);
+        experimentData.wrong.push(0.069);
+        experimentData.missing.push(0.034);
+        experimentData.unexpected.push(0.208);
+
+        experimentData.labels.push('yaml_ja');
+        experimentData.correct.push(0.378);
+        experimentData.wrong.push(0.189);
+        experimentData.missing.push(0.108);
+        experimentData.unexpected.push(0.480);
+
+        experimentData.labels.push('json_en');
+        experimentData.correct.push(0.556);
+        experimentData.wrong.push(0.083);
+        experimentData.missing.push(0.000);
+        experimentData.unexpected.push(0.565);
+
+        experimentData.labels.push('yaml_en');
+        experimentData.correct.push(0.400);
+        experimentData.wrong.push(0.133);
+        experimentData.missing.push(0.033);
+        experimentData.unexpected.push(0.765);
+
+        experimentData.labels.push('json_ja');
+        experimentData.correct.push(0.395);
+        experimentData.wrong.push(0.053);
+        experimentData.missing.push(0.211);
+        experimentData.unexpected.push(0.520);
+
+        levelData.labels.push('Level 1');
+        levelData.correct.push(0.317);
+        levelData.wrong.push(0.083);
+        levelData.missing.push(0.017);
+        levelData.unexpected.push(1.400);
+
+        levelData.labels.push('Level 2');
+        levelData.correct.push(0.523);
+        levelData.wrong.push(0.068);
+        levelData.missing.push(0.023);
+        levelData.unexpected.push(0.630);
+
+        levelData.labels.push('Level 3');
+        levelData.correct.push(0.691);
+        levelData.wrong.push(0.132);
+        levelData.missing.push(0.176);
+        levelData.unexpected.push(0.000);
+
+        patternData.labels.push('Contract');
+        patternData.correct.push(0.543);
+        patternData.wrong.push(0.070);
+        patternData.missing.push(0.038);
+        patternData.unexpected.push(0.537);
+
+        patternData.labels.push('Chat');
+        patternData.correct.push(0.495);
+        patternData.wrong.push(0.119);
+        patternData.missing.push(0.109);
+        patternData.unexpected.push(0.384);
+
+        itemLevelData.labels.push('Level 1');
+        itemLevelData.expected.push(96);
+        itemLevelData.correct.push(38);
+        itemLevelData.wrong.push(10);
+        itemLevelData.missing.push(2);
+        itemLevelData.unexpected.push(70);
+
+        itemLevelData.labels.push('Level 2');
+        itemLevelData.expected.push(127);
+        itemLevelData.correct.push(69);
+        itemLevelData.wrong.push(9);
+        itemLevelData.missing.push(3);
+        itemLevelData.unexpected.push(51);
+
+        itemLevelData.labels.push('Level 3');
+        itemLevelData.expected.push(168);
+        itemLevelData.correct.push(94);
+        itemLevelData.wrong.push(18);
+        itemLevelData.missing.push(24);
+        itemLevelData.unexpected.push(0);
+
+        itemPatternLevelData.labels.push('Contract L1');
+        itemPatternLevelData.expected.push(48);
+        itemPatternLevelData.correct.push(22);
+        itemPatternLevelData.wrong.push(2);
+        itemPatternLevelData.missing.push(0);
+        itemPatternLevelData.unexpected.push(36);
+
+        itemPatternLevelData.labels.push('Contract L2');
+        itemPatternLevelData.expected.push(55);
+        itemPatternLevelData.correct.push(27);
+        itemPatternLevelData.wrong.push(5);
+        itemPatternLevelData.missing.push(1);
+        itemPatternLevelData.unexpected.push(29);
+
+        itemPatternLevelData.labels.push('Contract L3');
+        itemPatternLevelData.expected.push(80);
+        itemPatternLevelData.correct.push(52);
+        itemPatternLevelData.wrong.push(6);
+        itemPatternLevelData.missing.push(6);
+        itemPatternLevelData.unexpected.push(0);
+
+        itemPatternLevelData.labels.push('Chat L1');
+        itemPatternLevelData.expected.push(48);
+        itemPatternLevelData.correct.push(16);
+        itemPatternLevelData.wrong.push(8);
+        itemPatternLevelData.missing.push(2);
+        itemPatternLevelData.unexpected.push(34);
+
+        itemPatternLevelData.labels.push('Chat L2');
+        itemPatternLevelData.expected.push(72);
+        itemPatternLevelData.correct.push(42);
+        itemPatternLevelData.wrong.push(4);
+        itemPatternLevelData.missing.push(2);
+        itemPatternLevelData.unexpected.push(22);
+
+        itemPatternLevelData.labels.push('Chat L3');
+        itemPatternLevelData.expected.push(88);
+        itemPatternLevelData.correct.push(42);
+        itemPatternLevelData.wrong.push(12);
+        itemPatternLevelData.missing.push(18);
+        itemPatternLevelData.unexpected.push(0);
+
+        
+        // グラフの描画
+        const chartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 1
+                }
+            }
+        };
+        
+        // 実験別精度比較グラフ
+        new Chart(document.getElementById('accuracyChart'), {
+            type: 'bar',
+            data: {
+                labels: experimentData.labels,
+                datasets: [
+                    {
+                        label: '正解率',
+                        data: experimentData.correct,
+                        backgroundColor: 'rgba(40, 167, 69, 0.7)',
+                        borderColor: 'rgba(40, 167, 69, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: '誤り率',
+                        data: experimentData.wrong,
+                        backgroundColor: 'rgba(220, 53, 69, 0.7)',
+                        borderColor: 'rgba(220, 53, 69, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: '欠落率',
+                        data: experimentData.missing,
+                        backgroundColor: 'rgba(255, 193, 7, 0.7)',
+                        borderColor: 'rgba(255, 193, 7, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: '過剰抽出率',
+                        data: experimentData.unexpected,
+                        backgroundColor: 'rgba(111, 66, 193, 0.7)',
+                        borderColor: 'rgba(111, 66, 193, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: chartOptions
+        });
+        
+        // 抽出時間比較グラフ
+        new Chart(document.getElementById('timingChart'), {
+            type: 'bar',
+            data: {
+                labels: timingData.labels,
+                datasets: [
+                    {
+                        label: '平均時間',
+                        data: timingData.avgTime,
+                        backgroundColor: 'rgba(0, 123, 255, 0.7)',
+                        borderColor: 'rgba(0, 123, 255, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: '最小時間',
+                        data: timingData.minTime,
+                        backgroundColor: 'rgba(40, 167, 69, 0.7)',
+                        borderColor: 'rgba(40, 167, 69, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: '最大時間',
+                        data: timingData.maxTime,
+                        backgroundColor: 'rgba(220, 53, 69, 0.7)',
+                        borderColor: 'rgba(220, 53, 69, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+        
+        // レベル別精度分析グラフ
+        new Chart(document.getElementById('levelChart'), {
+            type: 'bar',
+            data: {
+                labels: levelData.labels,
+                datasets: [
+                    {
+                        label: '正解率',
+                        data: levelData.correct,
+                        backgroundColor: 'rgba(40, 167, 69, 0.7)',
+                        borderColor: 'rgba(40, 167, 69, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: '誤り率',
+                        data: levelData.wrong,
+                        backgroundColor: 'rgba(220, 53, 69, 0.7)',
+                        borderColor: 'rgba(220, 53, 69, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: '欠落率',
+                        data: levelData.missing,
+                        backgroundColor: 'rgba(255, 193, 7, 0.7)',
+                        borderColor: 'rgba(255, 193, 7, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: '過剰抽出率',
+                        data: levelData.unexpected,
+                        backgroundColor: 'rgba(111, 66, 193, 0.7)',
+                        borderColor: 'rgba(111, 66, 193, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: chartOptions
+        });
+        
+        // パターン別精度分析グラフ
+        new Chart(document.getElementById('patternChart'), {
+            type: 'bar',
+            data: {
+                labels: patternData.labels,
+                datasets: [
+                    {
+                        label: '正解率',
+                        data: patternData.correct,
+                        backgroundColor: 'rgba(40, 167, 69, 0.7)',
+                        borderColor: 'rgba(40, 167, 69, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: '誤り率',
+                        data: patternData.wrong,
+                        backgroundColor: 'rgba(220, 53, 69, 0.7)',
+                        borderColor: 'rgba(220, 53, 69, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: '欠落率',
+                        data: patternData.missing,
+                        backgroundColor: 'rgba(255, 193, 7, 0.7)',
+                        borderColor: 'rgba(255, 193, 7, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: '過剰抽出率',
+                        data: patternData.unexpected,
+                        backgroundColor: 'rgba(111, 66, 193, 0.7)',
+                        borderColor: 'rgba(111, 66, 193, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: chartOptions
+        });
+        
+        // 項目数ベースのレベル別グラフ
+        new Chart(document.getElementById('itemLevelChart'), {
+            type: 'bar',
+            data: {
+                labels: itemLevelData.labels,
+                datasets: [
+                    {
+                        label: '期待項目数',
+                        data: itemLevelData.expected,
+                        backgroundColor: 'rgba(0, 123, 255, 0.7)',
+                        borderColor: 'rgba(0, 123, 255, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: '正解項目数',
+                        data: itemLevelData.correct,
+                        backgroundColor: 'rgba(40, 167, 69, 0.7)',
+                        borderColor: 'rgba(40, 167, 69, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: '誤り項目数',
+                        data: itemLevelData.wrong,
+                        backgroundColor: 'rgba(220, 53, 69, 0.7)',
+                        borderColor: 'rgba(220, 53, 69, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: '欠落項目数',
+                        data: itemLevelData.missing,
+                        backgroundColor: 'rgba(255, 193, 7, 0.7)',
+                        borderColor: 'rgba(255, 193, 7, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: '過剰項目数',
+                        data: itemLevelData.unexpected,
+                        backgroundColor: 'rgba(111, 66, 193, 0.7)',
+                        borderColor: 'rgba(111, 66, 193, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+        
+        // 項目数ベースのパターン・レベル別グラフ
+        new Chart(document.getElementById('itemPatternLevelChart'), {
+            type: 'bar',
+            data: {
+                labels: itemPatternLevelData.labels,
+                datasets: [
+                    {
+                        label: '期待項目数',
+                        data: itemPatternLevelData.expected,
+                        backgroundColor: 'rgba(0, 123, 255, 0.7)',
+                        borderColor: 'rgba(0, 123, 255, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: '正解項目数',
+                        data: itemPatternLevelData.correct,
+                        backgroundColor: 'rgba(40, 167, 69, 0.7)',
+                        borderColor: 'rgba(40, 167, 69, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: '誤り項目数',
+                        data: itemPatternLevelData.wrong,
+                        backgroundColor: 'rgba(220, 53, 69, 0.7)',
+                        borderColor: 'rgba(220, 53, 69, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: '欠落項目数',
+                        data: itemPatternLevelData.missing,
+                        backgroundColor: 'rgba(255, 193, 7, 0.7)',
+                        borderColor: 'rgba(255, 193, 7, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: '過剰項目数',
+                        data: itemPatternLevelData.unexpected,
+                        backgroundColor: 'rgba(111, 66, 193, 0.7)',
+                        borderColor: 'rgba(111, 66, 193, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

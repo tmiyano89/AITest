@@ -1,0 +1,35 @@
+Building for debugging...
+[0/3] Write swift-version--58304C5D6DBC2206.txt
+[1/4] Write sources
+[3/6] Emitting module AITestApp
+/Users/t.miyano/repos/AITest/Sources/AITestApp/main.swift:75:12: warning: unnecessary check for 'macOS'; enclosing scope ensures guard will always be true
+  45 | 
+  46 | // iOS 26+、macOS 26+の利用可能性チェック（メインターゲット）
+  47 | if #available(iOS 26.0, macOS 26.0, *) {
+     | `- note: enclosing scope here
+  48 |     print("✅ iOS 26+ / macOS 26+ の要件を満たしています")
+  49 |     
+     :
+  73 |         print("   引数: \(CommandLine.arguments)")
+  74 |         
+  75 |         if #available(iOS 26.0, macOS 26.0, *), let experiment = extractExperimentFromArguments() {
+     |            `- warning: unnecessary check for 'macOS'; enclosing scope ensures guard will always be true
+  76 |             print("✅ 特定のexperimentを検出: \(experiment.method.rawValue)_\(experiment.language.rawValue)")
+  77 |             // テストディレクトリとパターンの取得
+[4/6] Compiling AITestApp main.swift
+/Users/t.miyano/repos/AITest/Sources/AITestApp/main.swift:75:12: warning: unnecessary check for 'macOS'; enclosing scope ensures guard will always be true
+  45 | 
+  46 | // iOS 26+、macOS 26+の利用可能性チェック（メインターゲット）
+  47 | if #available(iOS 26.0, macOS 26.0, *) {
+     | `- note: enclosing scope here
+  48 |     print("✅ iOS 26+ / macOS 26+ の要件を満たしています")
+  49 |     
+     :
+  73 |         print("   引数: \(CommandLine.arguments)")
+  74 |         
+  75 |         if #available(iOS 26.0, macOS 26.0, *), let experiment = extractExperimentFromArguments() {
+     |            `- warning: unnecessary check for 'macOS'; enclosing scope ensures guard will always be true
+  76 |             print("✅ 特定のexperimentを検出: \(experiment.method.rawValue)_\(experiment.language.rawValue)")
+  77 |             // テストディレクトリとパターンの取得
+Build of product 'AITestApp' complete! (1.57s)
+AITestApp/main.swift:865: Fatal error: 無効なパターンです: Creditcard。有効なパターン: ["Chat", "Contract", "CreditCard", "VoiceRecognition", "PasswordManager"]

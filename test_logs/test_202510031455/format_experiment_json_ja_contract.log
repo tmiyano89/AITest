@@ -122,4 +122,200 @@ OS Version: Version 26.0 (Build 25A354)
 ⏱️  [テストケース2] 開始
 
 📋 テストケース 2: Contract Level2 General
-📝 入力テキ
+📝 入力テキスト: 第3条 システムアクセス情報
+
+3.1 アクセス権限の付与
+本契約に基づき、社内基幹システムへのアクセス情報を提供する。
+システム名: 社内基幹システム
+アクセス用アカウント: manager@com...
+----------------------------------------
+🔍 期待値取得テスト:
+  title: ''
+  userID: 'manager@company.co.jp'
+  password: 'SecureLogin2024!'
+  url: 'https://system.company.com/login'
+  note: ''
+
+🔍 抽出方法: JSON形式 (日本語)
+📝 説明: JSON形式での回答を要求し、JSONDecoderでデコード - 日本語プロンプトを使用した抽出
+⏱️  [テストケース2] 抽出器作成完了: 0.001秒
+⏱️  [テストケース2] AI抽出完了: 14.592秒
+✅ 抽出成功
+  ⏱️  抽出時間: 14.590秒
+  ⏱️  総時間: 14.591秒
+  📊 抽出フィールド数: 8
+  ✅ バリデーション: 警告あり
+  📋 抽出結果:
+    title: 社内基幹システム
+    userID: manager@company.co.jp
+    password: SecureLogin2024!
+    url: https://system.company.com/login
+    note: 業務目的でのみ利用可能です。機密情報を保護し、パスワードを定期的に変更してください。
+    host: system.company.com
+    port: 8443
+    authKey: BEGIN SecureLogin2024!END
+
+📊 構造化ログ:
+{
+  "level" : 2,
+  "iteration" : 1,
+  "pattern" : "Contract",
+  "expected_fields" : [
+    {
+      "status" : "pending",
+      "name" : "title",
+      "value" : "社内基幹システム"
+    },
+    {
+      "status" : "correct",
+      "name" : "userID",
+      "value" : "manager@company.co.jp"
+    },
+    {
+      "status" : "correct",
+      "name" : "password",
+      "value" : "SecureLogin2024!"
+    },
+    {
+      "name" : "url",
+      "status" : "correct",
+      "value" : "https:\/\/system.company.com\/login"
+    },
+    {
+      "value" : "業務目的でのみ利用可能です。機密情報を保護し、パスワードを定期的に変更してください。",
+      "name" : "note",
+      "status" : "pending"
+    }
+  ],
+  "method" : "json",
+  "language" : "ja",
+  "unexpected_fields" : [
+    {
+      "value" : "system.company.com",
+      "status" : "unexpected",
+      "name" : "host"
+    },
+    {
+      "value" : "8443",
+      "status" : "unexpected",
+      "name" : "port"
+    },
+    {
+      "status" : "unexpected",
+      "name" : "authKey",
+      "value" : "BEGIN SecureLogin2024!END"
+    }
+  ]
+}
+💾 ログ保存: test_logs/test_202510031455/json_ja_Contract_level2_1.json
+⏱️  [テストケース2] ログ出力完了: 14.593秒
+⏱️  [テストケース2] 完了: 14.593秒
+============================================================
+⏱️  [テストケース3] 開始
+
+📋 テストケース 3: Contract Level3 Complex
+📝 入力テキスト: 第3条 システムアクセス情報及びセキュリティ要件
+
+3.1 アクセス権限の付与
+本契約に基づき、社内基幹システム（本番環境）へのアクセス情報を提供する。
+【システム情報】
+名称: 社内基幹システム（本...
+----------------------------------------
+🔍 期待値取得テスト:
+  title: ''
+  userID: 'user001'
+  password: 'CompanyPass2024!@#'
+  url: 'https://system.company.com/login'
+  note: ''
+  host: '192.168.1.100'
+  port: '443'
+  authKey: 'BEGIN OPENSSH PRIVATE KEY
+b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABFwAAAAdzc2gtcnNhAAAAAwEAAQAAAQEA1234567890abcdef...
+END OPENSSH PRIVATE KEY'
+
+🔍 抽出方法: JSON形式 (日本語)
+📝 説明: JSON形式での回答を要求し、JSONDecoderでデコード - 日本語プロンプトを使用した抽出
+⏱️  [テストケース3] 抽出器作成完了: 0.001秒
+⏱️  [テストケース3] AI抽出完了: 19.184秒
+✅ 抽出成功
+  ⏱️  抽出時間: 19.182秒
+  ⏱️  総時間: 19.183秒
+  📊 抽出フィールド数: 8
+  ✅ バリデーション: 警告あり
+  📋 抽出結果:
+    title: 社内基幹システム
+    userID: user001
+    password: CompanyPass2024!@#
+    url: https://system.company.com/login
+    note: 業務目的でのみ利用可能、VPN経由で接続、同時接続数最大5、ログイン試行5回まで、30分セッションタイムアウト、私的利用禁止、定期的な監査対象、データ保護法に準拠、日次バックアップ実施
+    host: 192.168.1.100
+    port: 443
+    authKey: BEGIN OPENSSH PRIVATE KEY b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABFwAAAAdzc2gtcnNhAAAAAwEAAQAAAQEA1234567890abcdef... END OPENSSH PRIVATE KEY
+
+📊 構造化ログ:
+{
+  "level" : 3,
+  "iteration" : 1,
+  "pattern" : "Contract",
+  "expected_fields" : [
+    {
+      "value" : "社内基幹システム",
+      "status" : "pending",
+      "name" : "title"
+    },
+    {
+      "status" : "correct",
+      "name" : "userID",
+      "value" : "user001"
+    },
+    {
+      "status" : "correct",
+      "name" : "password",
+      "value" : "CompanyPass2024!@#"
+    },
+    {
+      "status" : "correct",
+      "name" : "url",
+      "value" : "https:\/\/system.company.com\/login"
+    },
+    {
+      "status" : "pending",
+      "value" : "業務目的でのみ利用可能、VPN経由で接続、同時接続数最大5、ログイン試行5回まで、30分セッションタイムアウト、私的利用禁止、定期的な監査対象、データ保護法に準拠、日次バックアップ実施",
+      "name" : "note"
+    },
+    {
+      "value" : "192.168.1.100",
+      "status" : "correct",
+      "name" : "host"
+    },
+    {
+      "status" : "correct",
+      "name" : "port",
+      "value" : "443"
+    },
+    {
+      "value" : "BEGIN OPENSSH PRIVATE KEY b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABFwAAAAdzc2gtcnNhAAAAAwEAAQAAAQEA1234567890abcdef... END OPENSSH PRIVATE KEY",
+      "name" : "authKey",
+      "status" : "wrong"
+    }
+  ],
+  "method" : "json",
+  "language" : "ja",
+  "unexpected_fields" : [
+
+  ]
+}
+💾 ログ保存: test_logs/test_202510031455/json_ja_Contract_level3_1.json
+⏱️  [テストケース3] ログ出力完了: 19.185秒
+⏱️  [テストケース3] 完了: 19.185秒
+============================================================
+📄 HTMLレポート生成: test_logs/test_202510031455/json_ja_format_experiment_report.html
+⏱️  [特定実験全体] HTMLレポート生成完了: 50.105秒
+⏱️  [特定実験全体] 完了: 50.105秒
+
+📊 特定実験完了
+📁 テスト結果: test_logs/test_202510031455/
+⏰ タイムアウト: 300秒経過
+🛑 処理を中断します
+================================================================================
+✅ AITest コンソールアプリケーション完了

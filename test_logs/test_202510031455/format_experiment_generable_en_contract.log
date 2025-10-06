@@ -110,4 +110,196 @@ OS Version: Version 26.0 (Build 25A354)
 本契約に基づき、社内基幹システムへのアクセス情報を提供する。
 システム名: 社内基幹システム
 アクセス用アカウント: manager@com...
---------------------------
+----------------------------------------
+🔍 期待値取得テスト:
+  title: ''
+  userID: 'manager@company.co.jp'
+  password: 'SecureLogin2024!'
+  url: 'https://system.company.com/login'
+  note: ''
+
+🔍 抽出方法: @Generableマクロ (English)
+📝 説明: FoundationModelsの@Generableマクロを使用した構造化抽出 - English prompt for extraction
+⏱️  [テストケース2] 抽出器作成完了: 0.001秒
+⏱️  [テストケース2] AI抽出完了: 14.255秒
+✅ 抽出成功
+  ⏱️  抽出時間: 14.253秒
+  ⏱️  総時間: 14.255秒
+  📊 抽出フィールド数: 8
+  ✅ バリデーション: 成功
+  📋 抽出結果:
+    title: 社内基幹システム
+    userID: manager@company.co.jp
+    password: SecureLogin2024!
+    url: https://system.company.com/login
+    note: 業務目的でのみ利用可能とし、私的利用を禁止します。
+    host: system.company.com
+    port: 3128
+    authKey: -----BEGIN OPENSSH PRIVATE KEY-----
+
+📊 構造化ログ:
+{
+  "unexpected_fields" : [
+    {
+      "name" : "host",
+      "value" : "system.company.com",
+      "status" : "unexpected"
+    },
+    {
+      "status" : "unexpected",
+      "name" : "port",
+      "value" : "3128"
+    },
+    {
+      "status" : "unexpected",
+      "name" : "authKey",
+      "value" : "-----BEGIN OPENSSH PRIVATE KEY-----"
+    }
+  ],
+  "level" : 2,
+  "language" : "en",
+  "pattern" : "Contract",
+  "iteration" : 1,
+  "expected_fields" : [
+    {
+      "name" : "title",
+      "value" : "社内基幹システム",
+      "status" : "pending"
+    },
+    {
+      "status" : "correct",
+      "name" : "userID",
+      "value" : "manager@company.co.jp"
+    },
+    {
+      "value" : "SecureLogin2024!",
+      "name" : "password",
+      "status" : "correct"
+    },
+    {
+      "status" : "correct",
+      "name" : "url",
+      "value" : "https:\/\/system.company.com\/login"
+    },
+    {
+      "status" : "pending",
+      "name" : "note",
+      "value" : "業務目的でのみ利用可能とし、私的利用を禁止します。"
+    }
+  ],
+  "method" : "generable"
+}
+💾 ログ保存: test_logs/test_202510031455/generable_en_Contract_level2_1.json
+⏱️  [テストケース2] ログ出力完了: 14.256秒
+⏱️  [テストケース2] 完了: 14.256秒
+============================================================
+⏱️  [テストケース3] 開始
+
+📋 テストケース 3: Contract Level3 Complex
+📝 入力テキスト: 第3条 システムアクセス情報及びセキュリティ要件
+
+3.1 アクセス権限の付与
+本契約に基づき、社内基幹システム（本番環境）へのアクセス情報を提供する。
+【システム情報】
+名称: 社内基幹システム（本...
+----------------------------------------
+🔍 期待値取得テスト:
+  title: ''
+  userID: 'user001'
+  password: 'CompanyPass2024!@#'
+  url: 'https://system.company.com/login'
+  note: ''
+  host: '192.168.1.100'
+  port: '443'
+  authKey: 'BEGIN OPENSSH PRIVATE KEY
+b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABFwAAAAdzc2gtcnNhAAAAAwEAAQAAAQEA1234567890abcdef...
+END OPENSSH PRIVATE KEY'
+
+🔍 抽出方法: @Generableマクロ (English)
+📝 説明: FoundationModelsの@Generableマクロを使用した構造化抽出 - English prompt for extraction
+⏱️  [テストケース3] 抽出器作成完了: 0.001秒
+⏱️  [テストケース3] AI抽出完了: 17.426秒
+✅ 抽出成功
+  ⏱️  抽出時間: 17.424秒
+  ⏱️  総時間: 17.425秒
+  📊 抽出フィールド数: 8
+  ✅ バリデーション: 警告あり
+  📋 抽出結果:
+    title: 社内基幹システム（本番環境）
+    userID: user001
+    password: CompanyPass2024!@#
+    url: https://system.company.com/login
+    note: 本システムは業務目的でのみ利用可能とし、私的利用を禁止します。
+    host: 192.168.1.100
+    port: 443
+    authKey: BEGIN OPENSSH PRIVATE KEY
+b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABFwAAAAdzc2gtcnNhAAAAAwEAAQAAAQEA1234567890abcdef...
+END OPENSSH PRIVATE KEY
+
+📊 構造化ログ:
+{
+  "unexpected_fields" : [
+
+  ],
+  "level" : 3,
+  "language" : "en",
+  "pattern" : "Contract",
+  "iteration" : 1,
+  "expected_fields" : [
+    {
+      "status" : "pending",
+      "name" : "title",
+      "value" : "社内基幹システム（本番環境）"
+    },
+    {
+      "status" : "correct",
+      "name" : "userID",
+      "value" : "user001"
+    },
+    {
+      "value" : "CompanyPass2024!@#",
+      "name" : "password",
+      "status" : "correct"
+    },
+    {
+      "name" : "url",
+      "status" : "correct",
+      "value" : "https:\/\/system.company.com\/login"
+    },
+    {
+      "name" : "note",
+      "value" : "本システムは業務目的でのみ利用可能とし、私的利用を禁止します。",
+      "status" : "pending"
+    },
+    {
+      "name" : "host",
+      "value" : "192.168.1.100",
+      "status" : "correct"
+    },
+    {
+      "name" : "port",
+      "value" : "443",
+      "status" : "correct"
+    },
+    {
+      "name" : "authKey",
+      "value" : "BEGIN OPENSSH PRIVATE KEY\nb3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABFwAAAAdzc2gtcnNhAAAAAwEAAQAAAQEA1234567890abcdef...\nEND OPENSSH PRIVATE KEY",
+      "status" : "correct"
+    }
+  ],
+  "method" : "generable"
+}
+💾 ログ保存: test_logs/test_202510031455/generable_en_Contract_level3_1.json
+⏱️  [テストケース3] ログ出力完了: 17.427秒
+⏱️  [テストケース3] 完了: 17.427秒
+============================================================
+📄 HTMLレポート生成: test_logs/test_202510031455/generable_en_format_experiment_report.html
+⏱️  [特定実験全体] HTMLレポート生成完了: 50.186秒
+⏱️  [特定実験全体] 完了: 50.186秒
+
+📊 特定実験完了
+📁 テスト結果: test_logs/test_202510031455/
+⏰ タイムアウト: 300秒経過
+🛑 処理を中断します
+================================================================================
+✅ AITest コンソールアプリケーション完了

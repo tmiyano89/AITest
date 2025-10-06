@@ -1,0 +1,25 @@
+@Ayano Muto, @Keisuke Yoshimura, @s.kiba, @カティさんとの記念すべき第一回目のダイレクトメッセージ (DM) です。
+この会話で新しいメッセージが投稿されるたびに通知が届きます。 この設定を変更する
+
+6月30日(月)
+
+s.kiba
+  18:52
+お疲れ様です。
+吉村さんよりRTX 6000 Proサーバのログイン情報をお伝えするよう指示いただきましたので、以下にログイン情報を共有いたします。
+接続先：182.171.82.172:22172
+ID：abcduser
+PW：GdBsYNIFoee0/HV1
+nvidiaドライバとCudaToolkit（12.9）をインストール済み、その他開発環境は未導入です。必要に応じてご準備ください。
+ファイアウォールは80(http)/443(https)/22172(ssh)のみ開放しております。ルータ側からはすべて通す設定になっておりますので、必要に応じてufwコマンドで開放もしくはお声がけください。
+パスワードの他に添付しました鍵ファイルでもログイン可能です。
+その他不明な点がございましたらご連絡お願いします。
+randduser
+ 
+-----BEGIN OPENSSH PRIVATE KEY-----
+b3BlbnNzaC1rZXktdiEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW
+QyNTUxOQAAACBeDVZ/4nTYNriXFlJwOUmxrCkYsIk6HQL42Px7ks+kWAAAAKAvzcWbL83F
+mwAAAAtzc2gtZWQyNTUxOQAAACBeDVZ/4nTYNriXFlJwOUmxrCkYsIk6HQL42Px7ks+kWA
+AAAEDt8x87SFZuqjPdP04h48YVOEXX0+Rd84DFqFj814rTFl4NVn/idNg2uJcWUnA5SbGs
+KRiwiTodAvjY/HuSz6RYAAAAFnJhbmRkdXNlckBzbHN2MjVncHUtMDIBAgMEBQYH
+-----END OPENSSH PRIVATE KEY-----

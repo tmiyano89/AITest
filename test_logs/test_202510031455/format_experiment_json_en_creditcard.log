@@ -1,0 +1,4 @@
+Another instance of SwiftPM (PID: 16351) is already running using '/Users/t.miyano/repos/AITest/.build', waiting until that process has finished execution...Building for debugging...
+[0/3] Write swift-version--58304C5D6DBC2206.txt
+Build of product 'AITestApp' complete! (0.10s)
+AITestApp/main.swift:865: Fatal error: 無効なパターンです: Creditcard。有効なパターン: ["Chat", "Contract", "CreditCard", "VoiceRecognition", "PasswordManager"]
