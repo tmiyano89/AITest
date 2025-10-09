@@ -97,3 +97,4 @@ Benchmark/results/
 # AI Logs (keep structure but ignore large files)
 docs/ai-logs/*.log
 docs/ai-logs/*.txt
+test_logs/
