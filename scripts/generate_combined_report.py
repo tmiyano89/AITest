@@ -298,6 +298,18 @@ def calculate_item_based_metrics(all_results):
             wrong_count = sum(1 for field in test_case['expected_fields'] if field['status'] == 'wrong')
             missing_count = sum(1 for field in test_case['expected_fields'] if field['status'] == 'missing')
             unexpected_count = len(test_case['unexpected_fields'])
+
+            # 整合性保証: 期待 = 正解 + 誤り + 欠落
+            # 欠落が未集計なケースに備えて丸める
+            accounted = correct_count + wrong_count + missing_count
+            if accounted > expected_count:
+                # 異常値の場合はwrong_countを減らして合わせる（最小限の補正）
+                overflow = accounted - expected_count
+                wrong_count = max(0, wrong_count - overflow)
+                accounted = correct_count + wrong_count + missing_count
+            if accounted < expected_count:
+                # 欠落に不足分を反映
+                missing_count += (expected_count - accounted)
             
             # パターン・レベル別の集計
             if pattern not in item_metrics['by_pattern_level']:
@@ -364,6 +376,60 @@ def calculate_item_based_metrics(all_results):
     
     return item_metrics
 
+def compute_grouped_item_scores(all_results):
+    """method/language/patternの各軸で、項目数ベースと正規化スコアを集計"""
+    def ensure_group(d):
+        if 'expected_items' not in d:
+            d.update({'expected_items':0,'correct_items':0,'wrong_items':0,'missing_items':0,'unexpected_items':0,'tests':0})
+
+    by_method = {}
+    by_language = {}
+    by_pattern = {}
+
+    for result in all_results:
+        for tc in result['test_cases']:
+            expected = len(tc.get('expected_fields', []))
+            correct = sum(1 for f in tc.get('expected_fields', []) if f.get('status')=='correct')
+            wrong = sum(1 for f in tc.get('expected_fields', []) if f.get('status')=='wrong')
+            missing = sum(1 for f in tc.get('expected_fields', []) if f.get('status')=='missing')
+            unexpected = len(tc.get('unexpected_fields', []))
+            # 整合性
+            accounted = correct + wrong + missing
+            if accounted > expected:
+                overflow = accounted - expected
+                wrong = max(0, wrong - overflow)
+                accounted = correct + wrong + missing
+            if accounted < expected:
+                missing += (expected - accounted)
+
+            meth = tc.get('method') or result.get('method')
+            lang = tc.get('language') or result.get('language')
+            patt = tc.get('pattern')
+
+            if meth:
+                by_method.setdefault(meth, {}); ensure_group(by_method[meth])
+                g = by_method[meth]; g['expected_items']+=expected; g['correct_items']+=correct; g['wrong_items']+=wrong; g['missing_items']+=missing; g['unexpected_items']+=unexpected; g['tests']+=1
+            if lang:
+                by_language.setdefault(lang, {}); ensure_group(by_language[lang])
+                g = by_language[lang]; g['expected_items']+=expected; g['correct_items']+=correct; g['wrong_items']+=wrong; g['missing_items']+=missing; g['unexpected_items']+=unexpected; g['tests']+=1
+            if patt:
+                by_pattern.setdefault(patt, {}); ensure_group(by_pattern[patt])
+                g = by_pattern[patt]; g['expected_items']+=expected; g['correct_items']+=correct; g['wrong_items']+=wrong; g['missing_items']+=missing; g['unexpected_items']+=unexpected; g['tests']+=1
+
+    def add_score(dct):
+        out = {}
+        for k,v in dct.items():
+            exp = v['expected_items'] or 1
+            score = (v['correct_items'] - v['wrong_items'] - v['unexpected_items']) / exp
+            out[k] = {**v, 'normalized_score': score}
+        return out
+
+    return {
+        'by_method': add_score(by_method),
+        'by_language': add_score(by_language),
+        'by_pattern': add_score(by_pattern),
+    }
+
 def calculate_rates(metrics):
     """各種率を計算"""
     rates = {
@@ -392,6 +458,17 @@ def calculate_rates(metrics):
             'pending_rate': metrics['overall']['pending'] / total,
             'precision': metrics['overall']['correct'] / (metrics['overall']['correct'] + metrics['overall']['wrong'] + metrics['overall']['unexpected']) if (metrics['overall']['correct'] + metrics['overall']['wrong'] + metrics['overall']['unexpected']) > 0 else 0,
             'recall': metrics['overall']['correct'] / (metrics['overall']['correct'] + metrics['overall']['missing']) if (metrics['overall']['correct'] + metrics['overall']['missing']) > 0 else 0
+        }
+    else:
+        # データがない場合のデフォルト値
+        rates['overall'] = {
+            'correct_rate': 0.0,
+            'wrong_rate': 0.0,
+            'missing_rate': 0.0,
+            'unexpected_rate': 0.0,
+            'pending_rate': 0.0,
+            'precision': 0.0,
+            'recall': 0.0
         }
     
     # 実験別の率
@@ -647,6 +724,7 @@ def generate_html_report(all_results, output_path, rates=None, timing_stats=None
     # 項目数ベースのメトリクスを計算（引数で渡されていない場合のみ）
     if item_metrics is None:
         item_metrics = calculate_item_based_metrics(all_results)
+    grouped_scores = compute_grouped_item_scores(all_results)
     
     if timing_stats is None:
         timing_stats = calculate_timing_stats(all_results)
@@ -718,32 +796,28 @@ def generate_html_report(all_results, output_path, rates=None, timing_stats=None
     
     <div class="summary">
         <div class="summary-card">
-            <h3>総フィールド数</h3>
-            <p style="font-size: 2em; margin: 0;">{sum(metrics['overall'].values())}</p>
+            <h3>総期待項目数</h3>
+            <p style="font-size: 2em; margin: 0;">{item_metrics['overall']['expected_items']}</p>
         </div>
         <div class="summary-card">
-            <h3>正解率</h3>
-            <p style="font-size: 2em; margin: 0; color: #28a745;">{rates['overall']['correct_rate']:.1%}</p>
+            <h3>総正解項目数</h3>
+            <p style="font-size: 2em; margin: 0; color: #28a745;">{item_metrics['overall']['correct_items']}</p>
         </div>
         <div class="summary-card">
-            <h3>誤り率</h3>
-            <p style="font-size: 2em; margin: 0; color: #dc3545;">{rates['overall']['wrong_rate']:.1%}</p>
+            <h3>総誤り項目数</h3>
+            <p style="font-size: 2em; margin: 0; color: #dc3545;">{item_metrics['overall']['wrong_items']}</p>
         </div>
         <div class="summary-card">
-            <h3>欠落率</h3>
-            <p style="font-size: 2em; margin: 0; color: #ffc107;">{rates['overall']['missing_rate']:.1%}</p>
+            <h3>総欠落項目数</h3>
+            <p style="font-size: 2em; margin: 0; color: #ffc107;">{item_metrics['overall']['missing_items']}</p>
         </div>
         <div class="summary-card">
-            <h3>過剰抽出率</h3>
-            <p style="font-size: 2em; margin: 0; color: #6f42c1;">{rates['overall']['unexpected_rate']:.1%}</p>
+            <h3>総過剰項目数</h3>
+            <p style="font-size: 2em; margin: 0; color: #6f42c1;">{item_metrics['overall']['unexpected_items']}</p>
         </div>
         <div class="summary-card">
-            <h3>Precision</h3>
-            <p style="font-size: 2em; margin: 0;">{rates['overall']['precision']:.3f}</p>
-        </div>
-        <div class="summary-card">
-            <h3>Recall</h3>
-            <p style="font-size: 2em; margin: 0;">{rates['overall']['recall']:.3f}</p>
+            <h3>正規化スコア（全体）</h3>
+            <p style="font-size: 2em; margin: 0; color: #007bff;">{( (item_metrics['overall']['correct_items'] - item_metrics['overall']['wrong_items'] - item_metrics['overall']['unexpected_items']) / (item_metrics['overall']['expected_items'] or 1) ):.3f}</p>
         </div>
     </div>
     
@@ -768,89 +842,217 @@ def generate_html_report(all_results, output_path, rates=None, timing_stats=None
     </div>
 """
     
-    # 実験別の詳細分析
-    html_content += """
+    # 実験別精度分析は削除（method/language/patternの軸別比較へ集約）
+
+    # 追加: 項目数ベースの軸別比較（method / language / pattern）
+    def render_group_table(title, data):
+        rows = ""
+        for key, v in data.items():
+            rows += f"""
+                <tr>
+                    <td>{key}</td>
+                    <td>{v['expected_items']}</td>
+                    <td class="correct">{v['correct_items']}</td>
+                    <td class="wrong">{v['wrong_items']}</td>
+                    <td class="missing">{v['missing_items']}</td>
+                    <td class="unexpected">{v['unexpected_items']}</td>
+                    <td><strong>{v['normalized_score']:.3f}</strong></td>
+                </tr>
+            """
+        return f"""
     <div class="section">
-        <h3>📊 実験別精度分析</h3>
+        <h3>📊 {title}</h3>
         <table class="metrics-table">
             <thead>
                 <tr>
-                    <th>実験</th>
-                    <th>方法</th>
-                    <th>言語</th>
-                    <th>正解率</th>
-                    <th>誤り率</th>
-                    <th>欠落率</th>
-                    <th>過剰抽出率</th>
-                    <th>Precision</th>
-                    <th>Recall</th>
+                    <th>グループ</th>
+                    <th>期待項目数</th>
+                    <th>正解項目数</th>
+                    <th>誤り項目数</th>
+                    <th>欠落項目数</th>
+                    <th>過剰項目数</th>
+                    <th>正規化スコア</th>
                 </tr>
             </thead>
             <tbody>
-"""
-    
-    for experiment, data in rates['by_experiment'].items():
-        method = metrics['by_experiment'][experiment]['method']
-        language = metrics['by_experiment'][experiment]['language']
-        html_content += f"""
-                <tr>
-                    <td>{experiment}</td>
-                    <td>{method}</td>
-                    <td>{language}</td>
-                    <td class="correct">{data['correct_rate']:.1%}</td>
-                    <td class="wrong">{data['wrong_rate']:.1%}</td>
-                    <td class="missing">{data['missing_rate']:.1%}</td>
-                    <td class="unexpected">{data['unexpected_rate']:.1%}</td>
-                    <td>{data['precision']:.3f}</td>
-                    <td>{data['recall']:.3f}</td>
-                </tr>
-"""
-    
-    html_content += """
+                {rows}
             </tbody>
         </table>
     </div>
-"""
+        """
     
-    # パターン別の詳細分析
-    html_content += """
+    def add_analysis_section(title, data, analysis_type):
+        """分析・考察セクションを生成"""
+        if not data:
+            return ""
+        
+        # データを正規化スコアでソート
+        sorted_data = sorted(data.items(), key=lambda x: x[1]['normalized_score'], reverse=True)
+        
+        # 最良・最悪のパフォーマンスを特定
+        best = sorted_data[0]
+        worst = sorted_data[-1]
+        
+        # 分析内容を生成
+        analysis_content = ""
+        
+        if analysis_type == "method":
+            analysis_content = f"""
+            <h4>🔍 抽出方法別パフォーマンス分析</h4>
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 10px 0;">
+                <p><strong>最良パフォーマンス:</strong> {best[0]} (正規化スコア: {best[1]['normalized_score']:.3f})</p>
+                <p><strong>最悪パフォーマンス:</strong> {worst[0]} (正規化スコア: {worst[1]['normalized_score']:.3f})</p>
+                <p><strong>分析:</strong></p>
+                <ul>
+                    <li>正規化スコアの差: {best[1]['normalized_score'] - worst[1]['normalized_score']:.3f}</li>
+                    <li>最も正解率が高い方法: {max(data.items(), key=lambda x: x[1]['correct_items'])[0]}</li>
+                    <li>最も過剰抽出が少ない方法: {min(data.items(), key=lambda x: x[1]['unexpected_items'])[0]}</li>
+                </ul>
+            </div>
+            """
+        elif analysis_type == "language":
+            analysis_content = f"""
+            <h4>🌐 言語別パフォーマンス分析</h4>
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 10px 0;">
+                <p><strong>最良パフォーマンス:</strong> {best[0]} (正規化スコア: {best[1]['normalized_score']:.3f})</p>
+                <p><strong>最悪パフォーマンス:</strong> {worst[0]} (正規化スコア: {worst[1]['normalized_score']:.3f})</p>
+                <p><strong>分析:</strong></p>
+                <ul>
+                    <li>言語間の正規化スコア差: {best[1]['normalized_score'] - worst[1]['normalized_score']:.3f}</li>
+                    <li>日本語の特徴: 正解項目数 {data.get('ja', {}).get('correct_items', 0)}, 過剰項目数 {data.get('ja', {}).get('unexpected_items', 0)}</li>
+                    <li>英語の特徴: 正解項目数 {data.get('en', {}).get('correct_items', 0)}, 過剰項目数 {data.get('en', {}).get('unexpected_items', 0)}</li>
+                </ul>
+            </div>
+            """
+        elif analysis_type == "pattern":
+            analysis_content = f"""
+            <h4>📋 パターン別パフォーマンス分析</h4>
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 10px 0;">
+                <p><strong>最良パフォーマンス:</strong> {best[0]} (正規化スコア: {best[1]['normalized_score']:.3f})</p>
+                <p><strong>最悪パフォーマンス:</strong> {worst[0]} (正規化スコア: {worst[1]['normalized_score']:.3f})</p>
+                <p><strong>分析:</strong></p>
+                <ul>
+                    <li>パターン間の正規化スコア差: {best[1]['normalized_score'] - worst[1]['normalized_score']:.3f}</li>
+                    <li>最も複雑なパターン: {max(data.items(), key=lambda x: x[1]['expected_items'])[0]} (期待項目数: {max(data.items(), key=lambda x: x[1]['expected_items'])[1]['expected_items']})</li>
+                    <li>最もシンプルなパターン: {min(data.items(), key=lambda x: x[1]['expected_items'])[0]} (期待項目数: {min(data.items(), key=lambda x: x[1]['expected_items'])[1]['expected_items']})</li>
+                </ul>
+            </div>
+            """
+        
+        return f"""
     <div class="section">
-        <h3>📋 パターン別精度分析</h3>
-        <table class="metrics-table">
-            <thead>
-                <tr>
-                    <th>パターン</th>
-                    <th>正解率</th>
-                    <th>誤り率</th>
-                    <th>欠落率</th>
-                    <th>過剰抽出率</th>
-                    <th>Precision</th>
-                    <th>Recall</th>
-                </tr>
-            </thead>
-            <tbody>
-"""
-    
-    for pattern, data in rates['by_pattern'].items():
-        html_content += f"""
-                <tr>
-                    <td>{pattern}</td>
-                    <td class="correct">{data['correct_rate']:.1%}</td>
-                    <td class="wrong">{data['wrong_rate']:.1%}</td>
-                    <td class="missing">{data['missing_rate']:.1%}</td>
-                    <td class="unexpected">{data['unexpected_rate']:.1%}</td>
-                    <td>{data['precision']:.3f}</td>
-                    <td>{data['recall']:.3f}</td>
-                </tr>
-"""
-    
-    html_content += """
-            </tbody>
-        </table>
+        <h3>🧠 {title}</h3>
+        {analysis_content}
     </div>
-"""
+        """
     
-    # フィールド別の詳細分析
+    def generate_summary_section(item_metrics, grouped_scores, timing_stats):
+        """レポートのまとめセクションを生成"""
+        # 全体統計を計算
+        overall = item_metrics.get('overall', {})
+        total_expected = overall.get('expected_items', 0)
+        total_correct = overall.get('correct_items', 0)
+        total_wrong = overall.get('wrong_items', 0)
+        total_missing = overall.get('missing_items', 0)
+        total_unexpected = overall.get('unexpected_items', 0)
+        overall_score = (total_correct - total_wrong - total_unexpected) / (total_expected or 1)
+        
+        # 各軸の最良・最悪を特定
+        method_best = max(grouped_scores['by_method'].items(), key=lambda x: x[1]['normalized_score']) if grouped_scores['by_method'] else ("N/A", {"normalized_score": 0})
+        method_worst = min(grouped_scores['by_method'].items(), key=lambda x: x[1]['normalized_score']) if grouped_scores['by_method'] else ("N/A", {"normalized_score": 0})
+        
+        language_best = max(grouped_scores['by_language'].items(), key=lambda x: x[1]['normalized_score']) if grouped_scores['by_language'] else ("N/A", {"normalized_score": 0})
+        language_worst = min(grouped_scores['by_language'].items(), key=lambda x: x[1]['normalized_score']) if grouped_scores['by_language'] else ("N/A", {"normalized_score": 0})
+        
+        pattern_best = max(grouped_scores['by_pattern'].items(), key=lambda x: x[1]['normalized_score']) if grouped_scores['by_pattern'] else ("N/A", {"normalized_score": 0})
+        pattern_worst = min(grouped_scores['by_pattern'].items(), key=lambda x: x[1]['normalized_score']) if grouped_scores['by_pattern'] else ("N/A", {"normalized_score": 0})
+        
+        return f"""
+    <div class="section">
+        <h3>📊 総合分析・まとめ</h3>
+        <div style="background: #e3f2fd; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h4>🎯 全体パフォーマンス概要</h4>
+            <p><strong>全体正規化スコア:</strong> {overall_score:.3f}</p>
+            <p><strong>総期待項目数:</strong> {total_expected} | <strong>正解項目数:</strong> {total_correct} | <strong>誤り項目数:</strong> {total_wrong} | <strong>欠落項目数:</strong> {total_missing} | <strong>過剰項目数:</strong> {total_unexpected}</p>
+        </div>
+        
+        <div style="background: #f3e5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h4>🔍 主要な発見・傾向</h4>
+            <h5>1. 抽出方法別の特徴</h5>
+            <ul>
+                <li><strong>最良:</strong> {method_best[0]} (正規化スコア: {method_best[1]['normalized_score']:.3f})</li>
+                <li><strong>最悪:</strong> {method_worst[0]} (正規化スコア: {method_worst[1]['normalized_score']:.3f})</li>
+                <li><strong>性能差:</strong> {method_best[1]['normalized_score'] - method_worst[1]['normalized_score']:.3f}</li>
+            </ul>
+            
+            <h5>2. 言語別の特徴</h5>
+            <ul>
+                <li><strong>最良:</strong> {language_best[0]} (正規化スコア: {language_best[1]['normalized_score']:.3f})</li>
+                <li><strong>最悪:</strong> {language_worst[0]} (正規化スコア: {language_worst[1]['normalized_score']:.3f})</li>
+                <li><strong>言語間差:</strong> {language_best[1]['normalized_score'] - language_worst[1]['normalized_score']:.3f}</li>
+            </ul>
+            
+            <h5>3. パターン別の特徴</h5>
+            <ul>
+                <li><strong>最良:</strong> {pattern_best[0]} (正規化スコア: {pattern_best[1]['normalized_score']:.3f})</li>
+                <li><strong>最悪:</strong> {pattern_worst[0]} (正規化スコア: {pattern_worst[1]['normalized_score']:.3f})</li>
+                <li><strong>パターン間差:</strong> {pattern_best[1]['normalized_score'] - pattern_worst[1]['normalized_score']:.3f}</li>
+            </ul>
+        </div>
+        
+        <div style="background: #fff3e0; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h4>💡 仮説・推奨事項</h4>
+            <h5>1. 抽出方法の最適化</h5>
+            <ul>
+                <li>{method_best[0]}が最も高い性能を示しているため、この方法の特性を他の方法に適用することを検討</li>
+                <li>{method_worst[0]}の性能改善のため、プロンプト設計やパラメータ調整を検討</li>
+            </ul>
+            
+            <h5>2. 言語対応の改善</h5>
+            <ul>
+                <li>言語間の性能差を縮小するため、言語固有の最適化を検討</li>
+                <li>低性能言語のプロンプト設計や前処理の改善を検討</li>
+            </ul>
+            
+            <h5>3. パターン別の最適化</h5>
+            <ul>
+                <li>{pattern_worst[0]}パターンの複雑さを分析し、段階的な学習アプローチを検討</li>
+                <li>高性能パターンの成功要因を他のパターンに適用</li>
+            </ul>
+            
+            <h5>4. 全体的な改善提案</h5>
+            <ul>
+                <li>過剰抽出率の削減: 現在{total_unexpected}項目の過剰抽出を削減</li>
+                <li>欠落率の削減: 現在{total_missing}項目の欠落を削減</li>
+                <li>正解率の向上: 現在{total_correct}/{total_expected} ({total_correct/(total_expected or 1)*100:.1f}%)の正解率を向上</li>
+            </ul>
+        </div>
+        
+        <div style="background: #e8f5e8; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h4>📈 今後の検討事項</h4>
+            <ul>
+                <li><strong>データ拡張:</strong> 不足しているパターン（CreditCard, PasswordManager, VoiceRecognition）のデータ追加</li>
+                <li><strong>プロンプト最適化:</strong> 各抽出方法・言語・パターンに特化したプロンプト設計</li>
+                <li><strong>パラメータ調整:</strong> 温度設定、最大トークン数等の最適化</li>
+                <li><strong>評価指標の拡張:</strong> 抽出時間、コスト効率等の追加評価</li>
+                <li><strong>継続的改善:</strong> 定期的なベンチマーク実行と性能追跡</li>
+            </ul>
+        </div>
+    </div>
+        """
+
+    html_content += render_group_table("抽出方法別（yaml / generable / json）", grouped_scores['by_method'])
+    html_content += add_analysis_section("抽出方法別分析", grouped_scores['by_method'], "method")
+    
+    html_content += render_group_table("言語別（en / ja）", grouped_scores['by_language'])
+    html_content += add_analysis_section("言語別分析", grouped_scores['by_language'], "language")
+    
+    html_content += render_group_table("パターン別（Contract / Chat / CreditCard / PasswordManager / VoiceRecognition）", grouped_scores['by_pattern'])
+    html_content += add_analysis_section("パターン別分析", grouped_scores['by_pattern'], "pattern")
+    
+    # 率ベースのパターン別精度表は削除（項目数ベース＋正規化スコアに統一）
+    
+    # フィールド別の詳細分析（4率の合計=1.0）
     html_content += """
     <div class="section">
         <h3>🏷️ フィールド別精度分析</h3>
@@ -862,8 +1064,6 @@ def generate_html_report(all_results, output_path, rates=None, timing_stats=None
                     <th>誤り率</th>
                     <th>欠落率</th>
                     <th>過剰抽出率</th>
-                    <th>Precision</th>
-                    <th>Recall</th>
                 </tr>
             </thead>
             <tbody>
@@ -877,8 +1077,6 @@ def generate_html_report(all_results, output_path, rates=None, timing_stats=None
                     <td class="wrong">{data['wrong_rate']:.1%}</td>
                     <td class="missing">{data['missing_rate']:.1%}</td>
                     <td class="unexpected">{data['unexpected_rate']:.1%}</td>
-                    <td>{data['precision']:.3f}</td>
-                    <td>{data['recall']:.3f}</td>
                 </tr>
 """
     
@@ -955,86 +1153,9 @@ def generate_html_report(all_results, output_path, rates=None, timing_stats=None
     </div>
 """
     
-    # レベル別の結果表示セクションを追加
-    if 'by_level' in rates and rates['by_level']:
-        html_content += """
-    <div class="section">
-        <h3>📊 レベル別精度分析</h3>
-        <table class="metrics-table">
-            <thead>
-                <tr>
-                    <th>レベル</th>
-                    <th>正解率</th>
-                    <th>誤り率</th>
-                    <th>欠落率</th>
-                    <th>過剰抽出率</th>
-                    <th>Precision</th>
-                    <th>Recall</th>
-                </tr>
-            </thead>
-            <tbody>
-"""
-        
-        for level, data in rates['by_level'].items():
-            html_content += f"""
-                <tr>
-                    <td>Level {level}</td>
-                    <td class="correct">{data['correct_rate']:.1%}</td>
-                    <td class="wrong">{data['wrong_rate']:.1%}</td>
-                    <td class="missing">{data['missing_rate']:.1%}</td>
-                    <td class="unexpected">{data['unexpected_rate']:.1%}</td>
-                    <td>{data['precision']:.3f}</td>
-                    <td>{data['recall']:.3f}</td>
-                </tr>
-"""
-        
-        html_content += """
-            </tbody>
-        </table>
-    </div>
-"""
+    # レベル別の率ベース表は削除（下の項目数ベースのレベル別表を掲載）
     
-    # パターン・レベル別の統計セクションを追加
-    if 'by_pattern_level' in rates and rates['by_pattern_level']:
-        html_content += """
-    <div class="section">
-        <h3>📊 パターン・レベル別精度分析</h3>
-        <table class="metrics-table">
-            <thead>
-                <tr>
-                    <th>パターン</th>
-                    <th>レベル</th>
-                    <th>正解率</th>
-                    <th>誤り率</th>
-                    <th>欠落率</th>
-                    <th>過剰抽出率</th>
-                    <th>Precision</th>
-                    <th>Recall</th>
-                </tr>
-            </thead>
-            <tbody>
-"""
-        
-        for pattern, level_data in rates['by_pattern_level'].items():
-            for level, data in level_data.items():
-                html_content += f"""
-                <tr>
-                    <td>{pattern}</td>
-                    <td>Level {level}</td>
-                    <td class="correct">{data['correct_rate']:.1%}</td>
-                    <td class="wrong">{data['wrong_rate']:.1%}</td>
-                    <td class="missing">{data['missing_rate']:.1%}</td>
-                    <td class="unexpected">{data['unexpected_rate']:.1%}</td>
-                    <td>{data['precision']:.3f}</td>
-                    <td>{data['recall']:.3f}</td>
-                </tr>
-"""
-        
-        html_content += """
-            </tbody>
-        </table>
-    </div>
-"""
+    # パターン・レベル別の率ベース表は削除（項目数ベース＋正規化スコアに統一）
     
     # パターン・レベル別抽出時間統計セクションを追加
     if timing_stats and 'by_pattern_level' in timing_stats and timing_stats['by_pattern_level']:
@@ -1093,6 +1214,7 @@ def generate_html_report(all_results, output_path, rates=None, timing_stats=None
                     <th>欠落項目数</th>
                     <th>過剰項目数</th>
                     <th>テストケース数</th>
+                    <th>正規化スコア</th>
                 </tr>
             </thead>
             <tbody>
@@ -1100,6 +1222,10 @@ def generate_html_report(all_results, output_path, rates=None, timing_stats=None
         
         for pattern, level_data in item_metrics['by_pattern_level'].items():
             for level, data in level_data.items():
+                # 正規化スコアを計算
+                expected = data['expected_items'] or 1
+                normalized_score = (data['correct_items'] - data['wrong_items'] - data['unexpected_items']) / expected
+                
                 html_content += f"""
                 <tr>
                     <td>{pattern}</td>
@@ -1110,6 +1236,7 @@ def generate_html_report(all_results, output_path, rates=None, timing_stats=None
                     <td class="missing">{data['missing_items']}</td>
                     <td class="unexpected">{data['unexpected_items']}</td>
                     <td>{data['test_cases']}</td>
+                    <td style="color: #007bff; font-weight: bold;">{normalized_score:.3f}</td>
                 </tr>
 """
         
@@ -1134,12 +1261,17 @@ def generate_html_report(all_results, output_path, rates=None, timing_stats=None
                     <th>欠落項目数</th>
                     <th>過剰項目数</th>
                     <th>テストケース数</th>
+                    <th>正規化スコア</th>
                 </tr>
             </thead>
             <tbody>
 """
         
         for level, data in item_metrics['by_level'].items():
+            # 正規化スコアを計算
+            expected = data['expected_items'] or 1
+            normalized_score = (data['correct_items'] - data['wrong_items'] - data['unexpected_items']) / expected
+            
             html_content += f"""
                 <tr>
                     <td>Level {level}</td>
@@ -1149,6 +1281,7 @@ def generate_html_report(all_results, output_path, rates=None, timing_stats=None
                     <td class="missing">{data['missing_items']}</td>
                     <td class="unexpected">{data['unexpected_items']}</td>
                     <td>{data['test_cases']}</td>
+                    <td style="color: #007bff; font-weight: bold;">{normalized_score:.3f}</td>
                 </tr>
 """
         
@@ -1158,68 +1291,21 @@ def generate_html_report(all_results, output_path, rates=None, timing_stats=None
     </div>
 """
     
-    # グラフセクションを追加
-    html_content += """
-    <div class="section">
-        <h3>📊 グラフ分析</h3>
-        <div class="chart-grid">
-            <div>
-                <h4>実験別精度比較</h4>
-                <div class="chart-container">
-                    <canvas id="accuracyChart"></canvas>
-                </div>
-            </div>
-            <div>
-                <h4>抽出時間比較</h4>
-                <div class="chart-container">
-                    <canvas id="timingChart"></canvas>
-                </div>
-            </div>
-        </div>
-        <div class="chart-grid">
-            <div>
-                <h4>レベル別精度分析</h4>
-                <div class="chart-container">
-                    <canvas id="levelChart"></canvas>
-                </div>
-            </div>
-            <div>
-                <h4>パターン別精度分析</h4>
-                <div class="chart-container">
-                    <canvas id="patternChart"></canvas>
-                </div>
-            </div>
-        </div>
-        <div class="chart-grid">
-            <div>
-                <h4>項目数ベース分析（レベル別）</h4>
-                <div class="chart-container">
-                    <canvas id="itemLevelChart"></canvas>
-                </div>
-            </div>
-            <div>
-                <h4>項目数ベース分析（パターン・レベル別）</h4>
-                <div class="chart-container">
-                    <canvas id="itemPatternLevelChart"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-"""
+    # グラフセクションは削除（率ベースの視覚化を撤廃）
     
     # メトリクス定義セクションを追加
     html_content += """
     <div class="section">
         <h3>📋 メトリクス定義</h3>
         <div style="background: #f8f9fa; padding: 20px; border-radius: 8px;">
-            <h4>精度メトリクス</h4>
+            <h4>精度メトリクス（項目数ベース）</h4>
             <ul>
-                <li><strong>正解率 (Correct Rate)</strong>: 抽出すべき項目のうち、正しく抽出された項目の割合</li>
-                <li><strong>誤り率 (Wrong Rate)</strong>: 抽出すべき項目のうち、値が間違って抽出された項目の割合</li>
-                <li><strong>欠落率 (Missing Rate)</strong>: 抽出すべき項目のうち、抽出されなかった項目の割合</li>
-                <li><strong>過剰抽出率 (Unexpected Rate)</strong>: 抽出すべきでない項目が抽出された割合（100%を超えることがある）</li>
-                <li><strong>Precision</strong>: 抽出した項目のうち、正しい項目の割合</li>
-                <li><strong>Recall</strong>: 抽出すべき項目のうち、実際に抽出された項目の割合</li>
+                <li><strong>期待項目数 (Expected Items)</strong>: 評価対象フィールド総数</li>
+                <li><strong>正解項目数 (Correct Items)</strong>: 期待項目のうち正しい値を抽出できた数</li>
+                <li><strong>誤り項目数 (Wrong Items)</strong>: 期待項目のうち誤った値を抽出した数</li>
+                <li><strong>欠落項目数 (Missing Items)</strong>: 期待項目のうち抽出に失敗した数</li>
+                <li><strong>過剰項目数 (Unexpected Items)</strong>: 期待されない項目を抽出した数</li>
+                <li><strong>正規化スコア (Normalized Score)</strong>: (正解項目数 − 誤り項目数 − 過剰項目数) / 期待項目数</li>
             </ul>
             
             <h4>抽出時間メトリクス</h4>
@@ -1232,6 +1318,9 @@ def generate_html_report(all_results, output_path, rates=None, timing_stats=None
         </div>
     </div>
 """
+    
+    # まとめセクションを追加
+    html_content += generate_summary_section(item_metrics, grouped_scores, timing_stats)
     
     html_content += """
     <div class="header">

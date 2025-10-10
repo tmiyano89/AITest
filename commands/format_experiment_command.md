@@ -7,37 +7,47 @@ FoundationModelsの抽出方法（@Generableマクロ、JSON形式、YAML形式�
 
 ### 1. フォーマット実験の実行
 
-#### 1.1 並列実行による高速化
+#### 1.1 並列実行による高速化（BG起動＋厳密待機）
 ```bash
-# 並列実行スクリプトを使用（高速化）
+# 並列実行スクリプトをバックグラウンド起動（高速化）
+# 引数なし: 全パターン実行（chat/contract/creditcard/voicerecognition/passwordmanager）
+# 引数あり: 指定パターンのみ実行（例: chat contract）
 ./scripts/parallel_format_experiment.sh
+# 最新実行ディレクトリへのリンク（test_logs/latest）を自動作成します
 
-# 実行結果の確認
-ls -la logs/
-ls -la reports/
+# 非同期に実行状況を判定したい場合（完了/失敗/異常をワンショット判定）
+./scripts/wait_for_format_experiment.sh --once
+# まだrunningなら、必要に応じて更に待機 
+
+# 実行結果の確認（タイムスタンプ付きテストディレクトリ内）
+ls -la test_logs/
+ls -la test_logs/test_*/
 ```
 
-#### 1.2 ログファイルの場所
+#### 1.2 ログファイルの場所（最新シンボリックリンク）
 - **テスト実行ディレクトリ**: `test_logs/test_yyyymmddhhmm/`
-- **構造化JSONログ**: `test_logs/test_yyyymmddhhmm/{method}_{language}_chat_level1_1.json` など
-- **個別HTMLレポート**: `test_logs/test_yyyymmddhhmm/{method}_{language}_format_experiment_report.html`
-- **統合レポート**: `reports/parallel_format_experiment_report.html`
+- **最新実行ディレクトリ**: `test_logs/latest`（シンボリックリンク）
+- **構造化JSONログ**: `test_logs/test_yyyymmddhhmm/{method}_{language}_{pattern}_*.json`
+  - 例: `test_logs/test_202512191800/generable_ja_chat_1.json`
+- **個別HTMLレポート**: `test_logs/test_yyyymmddhhmm/{method}_{language}_{pattern}_format_experiment_report.html`
+- **統合レポート**: `test_logs/test_yyyymmddhhmm/parallel_format_experiment_report.html`
+  - スクリプト内の集計により、テストディレクトリ直下に生成されます
 
-### 2. pending項目のAI検証と更新
+### 2. pending項目のAI検証と更新（順次処理推奨）
 
 #### 2.1 pending項目の特定と検証
 AITestAppのログからpending項目を特定し、AIによる検証を実施してください：
 
-1. **pending項目の検索**
+1. **pending項目の検索（最新ディレクトリを参照）**
    ```bash
-   # pending項目を含むJSONファイルを検索
-   find test_* -name "*.json" -exec grep -l '"status" : "pending"' {} \;
+   # pending項目を含むJSONファイルを検索（最新テストディレクトリ latest に対して）
+   find test_logs/latest -name "*.json" -exec grep -l '"status" : "pending"' {} \;
    ```
 
 2. **各pending項目の詳細確認**
    ```bash
    # 各pending項目の詳細確認
-   for json_file in $(find test_* -name "*.json" -exec grep -l '"status" : "pending"' {} \;); do
+   for json_file in $(find test_logs/latest -name "*.json" -exec grep -l '"status" : "pending"' {} \;); do
        echo "=== $json_file ==="
        cat "$json_file" | jq '.expected_fields[] | select(.status == "pending")'
        echo ""
@@ -60,22 +70,22 @@ AITestAppのログからpending項目を特定し、AIによる検証を実施�
 
 **詳細なスキーマ定義**: [LOG_SCHEMA.md](../docs/LOG_SCHEMA.md)を参照してください。
 
-### 3. プログラムによる集計実行
+### 3. プログラムによる集計実行（待機完了後に実施）
 
 #### 3.1 更新されたログの集計
 pending項目を更新した後、プログラムで集計を実行してください：
 
 ```bash
-# 統合レポートの生成
-python3 scripts/generate_combined_report.py test_* reports/
+# 統合レポートの生成（最新実行ディレクトリを利用）
+python3 scripts/generate_combined_report.py test_logs/latest
 ```
 
 #### 3.2 集計結果の確認
 生成されたレポートを確認してください：
 
 ```bash
-# 統合レポートの確認
-open reports/parallel_format_experiment_report.html
+# 統合レポートの確認（最新ディレクトリのレポートを開く）
+open test_logs/latest/parallel_format_experiment_report.html
 ```
 
 ### 4. 集計結果の分析
@@ -181,19 +191,96 @@ open reports/parallel_format_experiment_report.html
 
 #### 5.2 最終レポートの完成
 ```bash
-# 最終レポートを確認
-open reports/parallel_format_experiment_report.html
+# 最終レポートを確認（AI加筆後の最終版）
+open reports/final_format_experiment_report.html
 ```
 
 **注意**: この作業はAI（あなた）による手動分析と加筆が必須です。プログラムによる自動生成だけでは、深い洞察や考察を含む包括的なレポートは作成できません。
 
-## 注意事項
+## AI分析・考察の追加指示
+
+### レポート生成時の自動分析機能
+
+レポート生成スクリプト（`scripts/generate_combined_report.py`）は以下の分析・考察を自動的に追加します：
+
+1. **各セクション別の分析**:
+   - 抽出方法別分析: 最良・最悪パフォーマンスの特定と比較
+   - 言語別分析: 言語間の性能差と特徴分析
+   - パターン別分析: パターン間の複雑さと性能の関係分析
+
+2. **総合分析・まとめセクション**:
+   - 全体パフォーマンス概要
+   - 主要な発見・傾向
+   - 仮説・推奨事項
+   - 今後の検討事項
+
+### AIによる直接分析・考察の追記
+
+レポート生成後、AI（あなた）が以下の手順で直接分析・考察を追記してください：
+
+#### 0. フィッシャーとしての準備（必須）
+```bash
+# フィッシャーの人物ファイルを確認（内容を遵守）
+open docs/engineers/fisher.md
+```
+
+- 本分析では、この人物設定に従い、その人物になりきってレビューを実施してください。
+- レビュー結果や最終的な考察は `docs/reviews/` に時刻付きで記録してください（例: `docs/ai-logs/YYYY-MM-DD-fisher-review.md`）。
+- 注意: `docs/engineers/fisher.md` 自体は変更しないでください。
+
+#### 1. レポート内容の確認
+```bash
+# 生成されたレポートを確認
+open test_logs/latest/parallel_format_experiment_report.html
+```
+
+#### 2. 詳細分析の実行
+AI（あなた）が以下の観点でレポートを詳細に分析し、考察を追記してください：
+
+**分析観点:**
+- **データの傾向分析**: 数値データから読み取れるパターンや傾向の特定
+- **性能差の原因分析**: 抽出方法・言語・パターン間の性能差の根本原因の推測
+- **異常値の特定**: 期待値から大きく外れた結果の特定と原因分析
+- **相関関係の分析**: 異なるメトリクス間の相関関係の分析
+- **改善ポイントの特定**: 最も効果的な改善が期待できる領域の特定
+
+**追記すべき内容:**
+1. **詳細な傾向分析セクション**:
+   - データから読み取れる具体的な傾向の説明
+   - グラフや表の数値に基づく定量的な分析
+   - 時系列やレベル別の変化パターンの分析
+
+2. **深掘り原因分析セクション**:
+   - 性能差の技術的・構造的原因の仮説
+   - プロンプト設計やモデル特性との関連性分析
+   - 言語・文化・ドメイン固有の要因分析
+
+3. **具体的改善提案セクション**:
+   - 優先度付きの改善項目リスト
+   - 各改善項目の具体的な実装方法
+   - 期待される効果の定量的予測
+
+4. **今後の研究・開発方針セクション**:
+   - 追加実験の提案
+   - 長期改善ロードマップ
+   - 技術的課題と解決アプローチ
+
+#### 3. 最終レポートの生成
+分析・考察を追記した最終レポートを`reports/final_format_experiment_report.html`として保存してください。
+あわせて、フィッシャー観点でのレビュー要点を `docs/ai-logs/YYYY-MM-DD-fisher-review.md` に要約してください。
+
+### 分析内容の要件
 
 1. **客観性**: 分析は客観的で根拠に基づいたものにしてください
 2. **具体性**: 抽象的な表現ではなく、具体的な例や数値を示してください
 3. **実用性**: 改善提案は実用的で実行可能なものにしてください
 4. **包括性**: すべての抽出方法・言語を網羅的に分析してください
 5. **一貫性**: 分析結果は一貫性があり、矛盾のないものにしてください
+6. **傾向分析**: データから読み取れる傾向やパターンを特定してください
+7. **仮説提示**: 性能差の原因について仮説を提示してください
+8. **改善提案**: 具体的で実行可能な改善提案を提示してください
+9. **深掘り分析**: 表面的な数値だけでなく、背後にある技術的・構造的要因を分析してください
+10. **実装可能性**: 提案する改善策の実装難易度とコストを考慮してください
 
 ## 完了基準
 
@@ -203,10 +290,12 @@ open reports/parallel_format_experiment_report.html
 2. エラーパターンが詳細に分析されている
 3. 性能比較分析が完了している
 4. 統計的分析が完了している
-5. 視覚的に分かりやすい最終HTMLレポートが完成している
-6. 改善提案が具体的で実用的である
-7. 自動生成レポート（`reports/format_experiment_report.html`）が確認できている
-8. AIによる詳細分析と最終レポート（`reports/final_format_experiment_report.html`）が完成している
+5. 視覚的に分かりやすい基本HTMLレポート（`test_logs/latest/parallel_format_experiment_report.html`）が生成されている
+6. AIによる詳細分析・考察が追記された最終レポート（`reports/final_format_experiment_report.html`）が完成している
+7. 改善提案が具体的で実用的である
+8. 深掘り原因分析が含まれている
+9. 具体的な実装方法と期待効果が記載されている
+10. 今後の研究・開発方針が提示されている
 
 
 ## 参考ファイル
@@ -214,7 +303,7 @@ open reports/parallel_format_experiment_report.html
 - `test_yyyymmddhhmm/`: テスト実行ディレクトリ（実行後に生成）
 - `test_yyyymmddhhmm/*.json`: 構造化JSONログ（実行後に生成）
 - `test_yyyymmddhhmm/*_format_experiment_report.html`: 個別HTMLレポート（実行後に生成）
-- `reports/parallel_format_experiment_report.html`: 統合レポート（実行後に生成）
+- `test_yyyymmddhhmm/parallel_format_experiment_report.html`: 統合レポート（実行後に生成）
 - `reports/final_format_experiment_report.html`: 最終レポート（AI分析・加筆後）
 - `Sources/AITest/Prompts/`: プロンプトテンプレートファイル
 - `Sources/AITest/AccountExtractor.swift`: 抽出方法実装

@@ -4,6 +4,12 @@ import Foundation
 import FoundationModels
 import AITest
 
+/// @ai[2025-01-10 20:15] 有効なパターン名の定義
+/// 目的: パターン名のリテラルを一元管理して保守性を向上
+/// 背景: 複数箇所で同じパターン名が重複定義されており、変更時のリスクが高い
+/// 意図: 単一の真実の源（Single Source of Truth）として定数で管理
+let VALID_PATTERNS = ["Chat", "Contract", "CreditCard", "VoiceRecognition", "PasswordManager"]
+
 /// @ai[2024-12-19 20:00] 処理時間計測ユーティリティ
 /// 目的: 各関数の処理時間を計測してボトルネックを特定
 /// 背景: 並列処理の効率性向上のため、詳細な性能分析が必要
@@ -459,9 +465,9 @@ func loadTestCases(pattern: String? = nil) -> [(name: String, text: String)] {
     // パターン指定がある場合はそのパターンのみ、ない場合は全パターン
     let scenarios: [String]
     if let pattern = pattern {
-        scenarios = [pattern.capitalized]
+        scenarios = [normalizePatternName(pattern)]
     } else {
-        scenarios = ["Chat", "Contract", "CreditCard", "VoiceRecognition", "PasswordManager"]
+        scenarios = VALID_PATTERNS
     }
     
     let levels = ["Level1_Basic", "Level2_General", "Level3_Complex"]
@@ -837,6 +843,19 @@ func generateErrorStructuredLog(testCase: (name: String, text: String), error: E
     }
 }
 
+/// パターン名を正規化（大文字小文字を無視して正しい形式に変換）
+func normalizePatternName(_ pattern: String) -> String {
+    // 大文字小文字を無視して比較
+    for validPattern in VALID_PATTERNS {
+        if pattern.lowercased() == validPattern.lowercased() {
+            return validPattern
+        }
+    }
+    
+    // マッチしない場合は元の文字列を返す（エラーハンドリングは呼び出し元で行う）
+    return pattern
+}
+
 /// テストケース名からパターンとレベルを解析
 func parseTestCaseName(_ name: String) -> (pattern: String, level: Int) {
     let components = name.split(separator: " ")
@@ -858,11 +877,10 @@ func parseTestCaseName(_ name: String) -> (pattern: String, level: Int) {
 /// パターンとレベルに基づいて期待フィールドを取得
 func getExpectedFields(for pattern: String, level: Int) -> [String] {
     // 有効なパターンとレベルの確認
-    let validPatterns = ["Chat", "Contract", "CreditCard", "VoiceRecognition", "PasswordManager"]
     let validLevels = [1, 2, 3]
     
-    guard validPatterns.contains(pattern) else {
-        assertionFailure("無効なパターンです: \(pattern)。有効なパターン: \(validPatterns)")
+    guard VALID_PATTERNS.contains(pattern) else {
+        assertionFailure("無効なパターンです: \(pattern)。有効なパターン: \(VALID_PATTERNS)")
         return []
     }
     
@@ -990,8 +1008,7 @@ func loadExpectedAnswers() -> [String: [String: [String: String]]]? {
         }
         
         // データの整合性をチェック
-        let requiredPatterns = ["Chat", "Contract", "CreditCard", "VoiceRecognition", "PasswordManager"]
-        let missingPatterns = requiredPatterns.filter { !expectedAnswers.keys.contains($0) }
+        let missingPatterns = VALID_PATTERNS.filter { !expectedAnswers.keys.contains($0) }
         if !missingPatterns.isEmpty {
             print("❌ 必須パターンが不足しています: \(missingPatterns)")
             assertionFailure("expected_answers.jsonに必須パターンが不足しています: \(missingPatterns)。利用可能なパターン: \(Array(expectedAnswers.keys))")
