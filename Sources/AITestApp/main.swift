@@ -73,27 +73,25 @@ if #available(iOS 26.0, macOS 26.0, *) {
             await runWithTimeout(timeoutSeconds: timeoutSeconds) {
                 await runSingleTestDebug()
             }
-        } else if CommandLine.arguments.contains("--test-extraction-methods") {
+        } else if CommandLine.arguments.contains("--test-extraction-methods") || CommandLine.arguments.contains("--experiment") {
         // 特定のexperimentを実行するかチェック
         print("🔍 コマンドライン引数をチェック中...")
         print("   引数: \(CommandLine.arguments)")
         
         if #available(iOS 26.0, macOS 26.0, *), let experiment = extractExperimentFromArguments() {
-            print("✅ 特定のexperimentを検出: \(experiment.method.rawValue)_\(experiment.language.rawValue)")
-            // テストディレクトリとパターンの取得
+            print("✅ 特定のexperimentを検出: \(experiment.method.rawValue)_\(experiment.language.rawValue)_\(experiment.pattern.rawValue)")
+            // テストディレクトリの取得
             let testDir = extractTestDirFromArguments()
-            let pattern = extractPatternFromArguments()
             await runWithTimeout(timeoutSeconds: timeoutSeconds) {
-                await runSpecificExperiment(experiment, testDir: testDir, pattern: pattern)
+                await runSpecificExperiment(experiment, testDir: testDir)
             }
         } else {
                 print("⚠️ 特定のexperimentが指定されていません - デフォルトでyaml_enを実行")
                 // デフォルトでyaml_enを実行
-                let defaultExperiment = (method: ExtractionMethod.yaml, language: PromptLanguage.english)
+                let defaultExperiment = (method: ExtractionMethod.yaml, language: PromptLanguage.english, pattern: ExperimentPattern.defaultPattern)
                 let testDir = extractTestDirFromArguments()
-                let pattern = extractPatternFromArguments()
                 await runWithTimeout(timeoutSeconds: timeoutSeconds) {
-                    await runSpecificExperiment(defaultExperiment, testDir: testDir, pattern: pattern)
+                    await runSpecificExperiment(defaultExperiment, testDir: testDir)
                 }
             }
         } else {
@@ -370,10 +368,15 @@ func extractPatternFromArguments() -> String? {
 
 /// コマンドライン引数からexperimentを抽出
 @available(iOS 26.0, macOS 26.0, *)
-func extractExperimentFromArguments() -> (method: ExtractionMethod, language: PromptLanguage)? {
+func extractExperimentFromArguments() -> (method: ExtractionMethod, language: PromptLanguage, pattern: ExperimentPattern)? {
     print("🔍 extractExperimentFromArguments 開始")
     print("   利用可能なExtractionMethod: \(ExtractionMethod.allCases.map { $0.rawValue })")
     print("   利用可能なPromptLanguage: \(PromptLanguage.allCases.map { $0.rawValue })")
+    print("   利用可能なExperimentPattern: \(ExperimentPattern.allCases.map { $0.rawValue })")
+    
+    var method: ExtractionMethod?
+    var language: PromptLanguage?
+    var pattern: ExperimentPattern = .defaultPattern
     
     // --experiment= の形式をチェック
     for argument in CommandLine.arguments {
@@ -384,15 +387,16 @@ func extractExperimentFromArguments() -> (method: ExtractionMethod, language: Pr
             print("   コンポーネント: \(components)")
             
             guard components.count == 2,
-                  let method = ExtractionMethod.allCases.first(where: { $0.rawValue == String(components[0]) }),
-                  let language = PromptLanguage.allCases.first(where: { $0.rawValue == String(components[1]) }) else {
+                  let extractedMethod = ExtractionMethod.allCases.first(where: { $0.rawValue == String(components[0]) }),
+                  let extractedLanguage = PromptLanguage.allCases.first(where: { $0.rawValue == String(components[1]) }) else {
                 print("❌ 無効なexperiment指定: \(experimentString)")
-                print("   有効な形式: --experiment=generable_japanese")
+                print("   有効な形式: --experiment=generable_ja")
                 return nil
             }
             
-            print("✅ experimentを抽出: \(method.rawValue)_\(language.rawValue)")
-            return (method: method, language: language)
+            method = extractedMethod
+            language = extractedLanguage
+            print("✅ experimentを抽出: \(method!.rawValue)_\(language!.rawValue)")
         }
     }
     
@@ -405,29 +409,87 @@ func extractExperimentFromArguments() -> (method: ExtractionMethod, language: Pr
             print("   コンポーネント: \(components)")
             
             guard components.count == 2,
-                  let method = ExtractionMethod.allCases.first(where: { $0.rawValue == String(components[0]) }),
-                  let language = PromptLanguage.allCases.first(where: { $0.rawValue == String(components[1]) }) else {
+                  let extractedMethod = ExtractionMethod.allCases.first(where: { $0.rawValue == String(components[0]) }),
+                  let extractedLanguage = PromptLanguage.allCases.first(where: { $0.rawValue == String(components[1]) }) else {
                 print("❌ 無効なexperiment指定: \(experimentString)")
-                print("   有効な形式: --experiment generable_japanese")
+                print("   有効な形式: --experiment generable_ja")
                 return nil
             }
             
-            print("✅ experimentを抽出: \(method.rawValue)_\(language.rawValue)")
-            return (method: method, language: language)
+            method = extractedMethod
+            language = extractedLanguage
+            print("✅ experimentを抽出: \(method!.rawValue)_\(language!.rawValue)")
         }
     }
     
-    print("❌ experimentが見つかりませんでした")
-    return nil
+    // --pattern= の形式をチェック
+    for argument in CommandLine.arguments {
+        if argument.hasPrefix("--pattern=") {
+            let patternString = String(argument.dropFirst("--pattern=".count))
+            print("   --pattern= 形式を検出: \(patternString)")
+            
+            if let extractedPattern = ExperimentPattern.allCases.first(where: { $0.rawValue == patternString }) {
+                pattern = extractedPattern
+                print("✅ patternを抽出: \(pattern.rawValue)")
+            } else {
+                print("❌ 無効なpattern指定: \(patternString)")
+                print("   有効な形式: --pattern=chat_abs_gen")
+                return nil
+            }
+        }
+    }
+    
+    // --pattern の形式をチェック（次の引数を取得）
+    for (index, argument) in CommandLine.arguments.enumerated() {
+        if argument == "--pattern" && index + 1 < CommandLine.arguments.count {
+            let patternString = CommandLine.arguments[index + 1]
+            print("   --pattern 形式を検出: \(patternString)")
+            
+            if let extractedPattern = ExperimentPattern.allCases.first(where: { $0.rawValue == patternString }) {
+                pattern = extractedPattern
+                print("✅ patternを抽出: \(pattern.rawValue)")
+            } else {
+                print("❌ 無効なpattern指定: \(patternString)")
+                print("   有効な形式: --pattern chat_abs_gen")
+                return nil
+            }
+        }
+    }
+    
+    guard let finalMethod = method, let finalLanguage = language else {
+        print("❌ experimentが見つかりませんでした")
+        return nil
+    }
+    
+    print("✅ 最終結果: method=\(finalMethod.rawValue), language=\(finalLanguage.rawValue), pattern=\(pattern.rawValue)")
+    return (method: finalMethod, language: finalLanguage, pattern: pattern)
+}
+
+/// パターン名を実際のテストデータディレクトリ名にマッピング
+func mapPatternToTestDataDirectory(_ pattern: String) -> String {
+    // 実験パターンは全て同じテストデータを使用（Chat、Contract、CreditCard、VoiceRecognition、PasswordManager）
+    // デフォルトでChatパターンを使用
+    return "Chat"
 }
 
 /// コマンドライン引数からテストディレクトリを抽出
 func extractTestDirFromArguments() -> String? {
-    for argument in CommandLine.arguments {
+    let arguments = CommandLine.arguments
+    
+    // 形式1: --test-dir=path をチェック
+    for argument in arguments {
         if argument.hasPrefix("--test-dir=") {
             return String(argument.dropFirst("--test-dir=".count))
         }
     }
+    
+    // 形式2: --test-dir path をチェック
+    for (index, argument) in arguments.enumerated() {
+        if argument == "--test-dir" && index + 1 < arguments.count {
+            return arguments[index + 1]
+        }
+    }
+    
     return nil
 }
 
@@ -535,32 +597,47 @@ func getAvailablePatterns(at basePath: String) -> [String] {
 /// 特定のexperimentを実行
 @available(iOS 26.0, macOS 26.0, *)
 @MainActor
-func runSpecificExperiment(_ experiment: (method: ExtractionMethod, language: PromptLanguage), testDir: String?, pattern: String? = nil) async {
+func runSpecificExperiment(_ experiment: (method: ExtractionMethod, language: PromptLanguage, pattern: ExperimentPattern), testDir: String?, runNumber: Int = 1) async {
     let timer = PerformanceTimer("特定実験全体")
     timer.start()
     
-    print("\n🔬 特定実験を開始: \(experiment.method.displayName) (\(experiment.language.displayName))")
-    if let pattern = pattern {
-        print("📋 パターン指定: \(pattern)")
+    // 環境変数からrunNumberを取得
+    let actualRunNumber: Int
+    if let envRunNumber = ProcessInfo.processInfo.environment["AITEST_RUN_NUMBER"],
+       let parsedRunNumber = Int(envRunNumber) {
+        actualRunNumber = parsedRunNumber
+    } else {
+        actualRunNumber = runNumber
     }
-    print("🔄 指定された抽出方法・言語のみを実行します")
+    
+    print("\n🔬 特定実験を開始: \(experiment.method.displayName) (\(experiment.language.displayName))")
+    print("📋 パターン指定: \(experiment.pattern.displayName)")
+    print("🔄 実行回数: \(actualRunNumber)")
+    print("🔄 指定された抽出方法・言語・パターンのみを実行します")
     print(String(repeating: "-", count: 60))
     
-    // テスト実行用のディレクトリを決定
+    // テスト実行用のディレクトリを決定（新しい命名規則: yyyymmddhhmm_実験名）
     let finalTestDir: String
     if let providedTestDir = testDir {
+        // @ai[2025-01-10 15:45] --test-dirが指定された場合はそのまま使用
         finalTestDir = providedTestDir
     } else {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyyMMddHHmm"
         let timestamp = formatter.string(from: Date())
-        finalTestDir = "test_\(timestamp)"
+        let experimentName = "\(experiment.method.rawValue)_\(experiment.language.rawValue)"
+        finalTestDir = "test_logs/\(timestamp)_\(experimentName)"
     }
+    print("🔍 DEBUG: ディレクトリ作成開始 - パス: \(finalTestDir)")
     createLogDirectory(finalTestDir)
+    print("🔍 DEBUG: ディレクトリ作成完了")
     timer.checkpoint("ディレクトリ作成完了")
     
     // テストケースの読み込み
-    let testCases = loadTestCases(pattern: pattern)
+    // パターン名を実際のテストデータディレクトリ名にマッピング
+    let actualPattern = mapPatternToTestDataDirectory(experiment.pattern.rawValue)
+    print("🔍 DEBUG: パターンマッピング: \(experiment.pattern.rawValue) -> \(actualPattern)")
+    let testCases = loadTestCases(pattern: actualPattern)
     timer.checkpoint("テストケース読み込み完了")
     
     // パターン・レベルごとのiteration番号を管理
@@ -587,7 +664,7 @@ func runSpecificExperiment(_ experiment: (method: ExtractionMethod, language: Pr
         print("📝 説明: \(experiment.method.description) - \(experiment.language.description)")
         
         // パターン・レベルごとのiteration番号を取得
-        let key = "\(pattern)_level\(level)"
+        let key = "\(experiment.pattern.rawValue)_level\(level)"
         iterationCounters[key, default: 0] += 1
         let iteration = iterationCounters[key]!
         
@@ -595,7 +672,7 @@ func runSpecificExperiment(_ experiment: (method: ExtractionMethod, language: Pr
             let extractor = AccountExtractor()
             testTimer.checkpoint("抽出器作成完了")
             
-            let (accountInfo, metrics) = try await extractor.extractFromText(testCase.text, method: experiment.method, language: experiment.language)
+            let (accountInfo, metrics) = try await extractor.extractFromText(testCase.text, method: experiment.method, language: experiment.language, pattern: experiment.pattern)
             testTimer.checkpoint("AI抽出完了")
         
             print("✅ 抽出成功")
@@ -616,14 +693,16 @@ func runSpecificExperiment(_ experiment: (method: ExtractionMethod, language: Pr
             if let authKey = accountInfo.authKey { print("    authKey: \(authKey)") }
             
             // 構造化ログの出力
-            await generateStructuredLog(testCase: testCase, accountInfo: accountInfo, experiment: experiment, iteration: iteration, testDir: finalTestDir)
+            print("🔍 DEBUG: generateStructuredLog呼び出し開始")
+            await generateStructuredLog(testCase: testCase, accountInfo: accountInfo, experiment: experiment, iteration: iteration, runNumber: actualRunNumber, testDir: finalTestDir)
+            print("🔍 DEBUG: generateStructuredLog呼び出し完了")
             testTimer.checkpoint("ログ出力完了")
             
         } catch {
             print("❌ 抽出失敗: \(error.localizedDescription)")
             
             // エラー時の構造化ログ
-            await generateErrorStructuredLog(testCase: testCase, error: error, experiment: experiment, iteration: iteration, testDir: finalTestDir)
+            await generateErrorStructuredLog(testCase: testCase, error: error, experiment: experiment, iteration: iteration, runNumber: actualRunNumber, testDir: finalTestDir)
             testTimer.checkpoint("エラーログ出力完了")
         }
         
@@ -642,7 +721,7 @@ func runSpecificExperiment(_ experiment: (method: ExtractionMethod, language: Pr
 
 /// フォーマット実験レポートを生成
 @available(iOS 26.0, macOS 26.0, *)
-func generateFormatExperimentReport(testDir: String, experiment: (method: ExtractionMethod, language: PromptLanguage), testCases: [(name: String, text: String)]) async {
+func generateFormatExperimentReport(testDir: String, experiment: (method: ExtractionMethod, language: PromptLanguage, pattern: ExperimentPattern), testCases: [(name: String, text: String)]) async {
     let formatter = DateFormatter()
     formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
     let timestamp = formatter.string(from: Date())
@@ -725,17 +804,30 @@ func generateFormatExperimentReport(testDir: String, experiment: (method: Extrac
 
 /// ログディレクトリを作成
 func createLogDirectory(_ path: String) {
+    print("🔍 DEBUG: createLogDirectory開始 - パス: \(path)")
     let fileManager = FileManager.default
     if !fileManager.fileExists(atPath: path) {
-        try? fileManager.createDirectory(atPath: path, withIntermediateDirectories: true, attributes: nil)
+        print("🔍 DEBUG: ディレクトリが存在しないため作成します")
+        do {
+            try fileManager.createDirectory(atPath: path, withIntermediateDirectories: true, attributes: nil)
+            print("🔍 DEBUG: ディレクトリ作成成功")
+        } catch {
+            print("❌ DEBUG: ディレクトリ作成失敗: \(error.localizedDescription)")
+        }
+    } else {
+        print("🔍 DEBUG: ディレクトリは既に存在します")
     }
+    print("🔍 DEBUG: createLogDirectory完了")
 }
 
 /// 構造化ログを生成
 @available(iOS 26.0, macOS 26.0, *)
-func generateStructuredLog(testCase: (name: String, text: String), accountInfo: AccountInfo, experiment: (method: ExtractionMethod, language: PromptLanguage), iteration: Int, testDir: String) async {
+func generateStructuredLog(testCase: (name: String, text: String), accountInfo: AccountInfo, experiment: (method: ExtractionMethod, language: PromptLanguage, pattern: ExperimentPattern), iteration: Int, runNumber: Int, testDir: String) async {
+    print("🔍 DEBUG: generateStructuredLog開始 - testDir: \(testDir)")
     let (pattern, level) = parseTestCaseName(testCase.name)
+    print("🔍 DEBUG: パターン: \(pattern), レベル: \(level)")
     let expectedFields = getExpectedFields(for: pattern, level: level)
+    print("🔍 DEBUG: 期待フィールド数: \(expectedFields.count)")
     
     var structuredLog: [String: Any] = [
         "pattern": pattern,
@@ -743,6 +835,7 @@ func generateStructuredLog(testCase: (name: String, text: String), accountInfo: 
         "iteration": iteration,
         "method": experiment.method.rawValue,
         "language": experiment.language.rawValue,
+        "experiment_pattern": experiment.pattern.rawValue,
         "expected_fields": [],
         "unexpected_fields": []
     ]
@@ -786,10 +879,12 @@ func generateStructuredLog(testCase: (name: String, text: String), accountInfo: 
             print(jsonString)
             
             // ログファイルに保存
-            let logFileName = "\(experiment.method.rawValue)_\(experiment.language.rawValue)_\(pattern)_level\(level)_\(iteration).json"
+            let logFileName = "\(pattern.lowercased())_\(experiment.pattern.rawValue.split(separator: "_")[1])_\(experiment.method.rawValue)_\(experiment.language.rawValue)_level\(level)_run\(runNumber).json"
             let logFilePath = "\(testDir)/\(logFileName)"
+            print("🔍 DEBUG: ログファイル保存開始 - パス: \(logFilePath)")
             try jsonString.write(toFile: logFilePath, atomically: true, encoding: .utf8)
             print("💾 ログ保存: \(logFilePath)")
+            print("🔍 DEBUG: ログファイル保存完了")
         }
     } catch {
         print("❌ 構造化ログ生成エラー: \(error.localizedDescription)")
@@ -798,7 +893,7 @@ func generateStructuredLog(testCase: (name: String, text: String), accountInfo: 
 
 /// エラー時の構造化ログを生成
 @available(iOS 26.0, macOS 26.0, *)
-func generateErrorStructuredLog(testCase: (name: String, text: String), error: Error, experiment: (method: ExtractionMethod, language: PromptLanguage), iteration: Int, testDir: String) async {
+func generateErrorStructuredLog(testCase: (name: String, text: String), error: Error, experiment: (method: ExtractionMethod, language: PromptLanguage, pattern: ExperimentPattern), iteration: Int, runNumber: Int, testDir: String) async {
     let (pattern, level) = parseTestCaseName(testCase.name)
     let expectedFields = getExpectedFields(for: pattern, level: level)
     
@@ -808,6 +903,7 @@ func generateErrorStructuredLog(testCase: (name: String, text: String), error: E
         "iteration": iteration,
         "method": experiment.method.rawValue,
         "language": experiment.language.rawValue,
+        "experiment_pattern": experiment.pattern.rawValue,
         "error": error.localizedDescription,
         "expected_fields": [],
         "unexpected_fields": []
@@ -833,7 +929,7 @@ func generateErrorStructuredLog(testCase: (name: String, text: String), error: E
             print(jsonString)
             
             // ログファイルに保存
-            let logFileName = "\(experiment.method.rawValue)_\(experiment.language.rawValue)_\(pattern)_level\(level)_\(iteration)_error.json"
+            let logFileName = "\(pattern.lowercased())_\(experiment.pattern.rawValue.split(separator: "_")[1])_\(experiment.method.rawValue)_\(experiment.language.rawValue)_level\(level)_run\(runNumber)_error.json"
             let logFilePath = "\(testDir)/\(logFileName)"
             try jsonString.write(toFile: logFilePath, atomically: true, encoding: .utf8)
             print("💾 エラーログ保存: \(logFilePath)")

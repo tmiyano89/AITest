@@ -195,6 +195,7 @@ def parse_json_file(json_file_path):
             'iteration': structured_data.get('iteration', 0),
             'method': structured_data.get('method', ''),
             'language': structured_data.get('language', ''),
+            'experiment_pattern': structured_data.get('experiment_pattern', ''),
             'expected_fields': structured_data.get('expected_fields', []),
             'unexpected_fields': structured_data.get('unexpected_fields', []),
             'error': structured_data.get('error', None),
@@ -218,163 +219,8 @@ def parse_json_file(json_file_path):
     
     return results
 
-def calculate_accuracy_metrics(all_results):
-    """精度メトリクスを計算"""
-    metrics = {
-        'by_experiment': {},
-        'by_pattern': defaultdict(lambda: {'correct': 0, 'wrong': 0, 'missing': 0, 'unexpected': 0, 'pending': 0}),
-        'by_field': defaultdict(lambda: {'correct': 0, 'wrong': 0, 'missing': 0, 'unexpected': 0, 'pending': 0}),
-        'by_level': defaultdict(lambda: {'correct': 0, 'wrong': 0, 'missing': 0, 'unexpected': 0, 'pending': 0}),
-        'by_pattern_level': defaultdict(lambda: defaultdict(lambda: {'correct': 0, 'wrong': 0, 'missing': 0, 'unexpected': 0, 'pending': 0})),
-        'overall': {'correct': 0, 'wrong': 0, 'missing': 0, 'unexpected': 0, 'pending': 0}
-    }
-    
-    for result in all_results:
-        experiment = result['experiment']
-        method = result['method']
-        language = result['language']
-        
-        if experiment not in metrics['by_experiment']:
-            metrics['by_experiment'][experiment] = {
-                'method': method,
-                'language': language,
-                'correct': 0, 'wrong': 0, 'missing': 0, 'unexpected': 0, 'pending': 0
-            }
-        
-        for test_case in result['test_cases']:
-            pattern = test_case['pattern']
-            level = test_case['level']
-            
-            # 期待フィールドの分析
-            for field in test_case['expected_fields']:
-                status = field['status']
-                field_name = field['name']
-                
-                metrics['by_experiment'][experiment][status] += 1
-                metrics['by_pattern'][pattern][status] += 1
-                metrics['by_field'][field_name][status] += 1
-                metrics['by_level'][level][status] += 1
-                metrics['by_pattern_level'][pattern][level][status] += 1
-                metrics['overall'][status] += 1
-            
-            # 期待されないフィールドの分析
-            for field in test_case['unexpected_fields']:
-                status = 'unexpected'
-                field_name = field['name']
-                
-                metrics['by_experiment'][experiment][status] += 1
-                metrics['by_pattern'][pattern][status] += 1
-                metrics['by_field'][field_name][status] += 1
-                metrics['by_level'][level][status] += 1
-                metrics['by_pattern_level'][pattern][level][status] += 1
-                metrics['overall'][status] += 1
-    
-    return metrics
-
-def calculate_item_based_metrics(all_results):
-    """項目数ベースのメトリクスを計算"""
-    item_metrics = {
-        'by_pattern_level': {},
-        'by_pattern': {},
-        'by_level': {},
-        'overall': {
-            'expected_items': 0,
-            'correct_items': 0,
-            'wrong_items': 0,
-            'missing_items': 0,
-            'unexpected_items': 0
-        }
-    }
-    
-    for result in all_results:
-        for test_case in result['test_cases']:
-            pattern = test_case['pattern']
-            level = test_case['level']
-            
-            # 期待フィールド数
-            expected_count = len(test_case['expected_fields'])
-            # 実際の抽出結果
-            correct_count = sum(1 for field in test_case['expected_fields'] if field['status'] == 'correct')
-            wrong_count = sum(1 for field in test_case['expected_fields'] if field['status'] == 'wrong')
-            missing_count = sum(1 for field in test_case['expected_fields'] if field['status'] == 'missing')
-            unexpected_count = len(test_case['unexpected_fields'])
-
-            # 整合性保証: 期待 = 正解 + 誤り + 欠落
-            # 欠落が未集計なケースに備えて丸める
-            accounted = correct_count + wrong_count + missing_count
-            if accounted > expected_count:
-                # 異常値の場合はwrong_countを減らして合わせる（最小限の補正）
-                overflow = accounted - expected_count
-                wrong_count = max(0, wrong_count - overflow)
-                accounted = correct_count + wrong_count + missing_count
-            if accounted < expected_count:
-                # 欠落に不足分を反映
-                missing_count += (expected_count - accounted)
-            
-            # パターン・レベル別の集計
-            if pattern not in item_metrics['by_pattern_level']:
-                item_metrics['by_pattern_level'][pattern] = {}
-            if level not in item_metrics['by_pattern_level'][pattern]:
-                item_metrics['by_pattern_level'][pattern][level] = {
-                    'expected_items': 0,
-                    'correct_items': 0,
-                    'wrong_items': 0,
-                    'missing_items': 0,
-                    'unexpected_items': 0,
-                    'test_cases': 0
-                }
-            
-            item_metrics['by_pattern_level'][pattern][level]['expected_items'] += expected_count
-            item_metrics['by_pattern_level'][pattern][level]['correct_items'] += correct_count
-            item_metrics['by_pattern_level'][pattern][level]['wrong_items'] += wrong_count
-            item_metrics['by_pattern_level'][pattern][level]['missing_items'] += missing_count
-            item_metrics['by_pattern_level'][pattern][level]['unexpected_items'] += unexpected_count
-            item_metrics['by_pattern_level'][pattern][level]['test_cases'] += 1
-            
-            # パターン別の集計
-            if pattern not in item_metrics['by_pattern']:
-                item_metrics['by_pattern'][pattern] = {
-                    'expected_items': 0,
-                    'correct_items': 0,
-                    'wrong_items': 0,
-                    'missing_items': 0,
-                    'unexpected_items': 0,
-                    'test_cases': 0
-                }
-            
-            item_metrics['by_pattern'][pattern]['expected_items'] += expected_count
-            item_metrics['by_pattern'][pattern]['correct_items'] += correct_count
-            item_metrics['by_pattern'][pattern]['wrong_items'] += wrong_count
-            item_metrics['by_pattern'][pattern]['missing_items'] += missing_count
-            item_metrics['by_pattern'][pattern]['unexpected_items'] += unexpected_count
-            item_metrics['by_pattern'][pattern]['test_cases'] += 1
-            
-            # レベル別の集計
-            if level not in item_metrics['by_level']:
-                item_metrics['by_level'][level] = {
-                    'expected_items': 0,
-                    'correct_items': 0,
-                    'wrong_items': 0,
-                    'missing_items': 0,
-                    'unexpected_items': 0,
-                    'test_cases': 0
-                }
-            
-            item_metrics['by_level'][level]['expected_items'] += expected_count
-            item_metrics['by_level'][level]['correct_items'] += correct_count
-            item_metrics['by_level'][level]['wrong_items'] += wrong_count
-            item_metrics['by_level'][level]['missing_items'] += missing_count
-            item_metrics['by_level'][level]['unexpected_items'] += unexpected_count
-            item_metrics['by_level'][level]['test_cases'] += 1
-            
-            # 全体の集計
-            item_metrics['overall']['expected_items'] += expected_count
-            item_metrics['overall']['correct_items'] += correct_count
-            item_metrics['overall']['wrong_items'] += wrong_count
-            item_metrics['overall']['missing_items'] += missing_count
-            item_metrics['overall']['unexpected_items'] += unexpected_count
-    
-    return item_metrics
+# @ai[2025-01-10 15:30] 冗長な古い集計関数を削除
+# 理由: compute_grouped_item_scores関数で統一された集計ロジックを使用
 
 def compute_grouped_item_scores(all_results):
     """method/language/patternの各軸で、項目数ベースと正規化スコアを集計"""
@@ -385,15 +231,22 @@ def compute_grouped_item_scores(all_results):
     by_method = {}
     by_language = {}
     by_pattern = {}
+    by_experiment_pattern = {}
+    by_level = {}
+    by_algo_level = {}
 
     for result in all_results:
         for tc in result['test_cases']:
+            # 各テストケースの期待フィールド数を使用
             expected = len(tc.get('expected_fields', []))
             correct = sum(1 for f in tc.get('expected_fields', []) if f.get('status')=='correct')
             wrong = sum(1 for f in tc.get('expected_fields', []) if f.get('status')=='wrong')
             missing = sum(1 for f in tc.get('expected_fields', []) if f.get('status')=='missing')
             unexpected = len(tc.get('unexpected_fields', []))
-            # 整合性
+            
+            # @ai[2025-01-10 15:30] デバッグログを削除してコードをクリーンアップ
+            
+            # 整合性チェック
             accounted = correct + wrong + missing
             if accounted > expected:
                 overflow = accounted - expected
@@ -405,6 +258,7 @@ def compute_grouped_item_scores(all_results):
             meth = tc.get('method') or result.get('method')
             lang = tc.get('language') or result.get('language')
             patt = tc.get('pattern')
+            exp_patt = tc.get('experiment_pattern')
 
             if meth:
                 by_method.setdefault(meth, {}); ensure_group(by_method[meth])
@@ -415,6 +269,24 @@ def compute_grouped_item_scores(all_results):
             if patt:
                 by_pattern.setdefault(patt, {}); ensure_group(by_pattern[patt])
                 g = by_pattern[patt]; g['expected_items']+=expected; g['correct_items']+=correct; g['wrong_items']+=wrong; g['missing_items']+=missing; g['unexpected_items']+=unexpected; g['tests']+=1
+            if exp_patt:
+                by_experiment_pattern.setdefault(exp_patt, {}); ensure_group(by_experiment_pattern[exp_patt])
+                g = by_experiment_pattern[exp_patt]; g['expected_items']+=expected; g['correct_items']+=correct; g['wrong_items']+=wrong; g['missing_items']+=missing; g['unexpected_items']+=unexpected; g['tests']+=1
+            
+            # レベル別集計
+            level = tc.get('level', 1)
+            by_level.setdefault(level, {}); ensure_group(by_level[level])
+            g = by_level[level]; g['expected_items']+=expected; g['correct_items']+=correct; g['wrong_items']+=wrong; g['missing_items']+=missing; g['unexpected_items']+=unexpected; g['tests']+=1
+            
+            # algo別×レベル別集計
+            if exp_patt:
+                # experiment_patternからalgoを抽出 (例: chat_abs_gen -> abs)
+                algo_parts = exp_patt.split('_')
+                if len(algo_parts) >= 2:
+                    algo = algo_parts[1]  # abs, strict, persona, twosteps, abs-ex, strict-ex, persona-ex
+                    algo_level_key = f"{algo}_level{level}"
+                    by_algo_level.setdefault(algo_level_key, {}); ensure_group(by_algo_level[algo_level_key])
+                    g = by_algo_level[algo_level_key]; g['expected_items']+=expected; g['correct_items']+=correct; g['wrong_items']+=wrong; g['missing_items']+=missing; g['unexpected_items']+=unexpected; g['tests']+=1
 
     def add_score(dct):
         out = {}
@@ -424,166 +296,40 @@ def compute_grouped_item_scores(all_results):
             out[k] = {**v, 'normalized_score': score}
         return out
 
+    # @ai[2025-01-10 15:30] デバッグログを削除してコードをクリーンアップ
+
     return {
         'by_method': add_score(by_method),
         'by_language': add_score(by_language),
         'by_pattern': add_score(by_pattern),
+        'by_experiment_pattern': add_score(by_experiment_pattern),
+        'by_level': add_score(by_level),
+        'by_algo_level': add_score(by_algo_level)
     }
 
 def calculate_rates(metrics):
-    """各種率を計算"""
-    rates = {
-        'overall': {},
-        'by_experiment': {},
-        'by_pattern': {},
-        'by_field': {},
-        'by_pattern_level': {}
-    }
+    """@ai[2025-01-10 15:30] 簡素化された率計算関数"""
+    rates = {'overall': {}}
     
-    # 全体の率
+    # 全体の率のみ計算（シンプル化）
     total = sum(metrics['overall'].values())
     if total > 0:
-        # 過剰抽出率は抽出すべき項目数に対する比率（100%を超えることがある）
-        expected_total = metrics['overall']['correct'] + metrics['overall']['wrong'] + metrics['overall']['missing']
-        unexpected_rate = metrics['overall']['unexpected'] / expected_total if expected_total > 0 else 0
-        
-        # pending項目を除いた総数で正解率を計算
         evaluable_total = metrics['overall']['correct'] + metrics['overall']['wrong'] + metrics['overall']['missing'] + metrics['overall']['unexpected']
+        expected_total = metrics['overall']['correct'] + metrics['overall']['wrong'] + metrics['overall']['missing']
         
         rates['overall'] = {
             'correct_rate': metrics['overall']['correct'] / evaluable_total if evaluable_total > 0 else 0,
             'wrong_rate': metrics['overall']['wrong'] / evaluable_total if evaluable_total > 0 else 0,
             'missing_rate': metrics['overall']['missing'] / evaluable_total if evaluable_total > 0 else 0,
-            'unexpected_rate': unexpected_rate,
-            'pending_rate': metrics['overall']['pending'] / total,
+            'unexpected_rate': metrics['overall']['unexpected'] / expected_total if expected_total > 0 else 0,
             'precision': metrics['overall']['correct'] / (metrics['overall']['correct'] + metrics['overall']['wrong'] + metrics['overall']['unexpected']) if (metrics['overall']['correct'] + metrics['overall']['wrong'] + metrics['overall']['unexpected']) > 0 else 0,
             'recall': metrics['overall']['correct'] / (metrics['overall']['correct'] + metrics['overall']['missing']) if (metrics['overall']['correct'] + metrics['overall']['missing']) > 0 else 0
         }
     else:
-        # データがない場合のデフォルト値
         rates['overall'] = {
-            'correct_rate': 0.0,
-            'wrong_rate': 0.0,
-            'missing_rate': 0.0,
-            'unexpected_rate': 0.0,
-            'pending_rate': 0.0,
-            'precision': 0.0,
-            'recall': 0.0
+            'correct_rate': 0.0, 'wrong_rate': 0.0, 'missing_rate': 0.0,
+            'unexpected_rate': 0.0, 'precision': 0.0, 'recall': 0.0
         }
-    
-    # 実験別の率
-    rates['by_experiment'] = {}
-    for experiment, data in metrics['by_experiment'].items():
-        # methodとlanguageを除外して数値のみを合計
-        numeric_data = {k: v for k, v in data.items() if isinstance(v, int)}
-        total = sum(numeric_data.values())
-        if total > 0:
-            # 過剰抽出率は抽出すべき項目数に対する比率
-            expected_total = data['correct'] + data['wrong'] + data['missing']
-            unexpected_rate = data['unexpected'] / expected_total if expected_total > 0 else 0
-            
-            # pending項目を除いた総数で正解率を計算
-            evaluable_total = data['correct'] + data['wrong'] + data['missing'] + data['unexpected']
-            
-            rates['by_experiment'][experiment] = {
-                'correct_rate': data['correct'] / evaluable_total if evaluable_total > 0 else 0,
-                'wrong_rate': data['wrong'] / evaluable_total if evaluable_total > 0 else 0,
-                'missing_rate': data['missing'] / evaluable_total if evaluable_total > 0 else 0,
-                'unexpected_rate': unexpected_rate,
-                'pending_rate': data['pending'] / total,
-                'precision': data['correct'] / (data['correct'] + data['wrong'] + data['unexpected']) if (data['correct'] + data['wrong'] + data['unexpected']) > 0 else 0,
-                'recall': data['correct'] / (data['correct'] + data['missing']) if (data['correct'] + data['missing']) > 0 else 0
-            }
-    
-    # パターン別の率
-    rates['by_pattern'] = {}
-    for pattern, data in metrics['by_pattern'].items():
-        total = sum(data.values())
-        if total > 0:
-            # 過剰抽出率は抽出すべき項目数に対する比率
-            expected_total = data['correct'] + data['wrong'] + data['missing']
-            unexpected_rate = data['unexpected'] / expected_total if expected_total > 0 else 0
-            
-            # pending項目を除いた総数で正解率を計算
-            evaluable_total = data['correct'] + data['wrong'] + data['missing'] + data['unexpected']
-            
-            rates['by_pattern'][pattern] = {
-                'correct_rate': data['correct'] / evaluable_total if evaluable_total > 0 else 0,
-                'wrong_rate': data['wrong'] / evaluable_total if evaluable_total > 0 else 0,
-                'missing_rate': data['missing'] / evaluable_total if evaluable_total > 0 else 0,
-                'unexpected_rate': unexpected_rate,
-                'pending_rate': data['pending'] / total,
-                'precision': data['correct'] / (data['correct'] + data['wrong'] + data['unexpected']) if (data['correct'] + data['wrong'] + data['unexpected']) > 0 else 0,
-                'recall': data['correct'] / (data['correct'] + data['missing']) if (data['correct'] + data['missing']) > 0 else 0
-            }
-    
-    # レベル別の率
-    rates['by_level'] = {}
-    for level, data in metrics['by_level'].items():
-        total = sum(data.values())
-        if total > 0:
-            # 過剰抽出率は抽出すべき項目数に対する比率
-            expected_total = data['correct'] + data['wrong'] + data['missing']
-            unexpected_rate = data['unexpected'] / expected_total if expected_total > 0 else 0
-            
-            # pending項目を除いた総数で正解率を計算
-            evaluable_total = data['correct'] + data['wrong'] + data['missing'] + data['unexpected']
-            
-            rates['by_level'][level] = {
-                'correct_rate': data['correct'] / evaluable_total if evaluable_total > 0 else 0,
-                'wrong_rate': data['wrong'] / evaluable_total if evaluable_total > 0 else 0,
-                'missing_rate': data['missing'] / evaluable_total if evaluable_total > 0 else 0,
-                'unexpected_rate': unexpected_rate,
-                'pending_rate': data['pending'] / total,
-                'precision': data['correct'] / (data['correct'] + data['wrong'] + data['unexpected']) if (data['correct'] + data['wrong'] + data['unexpected']) > 0 else 0,
-                'recall': data['correct'] / (data['correct'] + data['missing']) if (data['correct'] + data['missing']) > 0 else 0
-            }
-    
-    # フィールド別の率
-    rates['by_field'] = {}
-    for field, data in metrics['by_field'].items():
-        total = sum(data.values())
-        if total > 0:
-            # 過剰抽出率は抽出すべき項目数に対する比率
-            expected_total = data['correct'] + data['wrong'] + data['missing']
-            unexpected_rate = data['unexpected'] / expected_total if expected_total > 0 else 0
-            
-            # pending項目を除いた総数で正解率を計算
-            evaluable_total = data['correct'] + data['wrong'] + data['missing'] + data['unexpected']
-            
-            rates['by_field'][field] = {
-                'correct_rate': data['correct'] / evaluable_total if evaluable_total > 0 else 0,
-                'wrong_rate': data['wrong'] / evaluable_total if evaluable_total > 0 else 0,
-                'missing_rate': data['missing'] / evaluable_total if evaluable_total > 0 else 0,
-                'unexpected_rate': unexpected_rate,
-                'pending_rate': data['pending'] / total,
-                'precision': data['correct'] / (data['correct'] + data['wrong'] + data['unexpected']) if (data['correct'] + data['wrong'] + data['unexpected']) > 0 else 0,
-                'recall': data['correct'] / (data['correct'] + data['missing']) if (data['correct'] + data['missing']) > 0 else 0
-            }
-    
-    # パターン・レベル別の率
-    rates['by_pattern_level'] = {}
-    for pattern, level_data in metrics['by_pattern_level'].items():
-        rates['by_pattern_level'][pattern] = {}
-        for level, data in level_data.items():
-            total = sum(data.values())
-            if total > 0:
-                # 過剰抽出率は抽出すべき項目数に対する比率
-                expected_total = data['correct'] + data['wrong'] + data['missing']
-                unexpected_rate = data['unexpected'] / expected_total if expected_total > 0 else 0
-                
-                # pending項目を除いた総数で正解率を計算
-                evaluable_total = data['correct'] + data['wrong'] + data['missing'] + data['unexpected']
-                
-                rates['by_pattern_level'][pattern][level] = {
-                    'correct_rate': data['correct'] / evaluable_total if evaluable_total > 0 else 0,
-                    'wrong_rate': data['wrong'] / evaluable_total if evaluable_total > 0 else 0,
-                    'missing_rate': data['missing'] / evaluable_total if evaluable_total > 0 else 0,
-                    'unexpected_rate': unexpected_rate,
-                    'pending_rate': data['pending'] / total,
-                    'precision': data['correct'] / (data['correct'] + data['wrong'] + data['unexpected']) if (data['correct'] + data['wrong'] + data['unexpected']) > 0 else 0,
-                    'recall': data['correct'] / (data['correct'] + data['missing']) if (data['correct'] + data['missing']) > 0 else 0
-                }
     
     return rates
 
@@ -709,22 +455,27 @@ def calculate_timing_stats(all_results):
     
     return timing_stats
 
-def generate_html_report(all_results, output_path, rates=None, timing_stats=None, item_metrics=None):
+def generate_html_report(all_results, output_path, rates=None, timing_stats=None, grouped_scores=None):
     """詳細な精度分析HTMLレポートを生成"""
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
-    # 精度メトリクスを計算（引数で渡されていない場合のみ）
-    if rates is None:
-        metrics = calculate_accuracy_metrics(all_results)
-        rates = calculate_rates(metrics)
-    else:
-        # ratesが渡された場合でも、metricsは必要
-        metrics = calculate_accuracy_metrics(all_results)
+    # @ai[2025-01-10 15:30] 統一された集計ロジックを使用
+    if grouped_scores is None:
+        grouped_scores = compute_grouped_item_scores(all_results)
     
-    # 項目数ベースのメトリクスを計算（引数で渡されていない場合のみ）
-    if item_metrics is None:
-        item_metrics = calculate_item_based_metrics(all_results)
-    grouped_scores = compute_grouped_item_scores(all_results)
+    # レガシー互換性のための基本メトリクス構造
+    metrics = {
+        'overall': {
+            'correct': sum(g['correct_items'] for g in grouped_scores['by_experiment_pattern'].values()),
+            'wrong': sum(g['wrong_items'] for g in grouped_scores['by_experiment_pattern'].values()),
+            'missing': sum(g['missing_items'] for g in grouped_scores['by_experiment_pattern'].values()),
+            'unexpected': sum(g['unexpected_items'] for g in grouped_scores['by_experiment_pattern'].values()),
+            'pending': 0
+        }
+    }
+    
+    if rates is None:
+        rates = calculate_rates(metrics)
     
     if timing_stats is None:
         timing_stats = calculate_timing_stats(all_results)
@@ -797,27 +548,27 @@ def generate_html_report(all_results, output_path, rates=None, timing_stats=None
     <div class="summary">
         <div class="summary-card">
             <h3>総期待項目数</h3>
-            <p style="font-size: 2em; margin: 0;">{item_metrics['overall']['expected_items']}</p>
+            <p style="font-size: 2em; margin: 0;">{sum(g['expected_items'] for g in grouped_scores['by_experiment_pattern'].values())}</p>
         </div>
         <div class="summary-card">
             <h3>総正解項目数</h3>
-            <p style="font-size: 2em; margin: 0; color: #28a745;">{item_metrics['overall']['correct_items']}</p>
+            <p style="font-size: 2em; margin: 0; color: #28a745;">{sum(g['correct_items'] for g in grouped_scores['by_experiment_pattern'].values())}</p>
         </div>
         <div class="summary-card">
             <h3>総誤り項目数</h3>
-            <p style="font-size: 2em; margin: 0; color: #dc3545;">{item_metrics['overall']['wrong_items']}</p>
+            <p style="font-size: 2em; margin: 0; color: #dc3545;">{sum(g['wrong_items'] for g in grouped_scores['by_experiment_pattern'].values())}</p>
         </div>
         <div class="summary-card">
             <h3>総欠落項目数</h3>
-            <p style="font-size: 2em; margin: 0; color: #ffc107;">{item_metrics['overall']['missing_items']}</p>
+            <p style="font-size: 2em; margin: 0; color: #ffc107;">{sum(g['missing_items'] for g in grouped_scores['by_experiment_pattern'].values())}</p>
         </div>
         <div class="summary-card">
             <h3>総過剰項目数</h3>
-            <p style="font-size: 2em; margin: 0; color: #6f42c1;">{item_metrics['overall']['unexpected_items']}</p>
+            <p style="font-size: 2em; margin: 0; color: #6f42c1;">{sum(g['unexpected_items'] for g in grouped_scores['by_experiment_pattern'].values())}</p>
         </div>
         <div class="summary-card">
             <h3>正規化スコア（全体）</h3>
-            <p style="font-size: 2em; margin: 0; color: #007bff;">{( (item_metrics['overall']['correct_items'] - item_metrics['overall']['wrong_items'] - item_metrics['overall']['unexpected_items']) / (item_metrics['overall']['expected_items'] or 1) ):.3f}</p>
+            <p style="font-size: 2em; margin: 0; color: #007bff;">{( (sum(g['correct_items'] for g in grouped_scores['by_experiment_pattern'].values()) - sum(g['wrong_items'] for g in grouped_scores['by_experiment_pattern'].values()) - sum(g['unexpected_items'] for g in grouped_scores['by_experiment_pattern'].values())) / (sum(g['expected_items'] for g in grouped_scores['by_experiment_pattern'].values()) or 1) ):.3f}</p>
         </div>
     </div>
     
@@ -938,6 +689,90 @@ def generate_html_report(all_results, output_path, rates=None, timing_stats=None
                 </ul>
             </div>
             """
+        elif analysis_type == "level":
+            analysis_content = f"""
+            <h4>📊 レベル別パフォーマンス分析</h4>
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 10px 0;">
+                <p><strong>最良パフォーマンス:</strong> {best[0]} (正規化スコア: {best[1]['normalized_score']:.3f})</p>
+                <p><strong>最悪パフォーマンス:</strong> {worst[0]} (正規化スコア: {worst[1]['normalized_score']:.3f})</p>
+                <p><strong>分析:</strong></p>
+                <ul>
+                    <li>レベル間の正規化スコア差: {best[1]['normalized_score'] - worst[1]['normalized_score']:.3f}</li>
+                    <li>最も複雑なレベル: {max(data.items(), key=lambda x: x[1]['expected_items'])[0]} (期待項目数: {max(data.items(), key=lambda x: x[1]['expected_items'])[1]['expected_items']})</li>
+                    <li>最もシンプルなレベル: {min(data.items(), key=lambda x: x[1]['expected_items'])[0]} (期待項目数: {min(data.items(), key=lambda x: x[1]['expected_items'])[1]['expected_items']})</li>
+                </ul>
+            </div>
+            """
+        elif analysis_type == "algo_level":
+            # algo別×レベル別の分析 - レベルごとのランキング表示
+            level_rankings = {}
+            
+            for key, stats in data.items():
+                if '_level' in key:
+                    algo, level = key.split('_level')
+                    if level not in level_rankings:
+                        level_rankings[level] = []
+                    level_rankings[level].append((algo, stats['normalized_score'], stats))
+            
+            # 各レベルでランキングを作成
+            analysis_content = ""
+            for level in sorted(level_rankings.keys(), key=int):
+                level_data = level_rankings[level]
+                level_data.sort(key=lambda x: x[1], reverse=True)  # 正規化スコアで降順ソート
+                
+                analysis_content += f"""
+            <h4>📊 Level {level} ランキング</h4>
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 10px 0;">
+                <table style="width: 100%; border-collapse: collapse; margin: 10px 0;">
+                    <thead>
+                        <tr style="background: #e9ecef;">
+                            <th style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">順位</th>
+                            <th style="border: 1px solid #dee2e6; padding: 8px; text-align: left;">Algo</th>
+                            <th style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">正規化スコア</th>
+                            <th style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">正解数</th>
+                            <th style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">誤り数</th>
+                            <th style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">欠落数</th>
+                            <th style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">過剰数</th>
+                        </tr>
+                    </thead>
+                    <tbody>"""
+                
+                for rank, (algo, score, stats) in enumerate(level_data, 1):
+                    # 順位に応じて色を変更
+                    if rank == 1:
+                        row_style = "background: #d4edda; font-weight: bold;"
+                    elif rank == 2:
+                        row_style = "background: #d1ecf1;"
+                    elif rank == 3:
+                        row_style = "background: #fff3cd;"
+                    else:
+                        row_style = ""
+                    
+                    analysis_content += f"""
+                        <tr style="{row_style}">
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">{rank}</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: left;">{algo}</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center; font-weight: bold; color: {'#28a745' if score > 0 else '#dc3545' if score < 0 else '#6c757d'};">{score:.3f}</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">{stats['correct_items']}</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">{stats['wrong_items']}</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">{stats['missing_items']}</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">{stats['unexpected_items']}</td>
+                        </tr>"""
+                
+                analysis_content += """
+                    </tbody>
+                </table>
+            </div>"""
+            
+            # 全体の分析も追加
+            analysis_content += f"""
+            <h4>🔬 全体分析</h4>
+            <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin: 10px 0;">
+                <p><strong>最良パフォーマンス:</strong> {best[0]} (正規化スコア: {best[1]['normalized_score']:.3f})</p>
+                <p><strong>最悪パフォーマンス:</strong> {worst[0]} (正規化スコア: {worst[1]['normalized_score']:.3f})</p>
+                <p><strong>全体の正規化スコア差:</strong> {best[1]['normalized_score'] - worst[1]['normalized_score']:.3f}</p>
+                <p><strong>総組み合わせ数:</strong> {len(data)}個のalgo×レベル組み合わせ</p>
+            </div>"""
         
         return f"""
     <div class="section">
@@ -946,15 +781,14 @@ def generate_html_report(all_results, output_path, rates=None, timing_stats=None
     </div>
         """
     
-    def generate_summary_section(item_metrics, grouped_scores, timing_stats):
+    def generate_summary_section(grouped_scores, timing_stats):
         """レポートのまとめセクションを生成"""
         # 全体統計を計算
-        overall = item_metrics.get('overall', {})
-        total_expected = overall.get('expected_items', 0)
-        total_correct = overall.get('correct_items', 0)
-        total_wrong = overall.get('wrong_items', 0)
-        total_missing = overall.get('missing_items', 0)
-        total_unexpected = overall.get('unexpected_items', 0)
+        total_expected = sum(g['expected_items'] for g in grouped_scores['by_experiment_pattern'].values())
+        total_correct = sum(g['correct_items'] for g in grouped_scores['by_experiment_pattern'].values())
+        total_wrong = sum(g['wrong_items'] for g in grouped_scores['by_experiment_pattern'].values())
+        total_missing = sum(g['missing_items'] for g in grouped_scores['by_experiment_pattern'].values())
+        total_unexpected = sum(g['unexpected_items'] for g in grouped_scores['by_experiment_pattern'].values())
         overall_score = (total_correct - total_wrong - total_unexpected) / (total_expected or 1)
         
         # 各軸の最良・最悪を特定
@@ -1050,6 +884,14 @@ def generate_html_report(all_results, output_path, rates=None, timing_stats=None
     html_content += render_group_table("パターン別（Contract / Chat / CreditCard / PasswordManager / VoiceRecognition）", grouped_scores['by_pattern'])
     html_content += add_analysis_section("パターン別分析", grouped_scores['by_pattern'], "pattern")
     
+    # レベル別分析を追加
+    html_content += render_group_table("レベル別（Level 1 / Level 2 / Level 3）", grouped_scores['by_level'])
+    html_content += add_analysis_section("レベル別分析", grouped_scores['by_level'], "level")
+    
+    # algo別×レベル別分析を追加
+    html_content += render_group_table("Algo別×レベル別（abs / strict / persona / twosteps / abs-ex / strict-ex / persona-ex × Level 1/2/3）", grouped_scores['by_algo_level'])
+    html_content += add_analysis_section("Algo別×レベル別分析", grouped_scores['by_algo_level'], "algo_level")
+    
     # 率ベースのパターン別精度表は削除（項目数ベース＋正規化スコアに統一）
     
     # フィールド別の詳細分析（4率の合計=1.0）
@@ -1069,16 +911,7 @@ def generate_html_report(all_results, output_path, rates=None, timing_stats=None
             <tbody>
 """
     
-    for field, data in rates['by_field'].items():
-        html_content += f"""
-                <tr>
-                    <td>{field}</td>
-                    <td class="correct">{data['correct_rate']:.1%}</td>
-                    <td class="wrong">{data['wrong_rate']:.1%}</td>
-                    <td class="missing">{data['missing_rate']:.1%}</td>
-                    <td class="unexpected">{data['unexpected_rate']:.1%}</td>
-                </tr>
-"""
+    # @ai[2025-01-10 15:30] by_fieldセクションを削除（シンプル化）
     
     html_content += """
             </tbody>
@@ -1199,7 +1032,7 @@ def generate_html_report(all_results, output_path, rates=None, timing_stats=None
 """
     
     # 項目数ベースのメトリクスセクションを追加
-    if item_metrics and 'by_pattern_level' in item_metrics and item_metrics['by_pattern_level']:
+    if grouped_scores and 'by_pattern_level' in grouped_scores and grouped_scores['by_pattern_level']:
         html_content += """
     <div class="section">
         <h3>📊 項目数ベース分析（パターン・レベル別）</h3>
@@ -1220,7 +1053,7 @@ def generate_html_report(all_results, output_path, rates=None, timing_stats=None
             <tbody>
 """
         
-        for pattern, level_data in item_metrics['by_pattern_level'].items():
+        for pattern, level_data in grouped_scores['by_pattern_level'].items():
             for level, data in level_data.items():
                 # 正規化スコアを計算
                 expected = data['expected_items'] or 1
@@ -1235,7 +1068,7 @@ def generate_html_report(all_results, output_path, rates=None, timing_stats=None
                     <td class="wrong">{data['wrong_items']}</td>
                     <td class="missing">{data['missing_items']}</td>
                     <td class="unexpected">{data['unexpected_items']}</td>
-                    <td>{data['test_cases']}</td>
+                    <td>{data['tests']}</td>
                     <td style="color: #007bff; font-weight: bold;">{normalized_score:.3f}</td>
                 </tr>
 """
@@ -1247,7 +1080,7 @@ def generate_html_report(all_results, output_path, rates=None, timing_stats=None
 """
     
     # レベル別項目数分析セクションを追加
-    if item_metrics and 'by_level' in item_metrics and item_metrics['by_level']:
+    if grouped_scores and 'by_level' in grouped_scores and grouped_scores['by_level']:
         html_content += """
     <div class="section">
         <h3>📊 項目数ベース分析（レベル別）</h3>
@@ -1267,7 +1100,7 @@ def generate_html_report(all_results, output_path, rates=None, timing_stats=None
             <tbody>
 """
         
-        for level, data in item_metrics['by_level'].items():
+        for level, data in grouped_scores['by_level'].items():
             # 正規化スコアを計算
             expected = data['expected_items'] or 1
             normalized_score = (data['correct_items'] - data['wrong_items'] - data['unexpected_items']) / expected
@@ -1280,7 +1113,7 @@ def generate_html_report(all_results, output_path, rates=None, timing_stats=None
                     <td class="wrong">{data['wrong_items']}</td>
                     <td class="missing">{data['missing_items']}</td>
                     <td class="unexpected">{data['unexpected_items']}</td>
-                    <td>{data['test_cases']}</td>
+                    <td>{data['tests']}</td>
                     <td style="color: #007bff; font-weight: bold;">{normalized_score:.3f}</td>
                 </tr>
 """
@@ -1320,7 +1153,7 @@ def generate_html_report(all_results, output_path, rates=None, timing_stats=None
 """
     
     # まとめセクションを追加
-    html_content += generate_summary_section(item_metrics, grouped_scores, timing_stats)
+    html_content += generate_summary_section(grouped_scores, timing_stats)
     
     html_content += """
     <div class="header">
@@ -1429,8 +1262,8 @@ def generate_html_report(all_results, output_path, rates=None, timing_stats=None
 """
     
     # 項目数ベースのレベル別データを追加
-    if item_metrics and 'by_level' in item_metrics and item_metrics['by_level']:
-        for level, data in item_metrics['by_level'].items():
+    if grouped_scores and 'by_level' in grouped_scores and grouped_scores['by_level']:
+        for level, data in grouped_scores['by_level'].items():
             html_content += f"""
         itemLevelData.labels.push('Level {level}');
         itemLevelData.expected.push({data['expected_items']});
@@ -1441,8 +1274,8 @@ def generate_html_report(all_results, output_path, rates=None, timing_stats=None
 """
     
     # 項目数ベースのパターン・レベル別データを追加
-    if item_metrics and 'by_pattern_level' in item_metrics and item_metrics['by_pattern_level']:
-        for pattern, level_data in item_metrics['by_pattern_level'].items():
+    if grouped_scores and 'by_pattern_level' in grouped_scores and grouped_scores['by_pattern_level']:
+        for pattern, level_data in grouped_scores['by_pattern_level'].items():
             for level, data in level_data.items():
                 html_content += f"""
         itemPatternLevelData.labels.push('{pattern} L{level}');
@@ -1751,12 +1584,21 @@ def main():
     # ログファイルを検索（ディレクトリ構造対応）
     log_files = []
     
-    # 従来の形式のログファイル
-    log_files.extend(list(Path(log_dir).glob("format_experiment_*.log")))
+    # @ai[2025-01-10 15:45] 新しい命名規則に対応: yyyymmddhhmm_実験名
+    # 指定されたディレクトリ内のJSONファイルを直接検索
+    direct_json_files = list(Path(log_dir).glob("*.json"))
+    if direct_json_files:
+        log_files.extend(direct_json_files)
+        print(f"📁 指定ディレクトリ内: {len(direct_json_files)}個のJSONファイル")
     
-    # 新しいディレクトリ構造のJSONファイル
-    json_files = list(Path(log_dir).glob("**/*.json"))
-    log_files.extend(json_files)
+    # 新しい形式の実験ディレクトリを検索
+    experiment_dirs = [d for d in Path(log_dir).iterdir() if d.is_dir() and "_" in d.name and len(d.name.split("_")) == 2]
+    
+    for exp_dir in experiment_dirs:
+        # 各実験ディレクトリ内のJSONファイルを収集
+        json_files = list(exp_dir.glob("*.json"))
+        log_files.extend(json_files)
+        print(f"📁 実験ディレクトリ {exp_dir.name}: {len(json_files)}個のJSONファイル")
     
     if not log_files:
         print(f"エラー: ログディレクトリ {log_dir} にログファイルが見つかりません")
@@ -1771,8 +1613,24 @@ def main():
         result = parse_log_file(str(log_file))
         all_results.append(result)
     
-    # 精度メトリクスを計算
-    metrics = calculate_accuracy_metrics(all_results)
+    # @ai[2025-01-10 15:30] 統一された集計ロジックのみを使用
+    grouped_scores = compute_grouped_item_scores(all_results)
+    
+    # レガシー互換性のための基本メトリクス構造
+    metrics = {
+        'by_experiment_pattern': grouped_scores['by_experiment_pattern'],
+        'by_method': grouped_scores['by_method'],
+        'by_language': grouped_scores['by_language'],
+        'by_pattern': grouped_scores['by_pattern'],
+        'overall': {
+            'correct': sum(g['correct_items'] for g in grouped_scores['by_experiment_pattern'].values()),
+            'wrong': sum(g['wrong_items'] for g in grouped_scores['by_experiment_pattern'].values()),
+            'missing': sum(g['missing_items'] for g in grouped_scores['by_experiment_pattern'].values()),
+            'unexpected': sum(g['unexpected_items'] for g in grouped_scores['by_experiment_pattern'].values()),
+            'pending': 0
+        }
+    }
+    
     rates = calculate_rates(metrics)
     
     # 抽出時間の統計を計算
@@ -1802,12 +1660,10 @@ def main():
     else:
         print("  抽出時間データがありません。")
     
-    # 項目数ベースのメトリクスを計算
-    item_metrics = calculate_item_based_metrics(all_results)
-    
+    # @ai[2025-01-10 15:30] 統一された集計ロジックを使用
     # HTMLレポートを生成
     output_path = os.path.join(report_dir, "parallel_format_experiment_report.html")
-    generate_html_report(all_results, output_path, rates, timing_stats, item_metrics)
+    generate_html_report(all_results, output_path, rates, timing_stats, grouped_scores)
     
     print(f"✅ 統合レポートを生成しました: {output_path}")
     
@@ -1816,6 +1672,7 @@ def main():
     detailed_data = {
         'metrics': dict(metrics),
         'rates': rates,
+        'grouped_scores': grouped_scores,
         'timestamp': datetime.now().isoformat()
     }
     

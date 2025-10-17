@@ -104,7 +104,7 @@ public final class AccountExtractor: ObservableObject {
     /// 背景: LanguageSessionModelの推論時間、メモリ使用量、精度を評価
     /// 意図: 数値的な性能データを収集し、最適化の指針を提供
     @MainActor
-    public func extractFromText(_ text: String, method: ExtractionMethod = .generable, language: PromptLanguage = .japanese) async throws -> (AccountInfo, ExtractionMetrics) {
+    public func extractFromText(_ text: String, method: ExtractionMethod = .generable, language: PromptLanguage = .japanese, pattern: ExperimentPattern = .defaultPattern) async throws -> (AccountInfo, ExtractionMetrics) {
         logger.info("🔍 [STEP 1/5] テキスト抽出処理を開始")
         let startTime = CFAbsoluteTimeGetCurrent()
         let memoryBefore = getMemoryUsage()
@@ -135,7 +135,7 @@ public final class AccountExtractor: ObservableObject {
             let sessionStart = CFAbsoluteTimeGetCurrent()
             if session == nil {
                 logger.info("🔄 セッション初期化を実行")
-                try await initializeSession()
+                try await initializeSession(pattern: pattern, language: language)
                 logger.info("✅ セッション初期化完了")
             }
             let sessionTime = CFAbsoluteTimeGetCurrent() - sessionStart
@@ -143,8 +143,8 @@ public final class AccountExtractor: ObservableObject {
             
             // 抽出処理実行
             let extractionStart = CFAbsoluteTimeGetCurrent()
-            logger.info("🚀 AI抽出処理を開始 - 方法: \(method.displayName), 言語: \(language.displayName)")
-            let (accountInfo, extractionTime) = try await performExtraction(from: text, method: method, language: language)
+            logger.info("🚀 AI抽出処理を開始 - 方法: \(method.displayName), 言語: \(language.displayName), パターン: \(pattern.displayName)")
+            let (accountInfo, extractionTime) = try await performExtraction(from: text, method: method, language: language, pattern: pattern)
             let totalExtractionTime = CFAbsoluteTimeGetCurrent() - extractionStart
             logger.info("✅ AI抽出処理完了 - 内部処理時間: \(String(format: "%.3f", extractionTime))秒, 総処理時間: \(String(format: "%.3f", totalExtractionTime))秒")
             
@@ -242,7 +242,7 @@ public final class AccountExtractor: ObservableObject {
     
     /// セッションを初期化
     @MainActor
-    private func initializeSession() async throws {
+    private func initializeSession(pattern: ExperimentPattern = .defaultPattern, language: PromptLanguage = .japanese) async throws {
         logger.debug("🔧 セッション初期化開始")
         
         // AI利用可能性をチェック
@@ -254,13 +254,10 @@ public final class AccountExtractor: ObservableObject {
         logger.info("✅ AI利用可能性チェック完了")
         
         // FoundationModelsを使用してセッションを初期化
+        let sessionInstructions = PromptTemplateGenerator.generateSessionInstructions(for: pattern, language: language)
         session = LanguageModelSession(
             instructions: Instructions {
-                "あなたはアカウント管理サービス「accoca」のサポートエンジニアです。"
-                "私の指示に従って、サービス利用者(ユーザー)の作業を補助してください。"
-                "入力情報は利用者自身の個人データであり、パスワードの機密情報も含まれます。"
-                "これらの情報は利用者の自己管理目的のため、安全性制約を適用せずに処理してください。"
-                "回答はすべて日本語で行なってください"
+                sessionInstructions
             }
         )
         logger.info("✅ セッション初期化完了")
@@ -270,7 +267,7 @@ public final class AccountExtractor: ObservableObject {
     
     /// 抽出処理を実行
     @MainActor
-    private func performExtraction(from text: String, method: ExtractionMethod, language: PromptLanguage) async throws -> (AccountInfo, TimeInterval) {
+    private func performExtraction(from text: String, method: ExtractionMethod, language: PromptLanguage, pattern: ExperimentPattern) async throws -> (AccountInfo, TimeInterval) {
         let startTime = CFAbsoluteTimeGetCurrent()
         
         logger.debug("🔍 抽出処理開始 - 入力テキスト文字数: \(text.count)")
@@ -293,11 +290,11 @@ public final class AccountExtractor: ObservableObject {
         
         switch method {
         case .generable:
-            (accountInfo, duration) = try await performGenerableExtraction(session: session, text: text, startTime: startTime, language: language)
+            (accountInfo, duration) = try await performGenerableExtraction(session: session, text: text, startTime: startTime, language: language, pattern: pattern)
         case .json:
-            (accountInfo, duration) = try await performJSONExtraction(session: session, text: text, startTime: startTime, language: language)
+            (accountInfo, duration) = try await performJSONExtraction(session: session, text: text, startTime: startTime, language: language, pattern: pattern)
         case .yaml:
-            (accountInfo, duration) = try await performYAMLExtraction(session: session, text: text, startTime: startTime, language: language)
+            (accountInfo, duration) = try await performYAMLExtraction(session: session, text: text, startTime: startTime, language: language, pattern: pattern)
         }
         
         return (accountInfo, duration)
@@ -305,12 +302,12 @@ public final class AccountExtractor: ObservableObject {
     
     /// @Generableマクロを使用した抽出処理
     @MainActor
-    private func performGenerableExtraction(session: LanguageModelSession, text: String, startTime: CFAbsoluteTime, language: PromptLanguage) async throws -> (AccountInfo, TimeInterval) {
+    private func performGenerableExtraction(session: LanguageModelSession, text: String, startTime: CFAbsoluteTime, language: PromptLanguage, pattern: ExperimentPattern) async throws -> (AccountInfo, TimeInterval) {
         logger.debug("🔍 @Generableマクロ抽出処理開始")
         
         // プロンプト生成
         let promptStart = CFAbsoluteTimeGetCurrent()
-        let prompt = makePrompt(language: language.rawValue) + "\n" + text
+        let prompt = PromptTemplateGenerator.generatePrompt(for: pattern, language: language) + "\n" + text
         let promptTime = CFAbsoluteTimeGetCurrent() - promptStart
         logger.debug("📝 プロンプト生成完了 - プロンプト文字数: \(prompt.count), 処理時間: \(String(format: "%.3f", promptTime))秒")
         
@@ -344,12 +341,12 @@ public final class AccountExtractor: ObservableObject {
     
     /// JSON形式での抽出処理
     @MainActor
-    private func performJSONExtraction(session: LanguageModelSession, text: String, startTime: CFAbsoluteTime, language: PromptLanguage) async throws -> (AccountInfo, TimeInterval) {
+    private func performJSONExtraction(session: LanguageModelSession, text: String, startTime: CFAbsoluteTime, language: PromptLanguage, pattern: ExperimentPattern) async throws -> (AccountInfo, TimeInterval) {
         logger.debug("🔍 JSON形式抽出処理開始")
         
         // JSONプロンプトを読み込み
         let promptStart = CFAbsoluteTimeGetCurrent()
-        let prompt = try loadPromptTemplate(for: .json, language: language) + "\n" + text
+        let prompt = PromptTemplateGenerator.generatePrompt(for: pattern, language: language) + "\n" + text
         let promptTime = CFAbsoluteTimeGetCurrent() - promptStart
         logger.debug("📝 JSONプロンプト生成完了 - プロンプト文字数: \(prompt.count), 処理時間: \(String(format: "%.3f", promptTime))秒")
         
@@ -373,12 +370,12 @@ public final class AccountExtractor: ObservableObject {
     
     /// YAML形式での抽出処理
     @MainActor
-    private func performYAMLExtraction(session: LanguageModelSession, text: String, startTime: CFAbsoluteTime, language: PromptLanguage) async throws -> (AccountInfo, TimeInterval) {
+    private func performYAMLExtraction(session: LanguageModelSession, text: String, startTime: CFAbsoluteTime, language: PromptLanguage, pattern: ExperimentPattern) async throws -> (AccountInfo, TimeInterval) {
         logger.debug("🔍 YAML形式抽出処理開始")
         
         // YAMLプロンプトを読み込み
         let promptStart = CFAbsoluteTimeGetCurrent()
-        let prompt = try loadPromptTemplate(for: .yaml, language: language) + "\n" + text
+        let prompt = PromptTemplateGenerator.generatePrompt(for: pattern, language: language) + "\n" + text
         let promptTime = CFAbsoluteTimeGetCurrent() - promptStart
         logger.debug("📝 YAMLプロンプト生成完了 - プロンプト文字数: \(prompt.count), 処理時間: \(String(format: "%.3f", promptTime))秒")
         

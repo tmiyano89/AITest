@@ -25,8 +25,29 @@ AITest/
 ├── Benchmark/                # 性能測定フレームワーク
 ├── docs/                     # ドキュメント
 │   └── ai-logs/             # AI開発ログ
-└── scripts/                  # ビルド・デプロイスクリプト
+├── scripts/                  # ビルド・デプロイスクリプト
+└── test_logs/                # 実験データ保存ディレクトリ
+    └── yyyymmddhhmm_実験名/  # 実験ごとのタイムスタンプ付きディレクトリ
 ```
+
+### 実験データ管理
+
+#### ディレクトリ命名規則
+実験データは以下の命名規則で保存されます：
+```
+test_logs/yyyymmddhhmm_実験名/
+```
+
+**例:**
+- `test_logs/202501171030_format_experiment/` - 2025年1月17日10:30のformat_experiment
+- `test_logs/202501171031_benchmark_test/` - 2025年1月17日10:31のbenchmark_test
+- `test_logs/202501171032_generable_ja/` - 2025年1月17日10:32のgenerable_ja実験
+
+#### 保存されるファイル
+各実験ディレクトリには以下のファイルが保存されます：
+- `{method}_{language}_{pattern}_level{level}_{iteration}.json` - 構造化ログファイル
+- `{method}_{language}_format_experiment_report.html` - HTMLレポート
+- `detailed_metrics.json` - 詳細メトリクス（集計時）
 
 ### 性能測定項目
 
@@ -59,6 +80,11 @@ AITest/
 - **抽出フィールド**: サービス名、ユーザーID、パスワード、URL、ホスト、ポート、認証キー、備考
 - **バリデーション**: 抽出結果の妥当性を自動検証
 - **性能測定**: 抽出時間、メモリ使用量、信頼度スコアを詳細測定
+
+### 実験パターン
+- **8つの実験パターン**: 抽象/厳格/人格指示 × 例示有無 × ステップ数 × @Generable有無
+- **詳細仕様**: [実験パターン仕様書](docs/EXPERIMENT_PATTERNS.md)
+- **クイックリファレンス**: [パターン一覧表](docs/PATTERN_QUICK_REFERENCE.md)
 
 ## ライセンス
 MIT License
