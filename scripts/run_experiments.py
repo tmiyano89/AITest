@@ -86,15 +86,28 @@ class ExperimentRunner:
         """複数の実験設定を実行"""
         all_results = []
         
+        # 総実行回数を計算
+        total_runs = sum(config.runs for config in configs)
+        completed_runs = 0
+        
         for config in configs:
             print(f"\n🚀 パターン {config.pattern} の実験を開始 ({config.runs}回実行)")
             print(f"📁 出力先: {self.base_output_dir}")
             
             for run_id in range(1, config.runs + 1):
+                # 進捗表示
+                progress = (completed_runs / total_runs) * 100
+                print(f"📊 進捗: {progress:.1f}% ({completed_runs}/{total_runs})")
+                
                 result = self.run_single_experiment(config, run_id)
                 if result:
                     all_results.append(result)
                     self.results.append(result)
+                
+                completed_runs += 1
+        
+        # 最終進捗表示
+        print(f"📊 進捗: 100.0% ({completed_runs}/{total_runs}) - 完了!")
         
         return all_results
     
@@ -107,8 +120,9 @@ class ExperimentRunner:
         print(f"📁 ベースディレクトリ: {self.base_output_dir}")
         print(f"🔍 見つかったJSONファイル数: {len(json_files)}")
         
-        for json_file in json_files:
-            print(f"📄 処理中: {json_file.name}")
+        for i, json_file in enumerate(json_files, 1):
+            progress = (i / len(json_files)) * 100
+            print(f"📄 処理中: {json_file.name} ({progress:.1f}%)")
             try:
                 with open(json_file, 'r', encoding='utf-8') as f:
                     data = json.load(f)
@@ -120,6 +134,7 @@ class ExperimentRunner:
             except Exception as e:
                 print(f"❌ 読み込みエラー {json_file.name}: {e}")
         
+        print(f"📊 ログファイル収集完了: {len(log_data)}/{len(json_files)} ファイル")
         return log_data
     
     def generate_statistics(self, log_data: List[Dict[str, Any]]) -> Dict[str, Any]:

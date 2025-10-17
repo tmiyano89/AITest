@@ -647,7 +647,8 @@ func runSpecificExperiment(_ experiment: (method: ExtractionMethod, language: Pr
         let testTimer = PerformanceTimer("テストケース\(index + 1)")
         testTimer.start()
         
-        print("\n📋 テストケース \(index + 1): \(testCase.name)")
+        let progress = Double(index + 1) / Double(testCases.count) * 100
+        print("\n📋 テストケース \(index + 1)/\(testCases.count) (\(String(format: "%.1f", progress))%): \(testCase.name)")
         print("📝 入力テキスト: \(testCase.text.prefix(100))...")
         print(String(repeating: "-", count: 40))
         

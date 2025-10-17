@@ -1608,10 +1608,13 @@ def main():
     
     # 各ログファイルを解析
     all_results = []
-    for log_file in log_files:
-        print(f"🔍 解析中: {log_file.name}")
+    for i, log_file in enumerate(log_files, 1):
+        progress = (i / len(log_files)) * 100
+        print(f"🔍 解析中: {log_file.name} ({progress:.1f}%)")
         result = parse_log_file(str(log_file))
         all_results.append(result)
+    
+    print(f"📊 ログファイル解析完了: {len(all_results)}/{len(log_files)} ファイル")
     
     # @ai[2025-01-10 15:30] 統一された集計ロジックのみを使用
     grouped_scores = compute_grouped_item_scores(all_results)
