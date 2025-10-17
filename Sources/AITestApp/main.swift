@@ -78,12 +78,29 @@ if #available(iOS 26.0, macOS 26.0, *) {
         print("🔍 コマンドライン引数をチェック中...")
         print("   引数: \(CommandLine.arguments)")
         
-        if #available(iOS 26.0, macOS 26.0, *), let experiment = extractExperimentFromArguments() {
+        if let experiment = extractExperimentFromArguments() {
             print("✅ 特定のexperimentを検出: \(experiment.method.rawValue)_\(experiment.language.rawValue)_\(experiment.pattern.rawValue)")
+            // 外部LLM設定の取得
+            let externalLLMConfig = extractExternalLLMConfigFromArguments()
+            if let config = externalLLMConfig {
+                print("🌐 外部LLM設定を検出: \(config.baseURL) (モデル: \(config.model))")
+            }
             // テストディレクトリの取得
             let testDir = extractTestDirFromArguments()
+            
+            // 外部LLM設定をコピーしてSendableにする
+            let configCopy = externalLLMConfig.map { config in
+                ExternalLLMClient.LLMConfig(
+                    baseURL: config.baseURL,
+                    apiKey: config.apiKey,
+                    model: config.model,
+                    maxTokens: config.maxTokens,
+                    temperature: config.temperature
+                )
+            }
+            
             await runWithTimeout(timeoutSeconds: timeoutSeconds) {
-                await runSpecificExperiment(experiment, testDir: testDir)
+                await runSpecificExperiment(experiment, testDir: testDir, externalLLMConfig: configCopy)
             }
         } else {
                 print("⚠️ 特定のexperimentが指定されていません - デフォルトでyaml_enを実行")
@@ -366,6 +383,38 @@ func extractPatternFromArguments() -> String? {
     return nil
 }
 
+/// コマンドライン引数から外部LLM設定を抽出
+@available(iOS 26.0, macOS 26.0, *)
+func extractExternalLLMConfigFromArguments() -> ExternalLLMClient.LLMConfig? {
+    var baseURL: String?
+    var model: String?
+    
+    let arguments = CommandLine.arguments
+    for i in 0..<arguments.count {
+        let argument = arguments[i]
+        if argument.hasPrefix("--external-llm-url=") {
+            baseURL = String(argument.dropFirst("--external-llm-url=".count))
+        } else if argument.hasPrefix("--external-llm-model=") {
+            model = String(argument.dropFirst("--external-llm-model=".count))
+        } else if argument == "--external-llm-url" && i + 1 < arguments.count {
+            baseURL = arguments[i + 1]
+        } else if argument == "--external-llm-model" && i + 1 < arguments.count {
+            model = arguments[i + 1]
+        }
+    }
+    
+    guard let baseURL = baseURL, let model = model else {
+        return nil
+    }
+    
+    return ExternalLLMClient.LLMConfig(
+        baseURL: baseURL,
+        model: model,
+        maxTokens: 500,
+        temperature: 0.3
+    )
+}
+
 /// コマンドライン引数からexperimentを抽出
 @available(iOS 26.0, macOS 26.0, *)
 func extractExperimentFromArguments() -> (method: ExtractionMethod, language: PromptLanguage, pattern: ExperimentPattern)? {
@@ -597,7 +646,7 @@ func getAvailablePatterns(at basePath: String) -> [String] {
 /// 特定のexperimentを実行
 @available(iOS 26.0, macOS 26.0, *)
 @MainActor
-func runSpecificExperiment(_ experiment: (method: ExtractionMethod, language: PromptLanguage, pattern: ExperimentPattern), testDir: String?, runNumber: Int = 1) async {
+func runSpecificExperiment(_ experiment: (method: ExtractionMethod, language: PromptLanguage, pattern: ExperimentPattern), testDir: String?, runNumber: Int = 1, externalLLMConfig: ExternalLLMClient.LLMConfig? = nil) async {
     let timer = PerformanceTimer("特定実験全体")
     timer.start()
     
@@ -673,7 +722,7 @@ func runSpecificExperiment(_ experiment: (method: ExtractionMethod, language: Pr
             let extractor = AccountExtractor()
             testTimer.checkpoint("抽出器作成完了")
             
-            let (accountInfo, metrics) = try await extractor.extractFromText(testCase.text, method: experiment.method, language: experiment.language, pattern: experiment.pattern)
+            let (accountInfo, metrics) = try await extractor.extractFromText(testCase.text, method: experiment.method, language: experiment.language, pattern: experiment.pattern, externalLLMConfig: externalLLMConfig)
             testTimer.checkpoint("AI抽出完了")
         
             print("✅ 抽出成功")

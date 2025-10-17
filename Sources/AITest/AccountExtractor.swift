@@ -104,7 +104,7 @@ public final class AccountExtractor: ObservableObject {
     /// 背景: LanguageSessionModelの推論時間、メモリ使用量、精度を評価
     /// 意図: 数値的な性能データを収集し、最適化の指針を提供
     @MainActor
-    public func extractFromText(_ text: String, method: ExtractionMethod = .generable, language: PromptLanguage = .japanese, pattern: ExperimentPattern = .defaultPattern) async throws -> (AccountInfo, ExtractionMetrics) {
+    public func extractFromText(_ text: String, method: ExtractionMethod = .generable, language: PromptLanguage = .japanese, pattern: ExperimentPattern = .defaultPattern, externalLLMConfig: ExternalLLMClient.LLMConfig? = nil) async throws -> (AccountInfo, ExtractionMetrics) {
         logger.info("🔍 [STEP 1/5] テキスト抽出処理を開始")
         let startTime = CFAbsoluteTimeGetCurrent()
         let memoryBefore = getMemoryUsage()
@@ -144,7 +144,7 @@ public final class AccountExtractor: ObservableObject {
             // 抽出処理実行
             let extractionStart = CFAbsoluteTimeGetCurrent()
             logger.info("🚀 AI抽出処理を開始 - 方法: \(method.displayName), 言語: \(language.displayName), パターン: \(pattern.displayName)")
-            let (accountInfo, extractionTime) = try await performExtraction(from: text, method: method, language: language, pattern: pattern)
+            let (accountInfo, extractionTime) = try await performExtraction(from: text, method: method, language: language, pattern: pattern, externalLLMConfig: externalLLMConfig)
             let totalExtractionTime = CFAbsoluteTimeGetCurrent() - extractionStart
             logger.info("✅ AI抽出処理完了 - 内部処理時間: \(String(format: "%.3f", extractionTime))秒, 総処理時間: \(String(format: "%.3f", totalExtractionTime))秒")
             
@@ -267,10 +267,17 @@ public final class AccountExtractor: ObservableObject {
     
     /// 抽出処理を実行
     @MainActor
-    private func performExtraction(from text: String, method: ExtractionMethod, language: PromptLanguage, pattern: ExperimentPattern) async throws -> (AccountInfo, TimeInterval) {
+    private func performExtraction(from text: String, method: ExtractionMethod, language: PromptLanguage, pattern: ExperimentPattern, externalLLMConfig: ExternalLLMClient.LLMConfig? = nil) async throws -> (AccountInfo, TimeInterval) {
         let startTime = CFAbsoluteTimeGetCurrent()
         
         logger.debug("🔍 抽出処理開始 - 入力テキスト文字数: \(text.count)")
+        
+        // 外部LLMが指定されている場合は外部LLMを使用
+        logger.debug("🔍 外部LLM設定チェック: \(externalLLMConfig != nil ? "設定あり" : "設定なし")")
+        if let externalConfig = externalLLMConfig {
+            logger.info("🌐 外部LLMを使用して抽出を実行")
+            return try await performExternalLLMExtraction(text: text, startTime: startTime, language: language, pattern: pattern, config: externalConfig)
+        }
         
         guard let session = self.session else {
             logger.error("❌ セッションが初期化されていません")
@@ -298,6 +305,146 @@ public final class AccountExtractor: ObservableObject {
         }
         
         return (accountInfo, duration)
+    }
+    
+    /// @ai[2025-01-17 21:00] 外部LLMを使用した抽出処理
+    /// 目的: 外部LLMサーバーを使用してJSON形式でアカウント情報を抽出
+    /// 背景: FoundationModelsとの性能比較のため、同一プロンプトで外部LLMを実行
+    /// 意図: 客観的な性能比較データを収集し、最適なLLM選択の指針を提供
+    @MainActor
+    private func performExternalLLMExtraction(text: String, startTime: CFAbsoluteTime, language: PromptLanguage, pattern: ExperimentPattern, config: ExternalLLMClient.LLMConfig) async throws -> (AccountInfo, TimeInterval) {
+        logger.info("🌐 外部LLM抽出処理開始")
+        logger.info("🔍 外部LLM設定: \(config.baseURL), モデル: \(config.model)")
+        
+        // 外部LLMクライアントの初期化
+        let externalClient = ExternalLLMClient(config: config)
+        
+        // プロンプト生成（JSON形式）
+        let promptStart = CFAbsoluteTimeGetCurrent()
+        let prompt = PromptTemplateGenerator.generatePrompt(for: pattern, language: language) + "\n" + text
+        let promptTime = CFAbsoluteTimeGetCurrent() - promptStart
+        logger.debug("📝 プロンプト生成完了 - プロンプト文字数: \(prompt.count), 処理時間: \(String(format: "%.3f", promptTime))秒")
+        
+        // 外部LLMにプロンプトを送信
+        logger.info("🤖 外部LLM抽出処理を実行")
+        
+        let (response, aiDuration) = try await externalClient.extractAccountInfo(from: text, prompt: prompt)
+        
+        logger.info("✅ 外部LLM応答取得成功 - AI処理時間: \(String(format: "%.3f", aiDuration))秒")
+        logger.debug("📝 外部LLM応答: \(response)")
+        
+        // デバッグ用: 応答内容をファイルに保存
+        let debugDir = FileManager.default.temporaryDirectory.appendingPathComponent("external_llm_debug")
+        try? FileManager.default.createDirectory(at: debugDir, withIntermediateDirectories: true)
+        let debugFile = debugDir.appendingPathComponent("response_\(Date().timeIntervalSince1970).txt")
+        try? response.write(to: debugFile, atomically: true, encoding: .utf8)
+        logger.debug("📁 デバッグファイル保存: \(debugFile.path)")
+        
+        // JSON応答をAccountInfoに変換
+        let parseStart = CFAbsoluteTimeGetCurrent()
+        let accountInfo = try parseJSONToAccountInfo(response)
+        let parseTime = CFAbsoluteTimeGetCurrent() - parseStart
+        logger.info("✅ JSON解析完了 - 解析時間: \(String(format: "%.3f", parseTime))秒")
+        
+        let totalDuration = CFAbsoluteTimeGetCurrent() - startTime
+        logger.info("✅ 外部LLM抽出処理成功 - 総処理時間: \(String(format: "%.3f", totalDuration))秒")
+        
+        return (accountInfo, totalDuration)
+    }
+    
+    /// @ai[2025-01-17 21:00] 外部LLM用JSON解析メソッド
+    /// 目的: 外部LLMからのJSON応答をAccountInfoに変換
+    /// 背景: 外部LLMは異なる形式でJSONを返す可能性があるため、専用の解析が必要
+    /// 意図: 外部LLMの応答形式に柔軟に対応し、正確なデータ抽出を実現
+    private func parseJSONToAccountInfo(_ jsonString: String) throws -> AccountInfo {
+        logger.debug("🔍 外部LLM JSON文字列解析開始")
+        logger.debug("📝 JSON文字列: \(jsonString)")
+        
+        // 複数のJSON抽出パターンを試行
+        let jsonPatterns = [
+            // パターン1: ```json ... ``` で囲まれたJSON
+            extractJSONFromCodeBlock(jsonString),
+            // パターン2: assistantfinal の後のJSON
+            extractJSONAfterAssistantFinal(jsonString),
+            // パターン3: 最初の{から最後の}まで
+            extractJSONFromBraces(jsonString),
+            // パターン4: 全体がJSON
+            jsonString.trimmingCharacters(in: .whitespacesAndNewlines)
+        ]
+        
+        for (index, jsonCandidate) in jsonPatterns.enumerated() {
+            guard !jsonCandidate.isEmpty else { continue }
+            
+            logger.debug("📝 パターン\(index + 1) JSON候補: \(jsonCandidate)")
+            
+            if let accountInfo = tryParseJSON(jsonCandidate) {
+                logger.debug("✅ 外部LLM JSON解析完了（パターン\(index + 1)）")
+                return accountInfo
+            }
+        }
+        
+        logger.error("❌ すべてのJSON抽出パターンが失敗")
+        logger.error("📝 レスポンス全体: \(jsonString)")
+        throw ExtractionError.invalidJSONFormat
+    }
+    
+    /// ```json ... ``` で囲まれたJSONを抽出
+    private func extractJSONFromCodeBlock(_ text: String) -> String {
+        let codeBlockPattern = #"```json\s*([\s\S]*?)\s*```"#
+        if let regex = try? NSRegularExpression(pattern: codeBlockPattern, options: []) {
+            let range = NSRange(text.startIndex..<text.endIndex, in: text)
+            if let match = regex.firstMatch(in: text, options: [], range: range) {
+                if let jsonRange = Range(match.range(at: 1), in: text) {
+                    return String(text[jsonRange]).trimmingCharacters(in: .whitespacesAndNewlines)
+                }
+            }
+        }
+        return ""
+    }
+    
+    /// assistantfinal の後のJSONを抽出
+    private func extractJSONAfterAssistantFinal(_ text: String) -> String {
+        let assistantFinalPattern = #"assistantfinal\s*(\{[\s\S]*\})"#
+        if let regex = try? NSRegularExpression(pattern: assistantFinalPattern, options: []) {
+            let range = NSRange(text.startIndex..<text.endIndex, in: text)
+            if let match = regex.firstMatch(in: text, options: [], range: range) {
+                if let jsonRange = Range(match.range(at: 1), in: text) {
+                    return String(text[jsonRange]).trimmingCharacters(in: .whitespacesAndNewlines)
+                }
+            }
+        }
+        return ""
+    }
+    
+    /// 最初の{から最後の}までのJSONを抽出
+    private func extractJSONFromBraces(_ text: String) -> String {
+        guard let start = text.firstIndex(of: "{"),
+              let end = text.lastIndex(of: "}"),
+              start < end else {
+            return ""
+        }
+        return String(text[start...end])
+    }
+    
+    /// JSON文字列をAccountInfoに変換（エラーハンドリング付き）
+    private func tryParseJSON(_ jsonString: String) -> AccountInfo? {
+        guard let data = jsonString.data(using: .utf8) else {
+            logger.debug("❌ UTF-8変換失敗: \(jsonString)")
+            return nil
+        }
+        
+        do {
+            let decoder = JSONDecoder()
+            let accountInfo = try decoder.decode(AccountInfo.self, from: data)
+            return accountInfo
+        } catch let decodingError as DecodingError {
+            logger.debug("❌ JSONデコードエラー: \(decodingError)")
+            logger.debug("📝 デコード対象: \(String(data: data, encoding: .utf8) ?? "変換失敗")")
+            return nil
+        } catch {
+            logger.debug("❌ 予期しないエラー: \(error)")
+            return nil
+        }
     }
     
     /// @Generableマクロを使用した抽出処理

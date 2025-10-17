@@ -20,6 +20,15 @@ public enum ExperimentPattern: String, CaseIterable, Codable, Sendable {
     case strictEx0S2Gen = "chat_twosteps_gen"
     case strictEx0S2Json = "chat_twosteps_json"
     
+    // 外部LLM実験用JSONパターン
+    case absJson = "chat_abs_json"
+    case absExJson = "chat_abs-ex_json"
+    case strictJson = "chat_strict_json"
+    case strictExJson = "chat_strict-ex_json"
+    case personaJson = "chat_persona_json"
+    case personaExJson = "chat_persona-ex_json"
+    case twostepsJson = "chat_twosteps_json_new"
+    
     /// @ai[2025-01-10 22:20] パターンの表示名
     /// 目的: レポートやログで分かりやすい名前を表示
     /// 背景: パターンIDは技術的だが、人間が理解しやすい名前が必要
@@ -41,6 +50,20 @@ public enum ExperimentPattern: String, CaseIterable, Codable, Sendable {
         case .strictEx0S2Gen:
             return "Chat・2ステップ・@Generable"
         case .strictEx0S2Json:
+            return "Chat・2ステップ・JSON"
+        case .absJson:
+            return "Chat・抽象指示・JSON"
+        case .absExJson:
+            return "Chat・抽象指示(例示)・JSON"
+        case .strictJson:
+            return "Chat・厳格指示・JSON"
+        case .strictExJson:
+            return "Chat・厳格指示(例示)・JSON"
+        case .personaJson:
+            return "Chat・人格指示・JSON"
+        case .personaExJson:
+            return "Chat・人格指示(例示)・JSON"
+        case .twostepsJson:
             return "Chat・2ステップ・JSON"
         }
     }
@@ -67,6 +90,20 @@ public enum ExperimentPattern: String, CaseIterable, Codable, Sendable {
             return "2ステップ処理（タイプ判定→抽出）。段階的アプローチの効果を測定"
         case .strictEx0S2Json:
             return "2ステップ処理をJSONフォーマットで実行。@Generable vs JSONの性能比較"
+        case .absJson:
+            return "抽象指示をJSONフォーマットで実行。外部LLMとの性能比較用"
+        case .absExJson:
+            return "抽象指示(例示)をJSONフォーマットで実行。外部LLMとの性能比較用"
+        case .strictJson:
+            return "厳格指示をJSONフォーマットで実行。外部LLMとの性能比較用"
+        case .strictExJson:
+            return "厳格指示(例示)をJSONフォーマットで実行。外部LLMとの性能比較用"
+        case .personaJson:
+            return "人格指示をJSONフォーマットで実行。外部LLMとの性能比較用"
+        case .personaExJson:
+            return "人格指示(例示)をJSONフォーマットで実行。外部LLMとの性能比較用"
+        case .twostepsJson:
+            return "2ステップ処理をJSONフォーマットで実行。外部LLMとの性能比較用"
         }
     }
     
@@ -126,6 +163,55 @@ public enum ExperimentPattern: String, CaseIterable, Codable, Sendable {
                 usesGenerable: true
             )
         case .strictEx0S2Json:
+            return PatternCharacteristics(
+                instructionType: .strict,
+                hasExample: false,
+                stepCount: 2,
+                usesGenerable: false
+            )
+        case .absJson:
+            return PatternCharacteristics(
+                instructionType: .abstract,
+                hasExample: false,
+                stepCount: 1,
+                usesGenerable: false
+            )
+        case .absExJson:
+            return PatternCharacteristics(
+                instructionType: .abstract,
+                hasExample: true,
+                stepCount: 1,
+                usesGenerable: false
+            )
+        case .strictJson:
+            return PatternCharacteristics(
+                instructionType: .strict,
+                hasExample: false,
+                stepCount: 1,
+                usesGenerable: false
+            )
+        case .strictExJson:
+            return PatternCharacteristics(
+                instructionType: .strict,
+                hasExample: true,
+                stepCount: 1,
+                usesGenerable: false
+            )
+        case .personaJson:
+            return PatternCharacteristics(
+                instructionType: .persona,
+                hasExample: false,
+                stepCount: 1,
+                usesGenerable: false
+            )
+        case .personaExJson:
+            return PatternCharacteristics(
+                instructionType: .persona,
+                hasExample: true,
+                stepCount: 1,
+                usesGenerable: false
+            )
+        case .twostepsJson:
             return PatternCharacteristics(
                 instructionType: .strict,
                 hasExample: false,
