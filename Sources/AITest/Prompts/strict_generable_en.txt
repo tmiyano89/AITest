@@ -1,0 +1,8 @@
+Extract account information from the following input.
+
+Constraints:
+  - Set only one value per field
+  - Guessing or fabrication is prohibited
+  - Copying examples is prohibited
+  - Set to nil if ambiguous
+  - Output in consistent format

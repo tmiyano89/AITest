@@ -8,7 +8,7 @@ import os
 
 @available(iOS 26.0, macOS 26.0, *)
 public final class ExternalLLMClient: ObservableObject {
-    private let logger = Logger(subsystem: "com.aitest.external", category: "ExternalLLMClient")
+    private let log = LogWrapper(subsystem: "com.aitest.external", category: "ExternalLLMClient")
     
     /// 外部LLMサーバーの設定
     public struct LLMConfig: Sendable {
@@ -17,13 +17,15 @@ public final class ExternalLLMClient: ObservableObject {
         public let model: String
         public let maxTokens: Int
         public let temperature: Double
+        public let topP: Double?
         
-        public init(baseURL: String, apiKey: String = "EMPTY", model: String, maxTokens: Int = 500, temperature: Double = 0.3) {
+        public init(baseURL: String, apiKey: String = "EMPTY", model: String, maxTokens: Int = 4096, temperature: Double = 1.0, topP: Double? = 1.0) {
             self.baseURL = baseURL
             self.apiKey = apiKey
             self.model = model
             self.maxTokens = maxTokens
             self.temperature = temperature
+            self.topP = topP
         }
     }
     
@@ -32,7 +34,7 @@ public final class ExternalLLMClient: ObservableObject {
     /// イニシャライザ
     public init(config: LLMConfig) {
         self.config = config
-        logger.info("ExternalLLMClient initialized with baseURL: \(config.baseURL)")
+        log.info("ExternalLLMClient initialized with baseURL: \(config.baseURL)")
     }
     
     /// 外部LLMにプロンプトを送信してJSON応答を取得
@@ -44,9 +46,10 @@ public final class ExternalLLMClient: ObservableObject {
     public func extractAccountInfo(from text: String, prompt: String) async throws -> (String, TimeInterval) {
         let startTime = CFAbsoluteTimeGetCurrent()
         
-        logger.info("🌐 外部LLMにプロンプト送信中...")
-        logger.debug("📝 プロンプト長: \(prompt.count)文字")
-        logger.debug("📝 入力テキスト長: \(text.count)文字")
+        log.info("🌐 外部LLMにプロンプト送信中...")
+        log.debug("📝 プロンプト長: \(prompt.count)文字")
+        log.debug("📝 入力テキスト長: \(text.count)文字")
+        log.debug("🔍 DEBUG: ExternalLLMClient.extractAccountInfo呼び出し開始")
         
         do {
             // リクエストボディの構築
@@ -63,7 +66,7 @@ public final class ExternalLLMClient: ObservableObject {
             request.setValue("Bearer \(config.apiKey)", forHTTPHeaderField: "Authorization")
             request.httpBody = try JSONSerialization.data(withJSONObject: requestBody)
             
-            logger.debug("🌐 リクエスト送信: \(url)")
+            log.debug("🌐 リクエスト送信: \(url)")
             
             // ネットワークリクエストの実行
             let (data, response) = try await URLSession.shared.data(for: request)
@@ -74,9 +77,9 @@ public final class ExternalLLMClient: ObservableObject {
             }
             
             guard httpResponse.statusCode == 200 else {
-                logger.error("❌ HTTPエラー: \(httpResponse.statusCode)")
+                log.error("❌ HTTPエラー: \(httpResponse.statusCode)")
                 if let errorData = String(data: data, encoding: .utf8) {
-                    logger.error("❌ エラーレスポンス: \(errorData)")
+                    log.error("❌ エラーレスポンス: \(errorData)")
                 }
                 throw ExternalLLMError.httpError(httpResponse.statusCode)
             }
@@ -103,21 +106,21 @@ public final class ExternalLLMClient: ObservableObject {
                 .replacingOccurrences(of: "\\r", with: "\r")
             
             let duration = CFAbsoluteTimeGetCurrent() - startTime
-            logger.info("✅ 外部LLM応答取得成功 - 処理時間: \(String(format: "%.3f", duration))秒")
-            logger.debug("📝 応答内容: \(decodedContent)")
+            log.info("✅ 外部LLM応答取得成功 - 処理時間: \(String(format: "%.3f", duration))秒")
+            log.debug("📝 応答内容: \(decodedContent)")
             
             // デバッグ用: 応答内容をファイルに保存
             let debugDir = FileManager.default.temporaryDirectory.appendingPathComponent("external_llm_debug")
             try? FileManager.default.createDirectory(at: debugDir, withIntermediateDirectories: true)
             let debugFile = debugDir.appendingPathComponent("response_\(Date().timeIntervalSince1970).txt")
             try? decodedContent.write(to: debugFile, atomically: true, encoding: .utf8)
-            logger.debug("📁 デバッグファイル保存: \(debugFile.path)")
+            log.debug("📁 デバッグファイル保存: \(debugFile.path)")
             
             return (decodedContent, duration)
             
         } catch {
             let duration = CFAbsoluteTimeGetCurrent() - startTime
-            logger.error("❌ 外部LLM通信失敗: \(error.localizedDescription) - 処理時間: \(String(format: "%.3f", duration))秒")
+            log.error("❌ 外部LLM通信失敗: \(error.localizedDescription) - 処理時間: \(String(format: "%.3f", duration))秒")
             throw error
         }
     }

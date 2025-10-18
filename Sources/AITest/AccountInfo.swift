@@ -803,8 +803,21 @@ public enum ExtractionError: LocalizedError {
     case aifmNotSupported
     case invalidImageData
     case promptTemplateNotFound
-    case invalidJSONFormat
+    case invalidJSONFormat(aiResponse: String?)
     case invalidYAMLFormat
+    case externalLLMError(response: String)
+    
+    /// AIレスポンスを取得
+    public var aiResponse: String? {
+        switch self {
+        case .invalidJSONFormat(let response):
+            return response
+        case .externalLLMError(let response):
+            return response
+        default:
+            return nil
+        }
+    }
     
     public var errorDescription: String? {
         switch self {
@@ -830,6 +843,8 @@ public enum ExtractionError: LocalizedError {
             return "無効なJSON形式です"
         case .invalidYAMLFormat:
             return "無効なYAML形式です"
+        case .externalLLMError(let response):
+            return "外部LLMエラー: 無効なJSON形式です"
         }
     }
 }

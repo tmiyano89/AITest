@@ -1,0 +1,5 @@
+Extract account information from the following input.
+
+Constraints:
+  - Set fields that cannot be extracted to nil
+  - Set only one value per field

@@ -1,46 +1,105 @@
 # AIコマンド: @Guideマクロ改善実験
 
 ## 概要
-@Guideマクロ改善のための8つの実験パターン（抽象指示、厳格指示、人格指示、例示有無、ステップ数、フォーマット）の性能比較実験を実行し、包括的な分析レポートを作成するための指示書です。
+@Guideマクロ改善のための実験パターン（抽象指示、厳格指示、人格指示、例示有無、フォーマット）の性能比較実験を実行し、包括的な分析レポートを作成するための指示書です。
+
+**利用可能な引数**:
+- `--method`: `json`, `generable`, `yaml`（デフォルト: `generable`）
+- `--testcases`: `chat`, `creditcard`, `contract`, `password`, `voice`（デフォルト: `chat`）
+- `--algos`: `abs`, `strict`, `persona`, `abs-ex`, `strict-ex`, `persona-ex`（デフォルト: 全6つ）
+- `--levels`: `1`, `2`, `3`（デフォルト: 全3つ）
+- `--language`: `ja`, `en`（デフォルト: `ja`）
 
 ## 作業手順
 
 ### 1. 実験の実行
 
-#### 1.1 拡張可能な実験実行スクリプト（推奨）
+#### 1.1 拡張可能な実験実行スクリプト（推奨・新しい引数方式）
 ```bash
-# 単一パターンの複数回実行（統計精度向上）
-python3 scripts/run_experiments.py --patterns chat_abs_gen --runs 20 --language ja
+# JSON methodで全アルゴリズム実行（20回ずつ）
+python3 scripts/run_experiments.py --method json --runs 20 --language ja
 
-# 複数パターンの比較実験
-python3 scripts/run_experiments.py --patterns chat_abs_gen chat_strict_gen chat_persona_gen --runs 10 --language ja
+# generable methodで特定のアルゴリズムのみ実行
+python3 scripts/run_experiments.py --method generable --algos abs strict persona --runs 10 --language ja
 
-# 全7パターンの一括実行（20回ずつ）
-python3 scripts/run_experiments.py --patterns chat_abs_gen chat_abs-ex_gen chat_strict_gen chat_strict-ex_gen chat_persona_gen chat_persona-ex_gen chat_twosteps_gen --runs 20 --language ja
+# 特定のテストケースとレベルで実行
+python3 scripts/run_experiments.py --method json --testcases chat contract --levels 1 2 --runs 5 --language ja
+
+# 全パラメータを明示的に指定
+python3 scripts/run_experiments.py --method json --testcases chat --algos abs strict persona abs-ex strict-ex persona-ex --levels 1 2 3 --runs 20 --language ja
 ```
 
-#### 1.2 従来の並列実行スクリプト（レガシー）
+#### 1.2 並列実行スクリプト（新しい引数方式）
 ```bash
-# 並列実行スクリプトをバックグラウンド起動（高速化）
-# 引数なし: chatパターンのみ実行
-# 引数あり: 指定パターンのみ実行（例: chat contract）
-./scripts/parallel_format_experiment.sh
-# 最新実行ディレクトリへのリンク（test_logs/latest）を自動作成します
+# FoundationModels: 並列実行で全アルゴリズム実行（20回ずつ）
+python3 scripts/parallel_experiment_manager.py --method json --runs 20 --language ja
 
-# 非同期に実行状況を判定したい場合（完了/失敗/異常をワンショット判定）
-./scripts/wait_for_format_experiment.sh --once
-# まだrunningなら、必要に応じて更に待機 
+# 特定のアルゴリズムのみ並列実行
+python3 scripts/parallel_experiment_manager.py --method generable --algos abs strict persona --runs 10 --language ja
+
+# 特定のテストケースとレベルで並列実行
+python3 scripts/parallel_experiment_manager.py --method json --testcases chat contract --levels 1 2 --runs 5 --language ja
 
 # 実行結果の確認（タイムスタンプ付きテストディレクトリ内）
 ls -la test_logs/
-ls -la test_logs/test_*/
+ls -la test_logs/*/
 ```
 
-#### 1.3 ログファイルの場所（最新実装）
+#### 1.3 外部LLM実験の実行（AI置き換え実験・新しい引数方式）
+
+##### 目的
+FoundationModelsの性能を客観的に評価するため、外部ローカルLLM（gpt-oss-20b）との性能比較を実施します。AI部分のみを置き換えることで、同じテストケースで異なるAIの性能を比較できます。
+
+##### 手法
+- 既存の実験手順は一切変更せず、AI部分のみを外部LLMに置き換え
+- ログ形式、レポート生成、pending項目検証などは既存の手順と同じ
+- 外部LLMはHTTP経由でOpenAI互換APIを使用
+
+##### コマンドの違い
+既存のコマンドに`--external-llm-url`と`--external-llm-model`オプションを追加するだけです：
+
+**単一実験（外部LLM版）:**
+```bash
+# FoundationModels: python3 scripts/run_experiments.py --method json --runs 20 --language ja
+# 外部LLM: python3 scripts/run_experiments.py --method json --runs 20 --language ja --external-llm-url "http://182.171.83.172" --external-llm-model "openai/gpt-oss-20b"
+```
+
+**並列実行（外部LLM版）:**
+```bash
+# FoundationModels: python3 scripts/parallel_experiment_manager.py --method json --runs 20
+# 外部LLM: python3 scripts/parallel_experiment_manager.py --method json --runs 20 --external-llm-url "http://182.171.83.172" --external-llm-model "openai/gpt-oss-20b"
+```
+
+##### その他の手順
+- **レポート生成**: 既存の手順と同じ（`python3 scripts/generate_combined_report.py test_logs/202510180757_external_llm_experiment`）
+- **pending項目検証**: 既存の手順と同じ（`python3 scripts/extract_pending_items.py "level1" "title" --log-dir "test_logs/202510180757_external_llm_experiment" --all-items`）
+- **ログ形式**: 既存の形式と同じ（`{pattern}_{algo}_{method}_{lang}_{level}_{run#}.json`）
+
+**注意**: 外部LLM実験は、AI部分のみを置き換えるだけで、他の手順には一切影響を与えません。
+
+#### 1.4 AITestAppでの直接実行（デバッグ・単体テスト用）
+
+```bash
+# プロンプトデバッグ（指定したパターンのプロンプトを確認）
+swift run AITestApp --debug-prompt --method json --testcase strict --language ja
+
+# 単一テスト実行（デバッグ用）
+swift run AITestApp --debug-single --method json --testcase strict --language ja
+
+# 特定パターンの実験実行
+swift run AITestApp --method json --testcase strict --language ja --runs 5
+
+# 外部LLMでの実行
+swift run AITestApp --method json --testcase strict --language ja --external-llm-url "http://182.171.83.172" --external-llm-model "openai/gpt-oss-20b"
+```
+
+#### 1.5 ログファイルの場所（最新実装）
 - **実験実行ディレクトリ**: `test_logs/yyyymmddhhmm_実験名/`
 - **最新実行ディレクトリ**: `test_logs/latest`（シンボリックリンク）
-- **構造化JSONログ**: `test_logs/yyyymmddhhmm_実験名/{pattern}_{algo}_{method}_{lang}_{level}_{run#}.json`
+- **構造化JSONログ**: `test_logs/yyyymmddhhmm_実験名/{testcase}_{algo}_{method}_{lang}_{level}_{run#}.json`
   - 例: `test_logs/202510171800_multi_experiments/chat_abs_gen_ja_level1_run1.json`
+  - 例: `test_logs/202510180757_external_llm_experiment/chat_abs_json_ja_level1_run1.json`
+  - 例: `test_logs/202501181952_json_experiment/chat_strict_json_ja_level1_run1.json`
 - **統合レポート**: `test_logs/yyyymmddhhmm_実験名/parallel_format_experiment_report.html`
 - **詳細メトリクス**: `test_logs/yyyymmddhhmm_実験名/detailed_metrics.json`
 
@@ -54,7 +113,7 @@ ls -la test_logs/test_*/
 python3 scripts/generate_combined_report.py test_logs/latest
 
 # または特定の実験ディレクトリを指定
-python3 scripts/generate_combined_report.py test_logs/202510171800_multi_experiments
+python3 scripts/generate_combined_report.py test_logs/202510180757_external_llm_experiment
 ```
 
 #### 2.2 レポートの確認
@@ -65,7 +124,7 @@ python3 scripts/generate_combined_report.py test_logs/202510171800_multi_experim
 open test_logs/latest/parallel_format_experiment_report.html
 
 # または特定の実験ディレクトリのレポートを開く
-open test_logs/202510171800_multi_experiments/parallel_format_experiment_report.html
+open test_logs/202510180757_external_llm_experiment/parallel_format_experiment_report.html
 ```
 
 ### 3. pending項目のAI検証と更新（手動検証による正確な判定）
@@ -75,22 +134,22 @@ open test_logs/202510171800_multi_experiments/parallel_format_experiment_report.
 
 ```bash
 # Level 1のtitle項目の全データを抽出
-python3 scripts/extract_pending_items.py "level1" "title" --log-dir "test_logs/202510171800_multi_experiments" --all-items
+python3 scripts/extract_pending_items.py "level1" "title" --log-dir "test_logs/202510180757_external_llm_experiment" --all-items
 
 # Level 1のnote項目の全データを抽出
-python3 scripts/extract_pending_items.py "level1" "note" --log-dir "test_logs/202510171800_multi_experiments" --all-items
+python3 scripts/extract_pending_items.py "level1" "note" --log-dir "test_logs/202510180757_external_llm_experiment" --all-items
 
 # Level 2のtitle項目の全データを抽出
-python3 scripts/extract_pending_items.py "level2" "title" --log-dir "test_logs/202510171800_multi_experiments" --all-items
+python3 scripts/extract_pending_items.py "level2" "title" --log-dir "test_logs/202510180757_external_llm_experiment" --all-items
 
 # Level 2のnote項目の全データを抽出
-python3 scripts/extract_pending_items.py "level2" "note" --log-dir "test_logs/202510171800_multi_experiments" --all-items
+python3 scripts/extract_pending_items.py "level2" "note" --log-dir "test_logs/202510180757_external_llm_experiment" --all-items
 
 # Level 3のtitle項目の全データを抽出
-python3 scripts/extract_pending_items.py "level3" "title" --log-dir "test_logs/202510171800_multi_experiments" --all-items
+python3 scripts/extract_pending_items.py "level3" "title" --log-dir "test_logs/202510180757_external_llm_experiment" --all-items
 
 # Level 3のnote項目の全データを抽出
-python3 scripts/extract_pending_items.py "level3" "note" --log-dir "test_logs/202510171800_multi_experiments" --all-items
+python3 scripts/extract_pending_items.py "level3" "note" --log-dir "test_logs/202510180757_external_llm_experiment" --all-items
 ```
 
 #### 3.2 手動検証の実施（重要：プログラム的処理は禁止）
@@ -105,10 +164,10 @@ python3 scripts/extract_pending_items.py "level3" "note" --log-dir "test_logs/20
 
 1. **テストデータの確認**
    ```bash
-   # 対応するテストデータファイルを確認
+   # 対応するテストデータファイルの確認の例
    cat Tests/TestData/Chat/Level1_Basic.txt
-   cat Tests/TestData/Chat/Level2_Intermediate.txt
-   cat Tests/TestData/Chat/Level3_Advanced.txt
+   cat Tests/TestData/CreditCard/Level2_Intermediate.txt
+   cat Tests/TestData/Contract/Level3_Advanced.txt
    ```
 
 2. **抽出値の意味的整合性判定**
@@ -161,10 +220,10 @@ chat_abs_generable_ja_level2_run17.json,title,missing,テストデータに「AW
 
 ```bash
 # 検証結果CSVファイルを元にファイルを更新（項目名を指定）
-python3 scripts/update_pending_status.py level1_title_verification_compact.csv test_logs/202510171800_multi_experiments title
-python3 scripts/update_pending_status.py level1_note_verification_compact.csv test_logs/202510171800_multi_experiments note
-python3 scripts/update_pending_status.py level2_title_verification_compact.csv test_logs/202510171800_multi_experiments title
-python3 scripts/update_pending_status.py level2_note_verification_compact.csv test_logs/202510171800_multi_experiments note
+python3 scripts/update_pending_status.py level1_title_verification_compact.csv test_logs/202510180757_external_llm_experiment title
+python3 scripts/update_pending_status.py level1_note_verification_compact.csv test_logs/202510180757_external_llm_experiment note
+python3 scripts/update_pending_status.py level2_title_verification_compact.csv test_logs/202510180757_external_llm_experiment title
+python3 scripts/update_pending_status.py level2_note_verification_compact.csv test_logs/202510180757_external_llm_experiment note
 
 # 作業完了後、中間ファイルを自動削除
 python3 scripts/cleanup_intermediate_files.py
@@ -204,7 +263,7 @@ python3 scripts/cleanup_intermediate_files.py
 pending項目を更新した後、プログラムで再集計を実行してください：
 
 ```bash
-# 統合レポートの再生成（最新実行ディレクトリを利用）
+# 統合レポートの再生成（最新実行ディレクトリの例）
 python3 scripts/generate_combined_report.py test_logs/latest
 ```
 
@@ -241,13 +300,11 @@ open test_logs/latest/parallel_format_experiment_report.html
    - 例示なし: 基本性能の測定
    - 例示あり: few-shot学習による性能向上効果
 
-3. **ステップ数別比較（1ステップ vs 2ステップ）**
-   - 1ステップ: 単一プロンプトでの抽出
-   - 2ステップ: タイプ判定→抽出の段階的処理
+3. **フォーマット別比較（@Generable vs JSON vs YAML）**
+   - @Generable: 型安全な構造化抽出（FoundationModels専用）
+   - JSON: テキストベースの構造化抽出（外部LLM互換）
+   - YAML: 人間可読な構造化抽出
 
-4. **フォーマット別比較（@Generable vs JSON）**
-   - @Generable: 型安全な構造化抽出
-   - JSON: テキストベースの構造化抽出
 
 #### 5.3 具体的な問題点の指摘と原因考察
 集計結果から以下の具体的な問題を特定し、詳細な原因考察を行ってください：
@@ -269,6 +326,11 @@ open test_logs/latest/parallel_format_experiment_report.html
    - 抽象指示 vs 厳格指示の効果差
    - 例示あり vs 例示なしの効果差
    - 人格指示の有効性
+
+5. **フォーマット別性能差の原因分析**
+   - @Generable vs JSON vs YAMLの性能差
+   - プロンプトテンプレートの効果
+   - 外部LLM互換性の影響
 
 ### 6. 最終レポートの作成
 
@@ -324,107 +386,6 @@ open reports/final_format_experiment_report.html
 
 **注意**: この作業はAI（あなた）による手動分析と加筆が必須です。プログラムによる自動生成だけでは、深い洞察や考察を含む包括的なレポートは作成できません。
 
-## AI分析・考察の追加指示
-
-### レポート生成時の自動分析機能
-
-レポート生成スクリプト（`scripts/generate_combined_report.py`）は以下の分析・考察を自動的に追加します：
-
-1. **各セクション別の分析**:
-   - パターン別分析: 最良・最悪パフォーマンスの特定と比較
-   - レベル別分析: Level 1/2/3での性能差と特徴分析
-   - Algo別分析: 各アルゴリズムの性能差と特徴分析
-
-2. **総合分析・まとめセクション**:
-   - 全体パフォーマンス概要
-   - 主要な発見・傾向
-   - 仮説・推奨事項
-   - 今後の検討事項
-
-### AIによる直接分析・考察の追記
-
-レポート生成後、AI（あなた）が以下の手順で直接分析・考察を追記してください：
-
-#### 0. フィッシャーとしての準備（必須）
-```bash
-# フィッシャーの人物ファイルを確認（内容を遵守）
-open docs/engineers/fisher.md
-```
-
-- 本分析では、この人物設定に従い、その人物になりきってレビューを実施してください。
-- レビュー結果や最終的な考察は `docs/reviews/` に時刻付きで記録してください（例: `docs/ai-logs/YYYY-MM-DD-fisher-review.md`）。
-- 注意: `docs/engineers/fisher.md` 自体は変更しないでください。
-
-#### 1. レポート内容の確認
-```bash
-# 生成されたレポートを確認
-open test_logs/latest/parallel_format_experiment_report.html
-```
-
-#### 2. 詳細分析の実行
-AI（あなた）が以下の観点でレポートを詳細に分析し、考察を追記してください：
-
-**分析観点:**
-- **データの傾向分析**: 数値データから読み取れるパターンや傾向の特定
-- **性能差の原因分析**: パターン間・レベル間・Algo間の性能差の根本原因の推測
-- **異常値の特定**: 期待値から大きく外れた結果の特定と原因分析
-- **相関関係の分析**: 異なるメトリクス間の相関関係の分析
-- **改善ポイントの特定**: 最も効果的な改善が期待できる領域の特定
-
-**追記すべき内容:**
-1. **詳細な傾向分析セクション**:
-   - データから読み取れる具体的な傾向の説明
-   - グラフや表の数値に基づく定量的な分析
-   - レベル別・Algo別の変化パターンの分析
-
-2. **深掘り原因分析セクション**:
-   - 性能差の技術的・構造的原因の仮説
-   - プロンプト設計やモデル特性との関連性分析
-   - 指示タイプ・例示・ステップ数の効果分析
-
-3. **具体的改善提案セクション**:
-   - 優先度付きの改善項目リスト
-   - 各改善項目の具体的な実装方法
-   - 期待される効果の定量的予測
-
-4. **今後の研究・開発方針セクション**:
-   - 追加実験の提案
-   - 長期改善ロードマップ
-   - 技術的課題と解決アプローチ
-
-#### 3. 最終レポートの生成
-分析・考察を追記した最終レポートを`reports/final_format_experiment_report.html`として保存してください。
-あわせて、フィッシャー観点でのレビュー要点を `docs/ai-logs/YYYY-MM-DD-fisher-review.md` に要約してください。
-
-### 分析内容の要件
-
-1. **客観性**: 分析は客観的で根拠に基づいたものにしてください
-2. **具体性**: 抽象的な表現ではなく、具体的な例や数値を示してください
-3. **実用性**: 改善提案は実用的で実行可能なものにしてください
-4. **包括性**: すべてのパターン・レベル・Algoを網羅的に分析してください
-5. **一貫性**: 分析結果は一貫性があり、矛盾のないものにしてください
-6. **傾向分析**: データから読み取れる傾向やパターンを特定してください
-7. **仮説提示**: 性能差の原因について仮説を提示してください
-8. **改善提案**: 具体的で実行可能な改善提案を提示してください
-9. **深掘り分析**: 表面的な数値だけでなく、背後にある技術的・構造的要因を分析してください
-10. **実装可能性**: 提案する改善策の実装難易度とコストを考慮してください
-
-## 完了基準
-
-以下の条件をすべて満たした場合に完了とします：
-
-1. すべてのパターン・レベル・Algoの性能が詳細に分析されている
-2. エラーパターンが詳細に分析されている
-3. 性能比較分析が完了している
-4. 統計的分析が完了している
-5. 視覚的に分かりやすい基本HTMLレポート（`test_logs/latest/parallel_format_experiment_report.html`）が生成されている
-6. AIによる詳細分析・考察が追記された最終レポート（`reports/final_format_experiment_report.html`）が完成している
-7. 改善提案が具体的で実用的である
-8. 深掘り原因分析が含まれている
-9. 具体的な実装方法と期待効果が記載されている
-10. 今後の研究・開発方針が提示されている
-
-
 ## 参考ファイル
 
 - `test_logs/yyyymmddhhmm_実験名/`: 実験実行ディレクトリ（実行後に生成）
@@ -432,7 +393,9 @@ AI（あなた）が以下の観点でレポートを詳細に分析し、考察
 - `test_logs/yyyymmddhhmm_実験名/parallel_format_experiment_report.html`: 統合レポート（実行後に生成）
 - `test_logs/yyyymmddhhmm_実験名/detailed_metrics.json`: 詳細メトリクス（実行後に生成）
 - `reports/final_format_experiment_report.html`: 最終レポート（AI分析・加筆後）
-- `Sources/AITest/Prompts/`: プロンプトテンプレートファイル
+- `Sources/AITest/Prompts/`: プロンプトテンプレートファイル（ファイルベース）
+  - `{type}_{method}_{language}.txt`形式（例: `strict_json_ja.txt`）
+  - 基本指示文、JSONフォーマット、YAMLフォーマットに対応
 - `Sources/AITest/AccountExtractor.swift`: 抽出方法実装
 - `Sources/AITestApp/main.swift`: コンソールアプリケーション
 - `Sources/AITest/PatternDefinitions.swift`: 実験パターン定義

@@ -4,6 +4,12 @@ import Foundation
 import FoundationModels
 import AITest
 
+/// @ai[2025-01-18 08:00] メインアプリケーション用のログラッパー
+/// 目的: メインアプリケーションのログ出力を統一
+/// 背景: デバッグ時の可視性向上のため、すべてのログを統一された形式で出力
+/// 意図: 開発効率の向上とデバッグの容易化
+let log = LogWrapper(subsystem: "com.aitest.main", category: "MainApp")
+
 /// @ai[2025-01-10 20:15] 有効なパターン名の定義
 /// 目的: パターン名のリテラルを一元管理して保守性を向上
 /// 背景: 複数箇所で同じパターン名が重複定義されており、変更時のリスクが高い
@@ -51,7 +57,7 @@ print(String(repeating: "=", count: 80))
 
 // iOS 26+、macOS 26+の利用可能性チェック（メインターゲット）
 if #available(iOS 26.0, macOS 26.0, *) {
-    print("✅ iOS 26+ / macOS 26+ の要件を満たしています")
+    log.success("iOS 26+ / macOS 26+ の要件を満たしています")
     
     // FoundationModelsの利用可能性をチェック
     print("🔍 FoundationModelsの利用可能性をチェック中...")
@@ -63,7 +69,7 @@ if #available(iOS 26.0, macOS 26.0, *) {
     
     switch availability {
     case .available:
-        print("✅ AI利用可能 - ベンチマークを実行します")
+        log.success("AI利用可能 - ベンチマークを実行します")
         
         // タイムアウト設定（デフォルト: 300秒 = 5分）
         let timeoutSeconds = extractTimeoutFromArguments() ?? 300
@@ -73,34 +79,28 @@ if #available(iOS 26.0, macOS 26.0, *) {
             await runWithTimeout(timeoutSeconds: timeoutSeconds) {
                 await runSingleTestDebug()
             }
-        } else if CommandLine.arguments.contains("--test-extraction-methods") || CommandLine.arguments.contains("--experiment") {
+        } else if CommandLine.arguments.contains("--debug-prompt") {
+            await runWithTimeout(timeoutSeconds: timeoutSeconds) {
+                await runPromptDebug()
+            }
+        } else if CommandLine.arguments.contains("--test-extraction-methods") || CommandLine.arguments.contains("--experiment") || 
+                  CommandLine.arguments.contains("--method") || CommandLine.arguments.contains("--language") || CommandLine.arguments.contains("--testcase") || CommandLine.arguments.contains("--testcases") || CommandLine.arguments.contains("--algos") || CommandLine.arguments.contains("--levels") {
         // 特定のexperimentを実行するかチェック
         print("🔍 コマンドライン引数をチェック中...")
         print("   引数: \(CommandLine.arguments)")
         
         if let experiment = extractExperimentFromArguments() {
-            print("✅ 特定のexperimentを検出: \(experiment.method.rawValue)_\(experiment.language.rawValue)_\(experiment.pattern.rawValue)")
-            // 外部LLM設定の取得
-            let externalLLMConfig = extractExternalLLMConfigFromArguments()
-            if let config = externalLLMConfig {
-                print("🌐 外部LLM設定を検出: \(config.baseURL) (モデル: \(config.model))")
-            }
-            // テストディレクトリの取得
-            let testDir = extractTestDirFromArguments()
+            log.success("特定のexperimentを検出: \(experiment.method.rawValue)_\(experiment.language.rawValue)_\(experiment.testcase)")
             
-            // 外部LLM設定をコピーしてSendableにする
-            let configCopy = externalLLMConfig.map { config in
-                ExternalLLMClient.LLMConfig(
-                    baseURL: config.baseURL,
-                    apiKey: config.apiKey,
-                    model: config.model,
-                    maxTokens: config.maxTokens,
-                    temperature: config.temperature
-                )
-            }
-            
-            await runWithTimeout(timeoutSeconds: timeoutSeconds) {
-                await runSpecificExperiment(experiment, testDir: testDir, externalLLMConfig: configCopy)
+            // testcaseからExperimentPatternを生成
+            let patternName = "\(experiment.testcase)_\(experiment.method.rawValue)"
+            if let pattern = ExperimentPattern.allCases.first(where: { $0.rawValue == patternName }) {
+                // パターンが見つかった場合の処理
+                await processExperiment(experiment: experiment, pattern: pattern, timeoutSeconds: timeoutSeconds)
+            } else {
+                print("❌ 無効なパターン組み合わせ: \(patternName)")
+                print("   有効な組み合わせ: testcase + method")
+                print("   アプリケーションを終了します")
             }
         } else {
                 print("⚠️ 特定のexperimentが指定されていません - デフォルトでyaml_enを実行")
@@ -167,8 +167,8 @@ func runExtractionMethodComparison() async {
         // 各抽出方法と各言語でテスト実行
         for method in ExtractionMethod.allCases {
             for language in PromptLanguage.allCases {
-                print("\n🔍 抽出方法: \(method.displayName) (\(language.displayName))")
-                print("📝 説明: \(method.description) - \(language.description)")
+                print("\n🔍 抽出方法: \(method.rawValue) (\(language.rawValue))")
+                print("📝 説明: \(method.rawValue) - \(language.rawValue)")
                 
                 do {
                     let extractor = AccountExtractor()
@@ -246,7 +246,7 @@ func generateFormatExperimentReport() async {
                     
                     reportData.append((
                         testCase: testCase.name,
-                        method: "\(method.displayName) (\(language.displayName))",
+                        method: "\(method.rawValue) (\(language.rawValue))",
                         language: language.displayName,
                         result: result,
                         metrics: metricsStr
@@ -258,7 +258,7 @@ func generateFormatExperimentReport() async {
                     
                     reportData.append((
                         testCase: testCase.name,
-                        method: "\(method.displayName) (\(language.displayName))",
+                        method: "\(method.rawValue) (\(language.rawValue))",
                         language: language.displayName,
                         result: errorResult,
                         metrics: errorMetrics
@@ -390,128 +390,278 @@ func extractExternalLLMConfigFromArguments() -> ExternalLLMClient.LLMConfig? {
     var model: String?
     
     let arguments = CommandLine.arguments
+    print("🔍 外部LLM設定解析開始 - 引数数: \(arguments.count)")
+    
     for i in 0..<arguments.count {
         let argument = arguments[i]
+        print("🔍 引数[\(i)]: \(argument)")
+        
         if argument.hasPrefix("--external-llm-url=") {
             baseURL = String(argument.dropFirst("--external-llm-url=".count))
+            print("✅ URL設定: \(baseURL ?? "nil")")
         } else if argument.hasPrefix("--external-llm-model=") {
             model = String(argument.dropFirst("--external-llm-model=".count))
+            print("✅ モデル設定: \(model ?? "nil")")
         } else if argument == "--external-llm-url" && i + 1 < arguments.count {
             baseURL = arguments[i + 1]
+            print("✅ URL設定(分離): \(baseURL ?? "nil")")
         } else if argument == "--external-llm-model" && i + 1 < arguments.count {
             model = arguments[i + 1]
+            print("✅ モデル設定(分離): \(model ?? "nil")")
         }
     }
     
+    print("🔍 最終結果 - URL: \(baseURL ?? "nil"), モデル: \(model ?? "nil")")
+    
     guard let baseURL = baseURL, let model = model else {
+        print("❌ 外部LLM設定が不完全です")
         return nil
     }
     
     return ExternalLLMClient.LLMConfig(
         baseURL: baseURL,
         model: model,
-        maxTokens: 500,
-        temperature: 0.3
+        maxTokens: 4096,
+        temperature: 1.0,
+        topP: 1.0
     )
 }
 
-/// コマンドライン引数からexperimentを抽出
+/// コマンドライン引数のバリデーション
 @available(iOS 26.0, macOS 26.0, *)
-func extractExperimentFromArguments() -> (method: ExtractionMethod, language: PromptLanguage, pattern: ExperimentPattern)? {
+func validateArguments() -> (isValid: Bool, errors: [String]) {
+    var errors: [String] = []
+    let validOptions = ["--method", "--language", "--testcase", "--testcases", "--algos", "--levels", "--runs", "--external-llm-url", "--external-llm-model", "--timeout", "--debug-single", "--debug-prompt", "--test-extraction-methods", "--experiment"]
+    
+    // サポートされているオプションをチェック
+    for argument in CommandLine.arguments {
+        if argument.hasPrefix("--") {
+            let option = argument.split(separator: "=").first.map(String.init) ?? argument
+            if !validOptions.contains(option) {
+                errors.append("❌ サポートされていないオプション: \(option)")
+            }
+        }
+    }
+    
+    // 必須引数の組み合わせチェック
+    let hasMethod = CommandLine.arguments.contains { $0.hasPrefix("--method") }
+    let _ = CommandLine.arguments.contains { $0.hasPrefix("--language") }
+    let hasTestcase = CommandLine.arguments.contains { $0.hasPrefix("--testcase") }
+    let hasTestcases = CommandLine.arguments.contains { $0.hasPrefix("--testcases") }
+    let hasAlgos = CommandLine.arguments.contains { $0.hasPrefix("--algos") }
+    let hasLevels = CommandLine.arguments.contains { $0.hasPrefix("--levels") }
+    
+    // 実験実行の場合は最低限の引数が必要
+    if CommandLine.arguments.contains("--experiment") || hasMethod || hasTestcase || hasTestcases || hasAlgos || hasLevels {
+        if !hasMethod && !hasTestcase && !hasTestcases && !hasAlgos && !hasLevels {
+            errors.append("❌ 実験実行には最低限 --method または --testcase の指定が必要です")
+        }
+    }
+    
+    return (errors.isEmpty, errors)
+}
+
+/// ヘルプメッセージを表示
+@available(iOS 26.0, macOS 26.0, *)
+func printHelp() {
+    print("\n📖 AITestApp 使用方法:")
+    print(String(repeating: "=", count: 60))
+    print("基本的な使用方法:")
+    print("  swift run AITestApp --method <method> --testcase <testcase> --language <language>")
+    print()
+    print("引数:")
+    print("  --method <method>     抽出方法 (json, generable, yaml) [デフォルト: generable]")
+    print("  --testcase <testcase> 指示タイプ (abs, strict, persona, twosteps, abs-ex, strict-ex, persona-ex) [デフォルト: strict]")
+    print("  --language <language> 言語 (ja, en) [デフォルト: ja]")
+    print("  --runs <number>       実行回数 [デフォルト: 1]")
+    print("  --timeout <seconds>   タイムアウト秒数 [デフォルト: 300]")
+    print()
+    print("デバッグオプション:")
+    print("  --debug-single        単一テストデバッグ実行")
+    print("  --debug-prompt        プロンプト確認（--method, --testcase, --language と組み合わせ）")
+    print()
+    print("外部LLMオプション:")
+    print("  --external-llm-url <url>     外部LLMのベースURL")
+    print("  --external-llm-model <model> 外部LLMのモデル名")
+    print()
+    print("使用例:")
+    print("  swift run AITestApp --method json --testcase strict --language ja")
+    print("  swift run AITestApp --debug-prompt --method json --testcase strict --language ja")
+    print("  swift run AITestApp --method generable --testcase abs --runs 5")
+    print(String(repeating: "=", count: 60))
+}
+
+/// コマンドライン引数からexperimentを抽出（新しい統一引数方式）
+@available(iOS 26.0, macOS 26.0, *)
+func extractExperimentFromArguments() -> (method: ExtractionMethod, language: PromptLanguage, testcase: String)? {
     print("🔍 extractExperimentFromArguments 開始")
-    print("   利用可能なExtractionMethod: \(ExtractionMethod.allCases.map { $0.rawValue })")
-    print("   利用可能なPromptLanguage: \(PromptLanguage.allCases.map { $0.rawValue })")
-    print("   利用可能なExperimentPattern: \(ExperimentPattern.allCases.map { $0.rawValue })")
     
-    var method: ExtractionMethod?
-    var language: PromptLanguage?
-    var pattern: ExperimentPattern = .defaultPattern
-    
-    // --experiment= の形式をチェック
-    for argument in CommandLine.arguments {
-        if argument.hasPrefix("--experiment=") {
-            let experimentString = String(argument.dropFirst("--experiment=".count))
-            print("   --experiment= 形式を検出: \(experimentString)")
-            let components = experimentString.split(separator: "_")
-            print("   コンポーネント: \(components)")
-            
-            guard components.count == 2,
-                  let extractedMethod = ExtractionMethod.allCases.first(where: { $0.rawValue == String(components[0]) }),
-                  let extractedLanguage = PromptLanguage.allCases.first(where: { $0.rawValue == String(components[1]) }) else {
-                print("❌ 無効なexperiment指定: \(experimentString)")
-                print("   有効な形式: --experiment=generable_ja")
-                return nil
-            }
-            
-            method = extractedMethod
-            language = extractedLanguage
-            print("✅ experimentを抽出: \(method!.rawValue)_\(language!.rawValue)")
+    // 引数バリデーション
+    let validation = validateArguments()
+    if !validation.isValid {
+        print("❌ 引数エラー:")
+        for error in validation.errors {
+            print("   \(error)")
         }
-    }
-    
-    // --experiment の形式をチェック（次の引数を取得）
-    for (index, argument) in CommandLine.arguments.enumerated() {
-        if argument == "--experiment" && index + 1 < CommandLine.arguments.count {
-            let experimentString = CommandLine.arguments[index + 1]
-            print("   --experiment 形式を検出: \(experimentString)")
-            let components = experimentString.split(separator: "_")
-            print("   コンポーネント: \(components)")
-            
-            guard components.count == 2,
-                  let extractedMethod = ExtractionMethod.allCases.first(where: { $0.rawValue == String(components[0]) }),
-                  let extractedLanguage = PromptLanguage.allCases.first(where: { $0.rawValue == String(components[1]) }) else {
-                print("❌ 無効なexperiment指定: \(experimentString)")
-                print("   有効な形式: --experiment generable_ja")
-                return nil
-            }
-            
-            method = extractedMethod
-            language = extractedLanguage
-            print("✅ experimentを抽出: \(method!.rawValue)_\(language!.rawValue)")
-        }
-    }
-    
-    // --pattern= の形式をチェック
-    for argument in CommandLine.arguments {
-        if argument.hasPrefix("--pattern=") {
-            let patternString = String(argument.dropFirst("--pattern=".count))
-            print("   --pattern= 形式を検出: \(patternString)")
-            
-            if let extractedPattern = ExperimentPattern.allCases.first(where: { $0.rawValue == patternString }) {
-                pattern = extractedPattern
-                print("✅ patternを抽出: \(pattern.rawValue)")
-            } else {
-                print("❌ 無効なpattern指定: \(patternString)")
-                print("   有効な形式: --pattern=chat_abs_gen")
-                return nil
-            }
-        }
-    }
-    
-    // --pattern の形式をチェック（次の引数を取得）
-    for (index, argument) in CommandLine.arguments.enumerated() {
-        if argument == "--pattern" && index + 1 < CommandLine.arguments.count {
-            let patternString = CommandLine.arguments[index + 1]
-            print("   --pattern 形式を検出: \(patternString)")
-            
-            if let extractedPattern = ExperimentPattern.allCases.first(where: { $0.rawValue == patternString }) {
-                pattern = extractedPattern
-                print("✅ patternを抽出: \(pattern.rawValue)")
-            } else {
-                print("❌ 無効なpattern指定: \(patternString)")
-                print("   有効な形式: --pattern chat_abs_gen")
-                return nil
-            }
-        }
-    }
-    
-    guard let finalMethod = method, let finalLanguage = language else {
-        print("❌ experimentが見つかりませんでした")
+        printHelp()
         return nil
     }
     
-    print("✅ 最終結果: method=\(finalMethod.rawValue), language=\(finalLanguage.rawValue), pattern=\(pattern.rawValue)")
-    return (method: finalMethod, language: finalLanguage, pattern: pattern)
+    print("   利用可能なExtractionMethod: \(ExtractionMethod.allCases.map { $0.rawValue })")
+    print("   利用可能なPromptLanguage: \(PromptLanguage.allCases.map { $0.rawValue })")
+    print("   利用可能なTestcase: abs, strict, persona, twosteps, abs-ex, strict-ex, persona-ex")
+    
+    var method: ExtractionMethod = .generable  // デフォルト
+    var language: PromptLanguage = .japanese   // デフォルト
+    var testcase: String = "strict"            // デフォルト
+    
+    // 有効なtestcase値の定義
+    let validTestcases = ["abs", "strict", "persona", "twosteps", "abs-ex", "strict-ex", "persona-ex"]
+    
+    // --method= の形式をチェック
+    for argument in CommandLine.arguments {
+        if argument.hasPrefix("--method=") {
+            let methodString = String(argument.dropFirst("--method=".count))
+            print("   --method= 形式を検出: \(methodString)")
+            
+            if let extractedMethod = ExtractionMethod.allCases.first(where: { $0.rawValue == methodString }) {
+                method = extractedMethod
+                print("✅ methodを抽出: \(method.rawValue)")
+            } else {
+                print("❌ 無効なmethod指定: \(methodString)")
+                print("   有効な値: \(ExtractionMethod.allCases.map { $0.rawValue }.joined(separator: ", "))")
+                return nil
+            }
+        }
+    }
+    
+    // --method の形式をチェック（次の引数を取得）
+    for (index, argument) in CommandLine.arguments.enumerated() {
+        if argument == "--method" && index + 1 < CommandLine.arguments.count {
+            let methodString = CommandLine.arguments[index + 1]
+            print("   --method 形式を検出: \(methodString)")
+            
+            if let extractedMethod = ExtractionMethod.allCases.first(where: { $0.rawValue == methodString }) {
+                method = extractedMethod
+                print("✅ methodを抽出: \(method.rawValue)")
+            } else {
+                print("❌ 無効なmethod指定: \(methodString)")
+                print("   有効な値: \(ExtractionMethod.allCases.map { $0.rawValue }.joined(separator: ", "))")
+                return nil
+            }
+        }
+    }
+    
+    // --testcase= の形式をチェック
+    for argument in CommandLine.arguments {
+        if argument.hasPrefix("--testcase=") {
+            let testcaseString = String(argument.dropFirst("--testcase=".count))
+            print("   --testcase= 形式を検出: \(testcaseString)")
+            
+            if validTestcases.contains(testcaseString) {
+                testcase = testcaseString
+                print("✅ testcaseを抽出: \(testcase)")
+            } else {
+                print("❌ 無効なtestcase指定: \(testcaseString)")
+                print("   有効な値: \(validTestcases.joined(separator: ", "))")
+                return nil
+            }
+        }
+    }
+    
+    // --testcase の形式をチェック（次の引数を取得）
+    for (index, argument) in CommandLine.arguments.enumerated() {
+        if argument == "--testcase" && index + 1 < CommandLine.arguments.count {
+            let testcaseString = CommandLine.arguments[index + 1]
+            print("   --testcase 形式を検出: \(testcaseString)")
+            
+            if validTestcases.contains(testcaseString) {
+                testcase = testcaseString
+                print("✅ testcaseを抽出: \(testcase)")
+            } else {
+                print("❌ 無効なtestcase指定: \(testcaseString)")
+                print("   有効な値: \(validTestcases.joined(separator: ", "))")
+                return nil
+            }
+        }
+    }
+    
+    // --language= の形式をチェック
+    for argument in CommandLine.arguments {
+        if argument.hasPrefix("--language=") {
+            let languageString = String(argument.dropFirst("--language=".count))
+            print("   --language= 形式を検出: \(languageString)")
+            
+            if let extractedLanguage = PromptLanguage.allCases.first(where: { $0.rawValue == languageString }) {
+                language = extractedLanguage
+                print("✅ languageを抽出: \(language.rawValue)")
+            } else {
+                print("❌ 無効なlanguage指定: \(languageString)")
+                print("   有効な値: \(PromptLanguage.allCases.map { $0.rawValue }.joined(separator: ", "))")
+                return nil
+            }
+        }
+    }
+    
+    // --language の形式をチェック（次の引数を取得）
+    for (index, argument) in CommandLine.arguments.enumerated() {
+        if argument == "--language" && index + 1 < CommandLine.arguments.count {
+            let languageString = CommandLine.arguments[index + 1]
+            print("   --language 形式を検出: \(languageString)")
+            
+            if let extractedLanguage = PromptLanguage.allCases.first(where: { $0.rawValue == languageString }) {
+                language = extractedLanguage
+                print("✅ languageを抽出: \(language.rawValue)")
+            } else {
+                print("❌ 無効なlanguage指定: \(languageString)")
+                print("   有効な値: \(PromptLanguage.allCases.map { $0.rawValue }.joined(separator: ", "))")
+                return nil
+            }
+        }
+    }
+    
+    // 最終結果を表示
+    print("✅ 最終結果: method=\(method.rawValue), language=\(language.rawValue), testcase=\(testcase)")
+    
+    return (method: method, language: language, testcase: testcase)
+}
+
+/// 実験処理を実行
+@available(iOS 26.0, macOS 26.0, *)
+func processExperiment(experiment: (method: ExtractionMethod, language: PromptLanguage, testcase: String), pattern: ExperimentPattern, timeoutSeconds: Int) async {
+    // 外部LLM設定の取得
+    let externalLLMConfig = extractExternalLLMConfigFromArguments()
+    if let config = externalLLMConfig {
+        print("🌐 外部LLM設定を検出: \(config.baseURL) (モデル: \(config.model))")
+        
+        // @ai[2025-01-18 07:00] 外部LLM設定のassertion
+        assert(!config.baseURL.isEmpty, "外部LLMのbaseURLが空です")
+        assert(!config.model.isEmpty, "外部LLMのmodelが空です")
+        assert(config.maxTokens > 0, "外部LLMのmaxTokensが0以下です: \(config.maxTokens)")
+        assert(config.temperature >= 0.0 && config.temperature <= 2.0, "外部LLMのtemperatureが範囲外です: \(config.temperature)")
+        print("✅ 外部LLM設定のassertion通過")
+    } else {
+        print("⚠️ 外部LLM設定が見つかりませんでした")
+    }
+    
+    // テストディレクトリの取得
+    let testDir = extractTestDirFromArguments()
+    
+    // 外部LLM設定をコピーしてSendableにする
+    let configCopy = externalLLMConfig.map { config in
+        ExternalLLMClient.LLMConfig(
+            baseURL: config.baseURL,
+            apiKey: config.apiKey,
+            model: config.model,
+            maxTokens: config.maxTokens,
+            temperature: config.temperature,
+            topP: config.topP
+        )
+    }
+    
+    await runWithTimeout(timeoutSeconds: timeoutSeconds) {
+        await runSpecificExperiment((method: experiment.method, language: experiment.language, pattern: pattern), testDir: testDir, externalLLMConfig: configCopy)
+    }
 }
 
 /// パターン名を実際のテストデータディレクトリ名にマッピング
@@ -659,7 +809,7 @@ func runSpecificExperiment(_ experiment: (method: ExtractionMethod, language: Pr
         actualRunNumber = runNumber
     }
     
-    print("\n🔬 特定実験を開始: \(experiment.method.displayName) (\(experiment.language.displayName))")
+    print("\n🔬 特定実験を開始: \(experiment.method.rawValue) (\(experiment.language.rawValue))")
     print("📋 パターン指定: \(experiment.pattern.displayName)")
     print("🔄 実行回数: \(actualRunNumber)")
     print("🔄 指定された抽出方法・言語・パターンのみを実行します")
@@ -710,8 +860,8 @@ func runSpecificExperiment(_ experiment: (method: ExtractionMethod, language: Pr
             print("  \(field): '\(expectedValue)'")
         }
         
-        print("\n🔍 抽出方法: \(experiment.method.displayName) (\(experiment.language.displayName))")
-        print("📝 説明: \(experiment.method.description) - \(experiment.language.description)")
+        print("\n🔍 抽出方法: \(experiment.method.rawValue) (\(experiment.language.rawValue))")
+        print("📝 説明: \(experiment.method.rawValue) - \(experiment.language.rawValue)")
         
         // パターン・レベルごとのiteration番号を取得
         let key = "\(experiment.pattern.rawValue)_level\(level)"
@@ -721,6 +871,12 @@ func runSpecificExperiment(_ experiment: (method: ExtractionMethod, language: Pr
         do {
             let extractor = AccountExtractor()
             testTimer.checkpoint("抽出器作成完了")
+            
+            print("🔍 DEBUG: extractFromText呼び出し開始")
+            print("🔍 DEBUG: 外部LLM設定: \(externalLLMConfig != nil ? "設定あり" : "設定なし")")
+            if let config = externalLLMConfig {
+                print("🔍 DEBUG: 外部LLM設定詳細: URL=\(config.baseURL), モデル=\(config.model)")
+            }
             
             let (accountInfo, metrics) = try await extractor.extractFromText(testCase.text, method: experiment.method, language: experiment.language, pattern: experiment.pattern, externalLLMConfig: externalLLMConfig)
             testTimer.checkpoint("AI抽出完了")
@@ -750,6 +906,7 @@ func runSpecificExperiment(_ experiment: (method: ExtractionMethod, language: Pr
             
         } catch {
             print("❌ 抽出失敗: \(error.localizedDescription)")
+            print("🔍 DEBUG: エラーの詳細: \(error)")
             
             // エラー時の構造化ログ
             await generateErrorStructuredLog(testCase: testCase, error: error, experiment: experiment, iteration: iteration, runNumber: actualRunNumber, testDir: finalTestDir)
@@ -800,7 +957,7 @@ func generateFormatExperimentReport(testDir: String, experiment: (method: Extrac
         <div class="header">
             <h1>🔬 FoundationModels フォーマット実験レポート</h1>
             <p>生成日時: \(timestamp)</p>
-            <p>抽出方法: \(experiment.method.displayName)</p>
+            <p>抽出方法: \(experiment.method.rawValue)</p>
             <p>言語: \(experiment.language.displayName)</p>
         </div>
         
@@ -811,7 +968,7 @@ func generateFormatExperimentReport(testDir: String, experiment: (method: Extrac
             </div>
             <div class="summary-card">
                 <h3>抽出方法</h3>
-                <p style="font-size: 1.5em; margin: 0;">\(experiment.method.displayName)</p>
+                <p style="font-size: 1.5em; margin: 0;">\(experiment.method.rawValue)</p>
             </div>
             <div class="summary-card">
                 <h3>言語</h3>
@@ -845,7 +1002,7 @@ func generateFormatExperimentReport(testDir: String, experiment: (method: Extrac
     // HTMLファイルを保存
     let htmlFilePath = "\(testDir)/\(experiment.method.rawValue)_\(experiment.language.rawValue)_format_experiment_report.html"
     do {
-        try htmlContent.write(toFile: htmlFilePath, atomically: true, encoding: .utf8)
+        try htmlContent.write(toFile: htmlFilePath, atomically: true, encoding: String.Encoding.utf8)
         print("📄 HTMLレポート生成: \(htmlFilePath)")
     } catch {
         print("❌ HTMLレポート生成エラー: \(error.localizedDescription)")
@@ -958,6 +1115,12 @@ func generateErrorStructuredLog(testCase: (name: String, text: String), error: E
         "expected_fields": [],
         "unexpected_fields": []
     ]
+    
+    // 外部LLMエラーの場合はAIレスポンスを含める
+    if let extractionError = error as? ExtractionError,
+       let aiResponse = extractionError.aiResponse {
+        structuredLog["ai_response"] = aiResponse
+    }
     
     // エラー時は全ての期待フィールドをmissingとして記録
     var expectedFieldsArray: [[String: Any]] = []
@@ -1418,6 +1581,90 @@ func runSingleTestDebug() async {
     } catch {
         print("❌ ファイル読み込みエラー: \(error.localizedDescription)")
     }
+}
+
+/// プロンプトデバッグ実行関数
+@available(iOS 26.0, macOS 26.0, *)
+@MainActor
+func runPromptDebug() async {
+    print("\n🔍 プロンプトデバッグモード")
+    print("📝 指定されたパターンのプロンプトを確認")
+    print(String(repeating: "=", count: 80))
+    
+    // 引数からパターンを取得
+    guard let experiment = extractExperimentFromArguments() else {
+        print("❌ パターンが指定されていません")
+        print("使用例: --debug-prompt --method json --testcase strict --language ja")
+        return
+    }
+    
+    print("📋 指定されたパターン:")
+    print("  方法: \(experiment.method.rawValue)")
+    print("  言語: \(experiment.language.rawValue)")
+    print("  テストケース: \(experiment.testcase)")
+    print()
+    
+    // testcaseからExperimentPatternを生成
+    let patternName = "\(experiment.testcase)_\(experiment.method.rawValue)"
+    guard let pattern = ExperimentPattern.allCases.first(where: { $0.rawValue == patternName }) else {
+        print("❌ 無効なパターン組み合わせ: \(patternName)")
+        print("   有効な組み合わせ: testcase + method")
+        return
+    }
+    
+    print("📋 生成されたパターン:")
+    print("  パターン名: \(pattern.rawValue)")
+    print()
+    
+    // プロンプト生成（テストデータを使用）
+    let testData = "GitHubアカウント: admin@example.com, パスワード: secret123"
+    let prompt = PromptTemplateGenerator.generatePrompt(for: pattern, language: experiment.language, inputData: testData)
+    
+    print("📝 生成されたプロンプト:")
+    print(String(repeating: "=", count: 80))
+    print(prompt)
+    print(String(repeating: "=", count: 80))
+    print()
+    
+    // JSONプロンプトテンプレートも表示（JSON methodの場合）
+    if experiment.method == .json {
+        do {
+            let jsonPrompt = try loadJSONPromptTemplate(language: experiment.language)
+            print("📄 JSONプロンプトテンプレート:")
+            print(String(repeating: "-", count: 40))
+            print(jsonPrompt)
+            print(String(repeating: "-", count: 40))
+            print()
+            
+            print("🔗 実際に使用されるプロンプト（完全版）:")
+            print(String(repeating: "=", count: 80))
+            print(prompt)
+            print(String(repeating: "=", count: 80))
+        } catch {
+            print("⚠️ JSONプロンプトテンプレートの読み込みに失敗: \(error)")
+        }
+    }
+}
+
+/// JSONプロンプトテンプレートを読み込み
+@available(iOS 26.0, macOS 26.0, *)
+func loadJSONPromptTemplate(language: PromptLanguage) throws -> String {
+    let fileName = language == .japanese ? "json_prompt" : "json_prompt_en"
+    
+    // まずAITestモジュールから読み込みを試行
+    if let url = Bundle.module.url(forResource: fileName, withExtension: "txt") {
+        return try String(contentsOf: url, encoding: .utf8)
+    }
+    
+    // フォールバック: 直接ファイルパスから読み込み
+    let filePath = "/Users/t.miyano/repos/AITest/Sources/AITest/Prompts/\(fileName).txt"
+    let url = URL(fileURLWithPath: filePath)
+    
+    guard FileManager.default.fileExists(atPath: filePath) else {
+        throw NSError(domain: "PromptDebug", code: 1, userInfo: [NSLocalizedDescriptionKey: "JSONプロンプトファイルが見つかりません: \(fileName).txt (パス: \(filePath))"])
+    }
+    
+    return try String(contentsOf: url, encoding: .utf8)
 }
 
 /// 統計情報を計算

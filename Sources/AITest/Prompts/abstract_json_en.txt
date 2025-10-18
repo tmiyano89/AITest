@@ -1,0 +1,20 @@
+Extract account information from the attached document and respond in the following JSON format.
+
+Output JSON format:
+{
+  "title": "Service name, app name, site name",
+  "userID": "Email address, username, login ID",
+  "password": "Password string",
+  "url": "Login page URL, service URL",
+  "note": "Remarks, notes, additional information",
+  "host": "Hostname or IP address",
+  "port": Port number,
+  "authKey": "Authentication key (SSH private key, etc.)"
+}
+
+Constraints:
+- Set items that cannot be extracted to null
+- Summarize account usage and notes in the note field
+- Include complete string with BEGIN and END lines for authKey
+- Port number must be an integer between 1-65535
+- Respond with JSON string only, no other text

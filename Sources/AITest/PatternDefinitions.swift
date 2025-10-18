@@ -1,5 +1,16 @@
 import Foundation
 
+/// @ai[2025-01-18 12:05] 抽出方法の定義
+/// 目的: アカウント情報抽出の方法を型安全に管理
+/// 背景: @Generable、JSON、YAMLの3つの方法を統一
+/// 意図: 各方法の特徴を明確化し、プロンプト生成を最適化
+@available(iOS 26.0, macOS 26.0, *)
+public enum ExtractionMethod: String, CaseIterable, Codable, Sendable {
+    case generable = "generable"
+    case json = "json"
+    case yaml = "yaml"
+}
+
 /// @ai[2025-01-10 22:20] 実験パターン定義
 /// 目的: @Guideマクロ改善のための組み合わせパターンを一元管理
 /// 背景: Instructions/Prompt/@Guide/@Generableの組み合わせでAFMの傾向を把握
@@ -11,23 +22,20 @@ import Foundation
 /// 意図: 各パターンの特徴を明確化し、実験結果の比較を容易にする
 @available(iOS 26.0, macOS 26.0, *)
 public enum ExperimentPattern: String, CaseIterable, Codable, Sendable {
-    case absEx0S1Gen = "chat_abs_gen"
-    case absEx1S1Gen = "chat_abs-ex_gen"
-    case strictEx0S1Gen = "chat_strict_gen"
-    case strictEx1S1Gen = "chat_strict-ex_gen"
-    case personaEx0S1Gen = "chat_persona_gen"
-    case personaEx1S1Gen = "chat_persona-ex_gen"
-    case strictEx0S2Gen = "chat_twosteps_gen"
-    case strictEx0S2Json = "chat_twosteps_json"
+    case absEx0S1Gen = "abs_gen"
+    case absEx1S1Gen = "abs-ex_gen"
+    case strictEx0S1Gen = "strict_gen"
+    case strictEx1S1Gen = "strict-ex_gen"
+    case personaEx0S1Gen = "persona_gen"
+    case personaEx1S1Gen = "persona-ex_gen"
     
     // 外部LLM実験用JSONパターン
-    case absJson = "chat_abs_json"
-    case absExJson = "chat_abs-ex_json"
-    case strictJson = "chat_strict_json"
-    case strictExJson = "chat_strict-ex_json"
-    case personaJson = "chat_persona_json"
-    case personaExJson = "chat_persona-ex_json"
-    case twostepsJson = "chat_twosteps_json_new"
+    case absJson = "abs_json"
+    case absExJson = "abs-ex_json"
+    case strictJson = "strict_json"
+    case strictExJson = "strict-ex_json"
+    case personaJson = "persona_json"
+    case personaExJson = "persona-ex_json"
     
     /// @ai[2025-01-10 22:20] パターンの表示名
     /// 目的: レポートやログで分かりやすい名前を表示
@@ -47,10 +55,6 @@ public enum ExperimentPattern: String, CaseIterable, Codable, Sendable {
             return "Chat・人格指示・@Generable"
         case .personaEx1S1Gen:
             return "Chat・人格指示(例示)・@Generable"
-        case .strictEx0S2Gen:
-            return "Chat・2ステップ・@Generable"
-        case .strictEx0S2Json:
-            return "Chat・2ステップ・JSON"
         case .absJson:
             return "Chat・抽象指示・JSON"
         case .absExJson:
@@ -63,8 +67,6 @@ public enum ExperimentPattern: String, CaseIterable, Codable, Sendable {
             return "Chat・人格指示・JSON"
         case .personaExJson:
             return "Chat・人格指示(例示)・JSON"
-        case .twostepsJson:
-            return "Chat・2ステップ・JSON"
         }
     }
     
@@ -86,10 +88,6 @@ public enum ExperimentPattern: String, CaseIterable, Codable, Sendable {
             return "プロ秘書の役割を活性化。専門知識と作業パターンの活用"
         case .personaEx1S1Gen:
             return "人格指示にfew-shot例示を追加。役割+学習の相乗効果を測定"
-        case .strictEx0S2Gen:
-            return "2ステップ処理（タイプ判定→抽出）。段階的アプローチの効果を測定"
-        case .strictEx0S2Json:
-            return "2ステップ処理をJSONフォーマットで実行。@Generable vs JSONの性能比較"
         case .absJson:
             return "抽象指示をJSONフォーマットで実行。外部LLMとの性能比較用"
         case .absExJson:
@@ -102,8 +100,6 @@ public enum ExperimentPattern: String, CaseIterable, Codable, Sendable {
             return "人格指示をJSONフォーマットで実行。外部LLMとの性能比較用"
         case .personaExJson:
             return "人格指示(例示)をJSONフォーマットで実行。外部LLMとの性能比較用"
-        case .twostepsJson:
-            return "2ステップ処理をJSONフォーマットで実行。外部LLMとの性能比較用"
         }
     }
     
@@ -117,106 +113,73 @@ public enum ExperimentPattern: String, CaseIterable, Codable, Sendable {
             return PatternCharacteristics(
                 instructionType: .abstract,
                 hasExample: false,
-                stepCount: 1,
-                usesGenerable: true
+                method: .generable
             )
         case .absEx1S1Gen:
             return PatternCharacteristics(
                 instructionType: .abstract,
                 hasExample: true,
-                stepCount: 1,
-                usesGenerable: true
+                method: .generable
             )
         case .strictEx0S1Gen:
             return PatternCharacteristics(
                 instructionType: .strict,
                 hasExample: false,
-                stepCount: 1,
-                usesGenerable: true
+                method: .generable
             )
         case .strictEx1S1Gen:
             return PatternCharacteristics(
                 instructionType: .strict,
                 hasExample: true,
-                stepCount: 1,
-                usesGenerable: true
+                method: .generable
             )
         case .personaEx0S1Gen:
             return PatternCharacteristics(
                 instructionType: .persona,
                 hasExample: false,
-                stepCount: 1,
-                usesGenerable: true
+                method: .generable
             )
         case .personaEx1S1Gen:
             return PatternCharacteristics(
                 instructionType: .persona,
                 hasExample: true,
-                stepCount: 1,
-                usesGenerable: true
-            )
-        case .strictEx0S2Gen:
-            return PatternCharacteristics(
-                instructionType: .strict,
-                hasExample: false,
-                stepCount: 2,
-                usesGenerable: true
-            )
-        case .strictEx0S2Json:
-            return PatternCharacteristics(
-                instructionType: .strict,
-                hasExample: false,
-                stepCount: 2,
-                usesGenerable: false
+                method: .generable
             )
         case .absJson:
             return PatternCharacteristics(
                 instructionType: .abstract,
                 hasExample: false,
-                stepCount: 1,
-                usesGenerable: false
+                method: .json
             )
         case .absExJson:
             return PatternCharacteristics(
                 instructionType: .abstract,
                 hasExample: true,
-                stepCount: 1,
-                usesGenerable: false
+                method: .json
             )
         case .strictJson:
             return PatternCharacteristics(
                 instructionType: .strict,
                 hasExample: false,
-                stepCount: 1,
-                usesGenerable: false
+                method: .json
             )
         case .strictExJson:
             return PatternCharacteristics(
                 instructionType: .strict,
                 hasExample: true,
-                stepCount: 1,
-                usesGenerable: false
+                method: .json
             )
         case .personaJson:
             return PatternCharacteristics(
                 instructionType: .persona,
                 hasExample: false,
-                stepCount: 1,
-                usesGenerable: false
+                method: .json
             )
         case .personaExJson:
             return PatternCharacteristics(
                 instructionType: .persona,
                 hasExample: true,
-                stepCount: 1,
-                usesGenerable: false
-            )
-        case .twostepsJson:
-            return PatternCharacteristics(
-                instructionType: .strict,
-                hasExample: false,
-                stepCount: 2,
-                usesGenerable: false
+                method: .json
             )
         }
     }
@@ -252,14 +215,12 @@ public enum InstructionType: String, CaseIterable, Codable, Sendable {
 public struct PatternCharacteristics: Codable, Sendable {
     public let instructionType: InstructionType
     public let hasExample: Bool
-    public let stepCount: Int
-    public let usesGenerable: Bool
+    public let method: ExtractionMethod
     
-    public init(instructionType: InstructionType, hasExample: Bool, stepCount: Int, usesGenerable: Bool) {
+    public init(instructionType: InstructionType, hasExample: Bool, method: ExtractionMethod) {
         self.instructionType = instructionType
         self.hasExample = hasExample
-        self.stepCount = stepCount
-        self.usesGenerable = usesGenerable
+        self.method = method
     }
 }
 
@@ -279,6 +240,5 @@ public extension ExperimentPattern {
         .absEx0S1Gen,      // 基本性能
         .strictEx0S1Gen,   // 制約効果
         .personaEx0S1Gen,  // 人格効果
-        .strictEx0S2Gen    // ステップ効果
     ]
 }
