@@ -1,0 +1,16 @@
+例示:
+
+入力ドキュメント:
+「AWS EC2にログインするには、アカウントはadmin/SecurePass18329です。よろしく！」
+
+期待される出力:
+{
+  "title": "AWS EC2",
+  "userID": "admin",
+  "password": "SecurePass18329",
+  "url": null,
+  "note": "AWS EC2にログインするには、アカウントはadmin/SecurePass18329です。よろしく！",
+  "host": null,
+  "port": null,
+  "authKey": null
+}

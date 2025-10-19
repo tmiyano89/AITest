@@ -1,0 +1,16 @@
+Example:
+
+Input document:
+"To login to AWS EC2, the account is admin/SecurePass18329. Thanks!"
+
+Expected output:
+{
+  "title": "AWS EC2",
+  "userID": "admin",
+  "password": "SecurePass18329",
+  "url": null,
+  "note": "To login to AWS EC2, the account is admin/SecurePass18329. Thanks!",
+  "host": null,
+  "port": null,
+  "authKey": null
+}

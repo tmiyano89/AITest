@@ -103,11 +103,15 @@ public class CommonExtractionProcessor {
     /// 目的: ベースプロンプトにテストデータを追加して完成させる
     /// 背景: プロンプト生成とテストデータ読み込みの組み合わせ
     /// 意図: プロンプト完成処理の一元化
-    public func completePrompt(basePrompt: String, testData: String) -> String {
-        log.debug("🔧 プロンプト完成開始 - ベース文字数: \(basePrompt.count), テストデータ文字数: \(testData.count)")
+    public func completePrompt(basePrompt: String, testData: String, language: PromptLanguage) -> String {
+        log.debug("🔧 プロンプト完成開始 - ベース文字数: \(basePrompt.count), テストデータ文字数: \(testData.count), 言語: \(language.rawValue)")
+        
+        // 言語に応じた添付ドキュメントラベルを設定
+        let documentLabel = language == .japanese ? "====== 以下が添付ドキュメントの内容です ======" : "====== Attached document content ======"
+        let endLabel = language == .japanese ? "====== 以上 ======" : "====== End of document ======"
         
         // プロンプトにテストデータを追加
-        let completedPrompt = basePrompt + "\n\n添付ドキュメント:\n" + testData
+        let completedPrompt = basePrompt + "\n\n\(documentLabel)\n" + testData + "\n\n" + endLabel
         
         log.debug("✅ プロンプト完成完了 - 完成文字数: \(completedPrompt.count)")
         return completedPrompt
@@ -144,19 +148,53 @@ public class CommonExtractionProcessor {
     private func generatePromptTemplate(method: ExtractionMethod, algo: String, language: PromptLanguage) throws -> String {
         log.debug("📝 プロンプトテンプレート生成開始 - method: \(method.rawValue), algo: \(algo), language: \(language.rawValue)")
         
-        // プロンプトファイル名を生成
+        // 例示ありのパターンかどうかを判定
+        let isExamplePattern = algo.hasSuffix("-ex")
+        let baseAlgo = isExamplePattern ? String(algo.dropLast(3)) : algo
+        
+        // プロンプトファイル名を生成（例示ありの場合は基本パターンを使用）
         let methodSuffix = method.rawValue == "generable" ? "generable" : method.rawValue
-        let algoName = algo == "abs" ? "abstract" : algo
+        let algoName = baseAlgo == "abs" ? "abstract" : baseAlgo
         let fileName = "\(algoName)_\(methodSuffix)_\(language.rawValue)"
         let filePath = "Sources/AITest/Prompts/\(fileName).txt"
         
+        log.debug("📁 プロンプトファイル読み込み開始 - ファイル: \(fileName).txt, 例示あり: \(isExamplePattern)")
+        
         // プロンプトファイルを読み込み
-        guard let prompt = try? String(contentsOfFile: filePath, encoding: .utf8) else {
+        guard let promptContent = try? String(contentsOfFile: filePath, encoding: .utf8) else {
             throw ExtractionError.promptTemplateNotFound(filePath)
         }
         
-        log.debug("✅ プロンプトテンプレート生成完了 - 文字数: \(prompt.count)")
-        return prompt
+        // 例示ありの場合は例示を追加
+        if isExamplePattern {
+            let exampleContent = try loadExampleContent(language: language)
+            let promptWithExample = promptContent + "\n\n" + exampleContent
+            log.debug("✅ プロンプトテンプレート生成完了（例示あり） - 文字数: \(promptWithExample.count)")
+            return promptWithExample
+        }
+        
+        log.debug("✅ プロンプトテンプレート生成完了 - 文字数: \(promptContent.count)")
+        return promptContent
+    }
+    
+    /// 例示コンテンツを読み込み
+    /// @ai[2025-01-19 16:58] 例示コンテンツ読み込みの実装
+    /// 目的: 例示ありパターンで使用する例示データを読み込み
+    /// 背景: 例示ありパターンでプロンプトに例示を動的に追加
+    /// 意図: 例示データの一元管理
+    private func loadExampleContent(language: PromptLanguage) throws -> String {
+        let fileName = "example_\(language.rawValue).txt"
+        let filePath = "Sources/AITest/Prompts/\(fileName)"
+        
+        log.debug("📁 例示ファイル読み込み開始 - ファイル: \(fileName)")
+        
+        guard let exampleContent = try? String(contentsOfFile: filePath, encoding: .utf8) else {
+            log.error("❌ 例示ファイルが見つかりません: \(fileName) (パス: \(filePath))")
+            throw ExtractionError.promptTemplateNotFound(filePath)
+        }
+        
+        log.debug("✅ 例示ファイル読み込み完了 - 文字数: \(exampleContent.count)")
+        return exampleContent
     }
 }
 

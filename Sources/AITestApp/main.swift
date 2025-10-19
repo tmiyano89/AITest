@@ -933,7 +933,7 @@ func runSpecificExperiment(_ experiment: (method: ExtractionMethod, language: Pr
             
             // テストケース名からレベルを抽出
             let (testPattern, level) = parseTestCaseName(testCase.name)
-            let (accountInfo, metrics, rawResponse, _) = try await unifiedExtractor.extract(
+            let (accountInfo, metrics, rawResponse, requestContent) = try await unifiedExtractor.extract(
                 testcase: testPattern,
                 level: level,
                 method: experiment.method,
@@ -961,7 +961,7 @@ func runSpecificExperiment(_ experiment: (method: ExtractionMethod, language: Pr
             
             // 構造化ログの出力
             print("🔍 DEBUG: generateStructuredLog呼び出し開始")
-            await generateStructuredLog(testCase: testCase, accountInfo: accountInfo, experiment: experiment, pattern: pattern, iteration: 1, runNumber: run, testDir: finalTestDir)
+            await generateStructuredLog(testCase: testCase, accountInfo: accountInfo, experiment: experiment, pattern: pattern, iteration: 1, runNumber: run, testDir: finalTestDir, requestContent: requestContent)
             print("🔍 DEBUG: generateStructuredLog呼び出し完了")
             testTimer.checkpoint("ログ出力完了")
             
@@ -970,7 +970,7 @@ func runSpecificExperiment(_ experiment: (method: ExtractionMethod, language: Pr
             print("🔍 DEBUG: エラーの詳細: \(error)")
             
             // エラー時の構造化ログ
-            await generateErrorStructuredLog(testCase: testCase, error: error, experiment: experiment, pattern: pattern, iteration: 1, runNumber: run, testDir: finalTestDir)
+            await generateErrorStructuredLog(testCase: testCase, error: error, experiment: experiment, pattern: pattern, iteration: 1, runNumber: run, testDir: finalTestDir, requestContent: nil)
             testTimer.checkpoint("エラーログ出力完了")
         }
         
@@ -1091,7 +1091,7 @@ func createLogDirectory(_ path: String) {
 
 /// 構造化ログを生成
 @available(iOS 26.0, macOS 26.0, *)
-func generateStructuredLog(testCase: (name: String, text: String), accountInfo: AccountInfo, experiment: (method: ExtractionMethod, language: PromptLanguage, testcase: String, algo: String), pattern: ExperimentPattern, iteration: Int, runNumber: Int, testDir: String) async {
+func generateStructuredLog(testCase: (name: String, text: String), accountInfo: AccountInfo, experiment: (method: ExtractionMethod, language: PromptLanguage, testcase: String, algo: String), pattern: ExperimentPattern, iteration: Int, runNumber: Int, testDir: String, requestContent: String?) async {
     print("🔍 DEBUG: generateStructuredLog開始 - testDir: \(testDir)")
     let (testPattern, level) = parseTestCaseName(testCase.name)
     print("🔍 DEBUG: パターン: \(testPattern), レベル: \(level)")
@@ -1105,6 +1105,7 @@ func generateStructuredLog(testCase: (name: String, text: String), accountInfo: 
         "method": experiment.method.rawValue,
         "language": experiment.language.rawValue,
         "experiment_pattern": pattern.rawValue,
+        "request_content": requestContent ?? NSNull(),
         "expected_fields": [],
         "unexpected_fields": []
     ]
@@ -1162,7 +1163,7 @@ func generateStructuredLog(testCase: (name: String, text: String), accountInfo: 
 
 /// エラー時の構造化ログを生成
 @available(iOS 26.0, macOS 26.0, *)
-func generateErrorStructuredLog(testCase: (name: String, text: String), error: Error, experiment: (method: ExtractionMethod, language: PromptLanguage, testcase: String, algo: String), pattern: ExperimentPattern, iteration: Int, runNumber: Int, testDir: String) async {
+func generateErrorStructuredLog(testCase: (name: String, text: String), error: Error, experiment: (method: ExtractionMethod, language: PromptLanguage, testcase: String, algo: String), pattern: ExperimentPattern, iteration: Int, runNumber: Int, testDir: String, requestContent: String?) async {
     let (testPattern, level) = parseTestCaseName(testCase.name)
     let expectedFields = getExpectedFields(for: testPattern, level: level)
     
@@ -1173,6 +1174,7 @@ func generateErrorStructuredLog(testCase: (name: String, text: String), error: E
         "method": experiment.method.rawValue,
         "language": experiment.language.rawValue,
         "experiment_pattern": pattern.rawValue,
+        "request_content": requestContent ?? NSNull(),
         "error": error.localizedDescription,
         "expected_fields": [],
         "unexpected_fields": []
@@ -1487,60 +1489,37 @@ func runPromptDebug() async {
     print("  パターン名: \(pattern.rawValue)")
     print()
     
-    // プロンプト生成
+    // プロンプト生成（ベースプロンプト）
     let processor = CommonExtractionProcessor()
     do {
-        let prompt = try processor.generatePrompt(method: experiment.method, algo: experiment.algos.first ?? "strict", language: experiment.language)
+        let basePrompt = try processor.generatePrompt(method: experiment.method, algo: experiment.algos.first ?? "strict", language: experiment.language)
         
-        print("📝 生成されたプロンプト:")
+        print("📝 生成されたベースプロンプト:")
         print(String(repeating: "=", count: 80))
-        print(prompt)
+        print(basePrompt)
         print(String(repeating: "=", count: 80))
+        print()
+        
+        // 実際のテストデータ付きの完全なプロンプトを生成
+        print("🔗 実際に使用されるプロンプト（テストデータ付き完全版）:")
+        print(String(repeating: "=", count: 80))
+        
+        // テストデータを読み込み
+        let testData = try processor.loadTestData(testcase: experiment.testcase, level: 1, language: experiment.language)
+        
+        // 完全なプロンプトを生成
+        let completedPrompt = processor.completePrompt(basePrompt: basePrompt, testData: testData, language: experiment.language)
+        
+        print(completedPrompt)
+        print(String(repeating: "=", count: 80))
+        
     } catch {
         print("❌ プロンプト生成エラー: \(error.localizedDescription)")
     }
     print()
     
-    // JSONプロンプトテンプレートも表示（JSON methodの場合）
-    if experiment.method == ExtractionMethod.json {
-        do {
-            let jsonPrompt = try loadJSONPromptTemplate(language: experiment.language)
-            print("📄 JSONプロンプトテンプレート:")
-            print(String(repeating: "-", count: 40))
-            print(jsonPrompt)
-            print(String(repeating: "-", count: 40))
-            print()
-            
-            print("🔗 実際に使用されるプロンプト（完全版）:")
-            print(String(repeating: "=", count: 80))
-            print("プロンプトは上記で表示済み")
-            print(String(repeating: "=", count: 80))
-        } catch {
-            print("⚠️ JSONプロンプトテンプレートの読み込みに失敗: \(error)")
-        }
-    }
 }
 
-/// JSONプロンプトテンプレートを読み込み
-@available(iOS 26.0, macOS 26.0, *)
-func loadJSONPromptTemplate(language: PromptLanguage) throws -> String {
-    let fileName = language == .japanese ? "json_prompt" : "json_prompt_en"
-    
-    // まずAITestモジュールから読み込みを試行
-    if let url = Bundle.module.url(forResource: fileName, withExtension: "txt") {
-        return try String(contentsOf: url, encoding: .utf8)
-    }
-    
-    // フォールバック: 直接ファイルパスから読み込み
-    let filePath = "/Users/t.miyano/repos/AITest/Sources/AITest/Prompts/\(fileName).txt"
-    let url = URL(fileURLWithPath: filePath)
-    
-    guard FileManager.default.fileExists(atPath: filePath) else {
-        throw NSError(domain: "PromptDebug", code: 1, userInfo: [NSLocalizedDescriptionKey: "JSONプロンプトファイルが見つかりません: \(fileName).txt (パス: \(filePath))"])
-    }
-    
-    return try String(contentsOf: url, encoding: .utf8)
-}
 
 
 /// @ai[2025-01-19 00:10] AIレスポンス収集機能

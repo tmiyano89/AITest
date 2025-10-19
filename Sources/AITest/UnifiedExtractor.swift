@@ -43,7 +43,7 @@ public class UnifiedExtractor {
         
         // 2. テストデータを読み込み、プロンプトを完成させる
         let testData = try commonProcessor.loadTestData(testcase: testcase, level: level, language: language)
-        let completedPrompt = commonProcessor.completePrompt(basePrompt: basePrompt, testData: testData)
+        let completedPrompt = commonProcessor.completePrompt(basePrompt: basePrompt, testData: testData, language: language)
         log.debug("✅ ステップ2完了: プロンプト完成")
         
         // 3. モデルに応じた抽出処理を実行
