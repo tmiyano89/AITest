@@ -1,0 +1,1566 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FoundationModels 精度分析レポート</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 20px; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+        .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px; }
+        .summary-card { background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center; }
+        .metrics-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        .metrics-table th, .metrics-table td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+        .metrics-table th { background: #f8f9fa; font-weight: bold; }
+        .correct { color: #28a745; font-weight: bold; }
+        .wrong { color: #dc3545; font-weight: bold; }
+        .missing { color: #ffc107; font-weight: bold; }
+        .unexpected { color: #6f42c1; font-weight: bold; }
+        .pending { color: #17a2b8; font-weight: bold; }
+        .section { margin: 30px 0; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        .section h3 { margin-top: 0; color: #333; }
+        .chart-container { position: relative; height: 400px; margin: 20px 0; }
+        .chart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)); gap: 20px; }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="header">
+        <h1>🔬 FoundationModels 精度分析レポート</h1>
+        <p>生成日時: 2025-10-19 21:25:12</p>
+        <p>実験数: 362</p>
+    </div>
+    
+    <div class="summary">
+        <div class="summary-card">
+            <h3>総期待項目数</h3>
+            <p style="font-size: 2em; margin: 0;">2160</p>
+        </div>
+        <div class="summary-card">
+            <h3>総正解項目数</h3>
+            <p style="font-size: 2em; margin: 0; color: #28a745;">1977</p>
+        </div>
+        <div class="summary-card">
+            <h3>総誤り項目数</h3>
+            <p style="font-size: 2em; margin: 0; color: #dc3545;">66</p>
+        </div>
+        <div class="summary-card">
+            <h3>総欠落項目数</h3>
+            <p style="font-size: 2em; margin: 0; color: #ffc107;">117</p>
+        </div>
+        <div class="summary-card">
+            <h3>総過剰項目数</h3>
+            <p style="font-size: 2em; margin: 0; color: #6f42c1;">152</p>
+        </div>
+        <div class="summary-card">
+            <h3>正規化スコア（全体）</h3>
+            <p style="font-size: 2em; margin: 0; color: #007bff;">0.814</p>
+        </div>
+    </div>
+    
+    <!-- 全体情報サマリー -->
+    <div class="summary">
+        <div class="summary-card">
+            <h3>総テストケース数</h3>
+            <p style="font-size: 2em; margin: 0; color: #007bff;">362</p>
+        </div>
+        <div class="summary-card">
+            <h3>総抽出項目数</h3>
+            <p style="font-size: 2em; margin: 0; color: #28a745;">2312</p>
+        </div>
+        <div class="summary-card">
+            <h3>総抽出時間</h3>
+            <p style="font-size: 2em; margin: 0; color: #dc3545;">0.000秒</p>
+        </div>
+        <div class="summary-card">
+            <h3>平均抽出時間</h3>
+            <p style="font-size: 2em; margin: 0; color: #6f42c1;">0.000秒</p>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>📊 抽出方法別（yaml / generable / json）</h3>
+        <table class="metrics-table">
+            <thead>
+                <tr>
+                    <th>グループ</th>
+                    <th>期待項目数</th>
+                    <th>正解項目数</th>
+                    <th>誤り項目数</th>
+                    <th>欠落項目数</th>
+                    <th>過剰項目数</th>
+                    <th>正規化スコア</th>
+                </tr>
+            </thead>
+            <tbody>
+                
+                <tr>
+                    <td>generable</td>
+                    <td>2160</td>
+                    <td class="correct">1977</td>
+                    <td class="wrong">66</td>
+                    <td class="missing">117</td>
+                    <td class="unexpected">152</td>
+                    <td><strong>0.814</strong></td>
+                </tr>
+            
+                <tr>
+                    <td>experiment</td>
+                    <td>0</td>
+                    <td class="correct">0</td>
+                    <td class="wrong">0</td>
+                    <td class="missing">0</td>
+                    <td class="unexpected">0</td>
+                    <td><strong>0.000</strong></td>
+                </tr>
+            
+                <tr>
+                    <td>detailed</td>
+                    <td>0</td>
+                    <td class="correct">0</td>
+                    <td class="wrong">0</td>
+                    <td class="missing">0</td>
+                    <td class="unexpected">0</td>
+                    <td><strong>0.000</strong></td>
+                </tr>
+            
+            </tbody>
+        </table>
+    </div>
+        
+    <div class="section">
+        <h3>🧠 抽出方法別分析</h3>
+        
+            <h4>🔍 抽出方法別パフォーマンス分析</h4>
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 10px 0;">
+                <p><strong>最良パフォーマンス:</strong> generable (正規化スコア: 0.814)</p>
+                <p><strong>最悪パフォーマンス:</strong> detailed (正規化スコア: 0.000)</p>
+                <p><strong>分析:</strong></p>
+                <ul>
+                    <li>正規化スコアの差: 0.814</li>
+                    <li>最も正解率が高い方法: generable</li>
+                    <li>最も過剰抽出が少ない方法: experiment</li>
+                </ul>
+            </div>
+            
+    </div>
+        
+    <div class="section">
+        <h3>📊 言語別（en / ja）</h3>
+        <table class="metrics-table">
+            <thead>
+                <tr>
+                    <th>グループ</th>
+                    <th>期待項目数</th>
+                    <th>正解項目数</th>
+                    <th>誤り項目数</th>
+                    <th>欠落項目数</th>
+                    <th>過剰項目数</th>
+                    <th>正規化スコア</th>
+                </tr>
+            </thead>
+            <tbody>
+                
+                <tr>
+                    <td>ja</td>
+                    <td>2160</td>
+                    <td class="correct">1977</td>
+                    <td class="wrong">66</td>
+                    <td class="missing">117</td>
+                    <td class="unexpected">152</td>
+                    <td><strong>0.814</strong></td>
+                </tr>
+            
+                <tr>
+                    <td>results</td>
+                    <td>0</td>
+                    <td class="correct">0</td>
+                    <td class="wrong">0</td>
+                    <td class="missing">0</td>
+                    <td class="unexpected">0</td>
+                    <td><strong>0.000</strong></td>
+                </tr>
+            
+                <tr>
+                    <td>metrics</td>
+                    <td>0</td>
+                    <td class="correct">0</td>
+                    <td class="wrong">0</td>
+                    <td class="missing">0</td>
+                    <td class="unexpected">0</td>
+                    <td><strong>0.000</strong></td>
+                </tr>
+            
+            </tbody>
+        </table>
+    </div>
+        
+    <div class="section">
+        <h3>🧠 言語別分析</h3>
+        
+            <h4>🌐 言語別パフォーマンス分析</h4>
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 10px 0;">
+                <p><strong>最良パフォーマンス:</strong> ja (正規化スコア: 0.814)</p>
+                <p><strong>最悪パフォーマンス:</strong> metrics (正規化スコア: 0.000)</p>
+                <p><strong>分析:</strong></p>
+                <ul>
+                    <li>言語間の正規化スコア差: 0.814</li>
+                    <li>日本語の特徴: 正解項目数 1977, 過剰項目数 152</li>
+                    <li>英語の特徴: 正解項目数 0, 過剰項目数 0</li>
+                </ul>
+            </div>
+            
+    </div>
+        
+    <div class="section">
+        <h3>📊 パターン別（Contract / Chat / CreditCard / PasswordManager / VoiceRecognition）</h3>
+        <table class="metrics-table">
+            <thead>
+                <tr>
+                    <th>グループ</th>
+                    <th>期待項目数</th>
+                    <th>正解項目数</th>
+                    <th>誤り項目数</th>
+                    <th>欠落項目数</th>
+                    <th>過剰項目数</th>
+                    <th>正規化スコア</th>
+                </tr>
+            </thead>
+            <tbody>
+                
+                <tr>
+                    <td>Chat</td>
+                    <td>2160</td>
+                    <td class="correct">1977</td>
+                    <td class="wrong">66</td>
+                    <td class="missing">117</td>
+                    <td class="unexpected">152</td>
+                    <td><strong>0.814</strong></td>
+                </tr>
+            
+            </tbody>
+        </table>
+    </div>
+        
+    <div class="section">
+        <h3>🧠 パターン別分析</h3>
+        
+            <h4>📋 パターン別パフォーマンス分析</h4>
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 10px 0;">
+                <p><strong>最良パフォーマンス:</strong> Chat (正規化スコア: 0.814)</p>
+                <p><strong>最悪パフォーマンス:</strong> Chat (正規化スコア: 0.814)</p>
+                <p><strong>分析:</strong></p>
+                <ul>
+                    <li>パターン間の正規化スコア差: 0.000</li>
+                    <li>最も複雑なパターン: Chat (期待項目数: 2160)</li>
+                    <li>最もシンプルなパターン: Chat (期待項目数: 2160)</li>
+                </ul>
+            </div>
+            
+    </div>
+        
+    <div class="section">
+        <h3>📊 レベル別（Level 1 / Level 2 / Level 3）</h3>
+        <table class="metrics-table">
+            <thead>
+                <tr>
+                    <th>グループ</th>
+                    <th>期待項目数</th>
+                    <th>正解項目数</th>
+                    <th>誤り項目数</th>
+                    <th>欠落項目数</th>
+                    <th>過剰項目数</th>
+                    <th>正規化スコア</th>
+                </tr>
+            </thead>
+            <tbody>
+                
+                <tr>
+                    <td>3</td>
+                    <td>960</td>
+                    <td class="correct">869</td>
+                    <td class="wrong">66</td>
+                    <td class="missing">25</td>
+                    <td class="unexpected">0</td>
+                    <td><strong>0.836</strong></td>
+                </tr>
+            
+                <tr>
+                    <td>1</td>
+                    <td>480</td>
+                    <td class="correct">480</td>
+                    <td class="wrong">0</td>
+                    <td class="missing">0</td>
+                    <td class="unexpected">117</td>
+                    <td><strong>0.756</strong></td>
+                </tr>
+            
+                <tr>
+                    <td>2</td>
+                    <td>720</td>
+                    <td class="correct">628</td>
+                    <td class="wrong">0</td>
+                    <td class="missing">92</td>
+                    <td class="unexpected">35</td>
+                    <td><strong>0.824</strong></td>
+                </tr>
+            
+                <tr>
+                    <td>0</td>
+                    <td>0</td>
+                    <td class="correct">0</td>
+                    <td class="wrong">0</td>
+                    <td class="missing">0</td>
+                    <td class="unexpected">0</td>
+                    <td><strong>0.000</strong></td>
+                </tr>
+            
+            </tbody>
+        </table>
+    </div>
+        
+    <div class="section">
+        <h3>🧠 レベル別分析</h3>
+        
+            <h4>📊 レベル別パフォーマンス分析</h4>
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 10px 0;">
+                <p><strong>最良パフォーマンス:</strong> 3 (正規化スコア: 0.836)</p>
+                <p><strong>最悪パフォーマンス:</strong> 0 (正規化スコア: 0.000)</p>
+                <p><strong>分析:</strong></p>
+                <ul>
+                    <li>レベル間の正規化スコア差: 0.836</li>
+                    <li>最も複雑なレベル: 3 (期待項目数: 960)</li>
+                    <li>最もシンプルなレベル: 0 (期待項目数: 0)</li>
+                </ul>
+            </div>
+            
+    </div>
+        
+    <div class="section">
+        <h3>📊 Algo別×レベル別（abs / strict / persona / twosteps / abs-ex / strict-ex / persona-ex × Level 1/2/3）</h3>
+        <table class="metrics-table">
+            <thead>
+                <tr>
+                    <th>グループ</th>
+                    <th>期待項目数</th>
+                    <th>正解項目数</th>
+                    <th>誤り項目数</th>
+                    <th>欠落項目数</th>
+                    <th>過剰項目数</th>
+                    <th>正規化スコア</th>
+                </tr>
+            </thead>
+            <tbody>
+                
+                <tr>
+                    <td>abs_level3</td>
+                    <td>160</td>
+                    <td class="correct">145</td>
+                    <td class="wrong">12</td>
+                    <td class="missing">3</td>
+                    <td class="unexpected">0</td>
+                    <td><strong>0.831</strong></td>
+                </tr>
+            
+                <tr>
+                    <td>persona_level1</td>
+                    <td>80</td>
+                    <td class="correct">80</td>
+                    <td class="wrong">0</td>
+                    <td class="missing">0</td>
+                    <td class="unexpected">21</td>
+                    <td><strong>0.738</strong></td>
+                </tr>
+            
+                <tr>
+                    <td>persona-ex_level2</td>
+                    <td>120</td>
+                    <td class="correct">101</td>
+                    <td class="wrong">0</td>
+                    <td class="missing">19</td>
+                    <td class="unexpected">4</td>
+                    <td><strong>0.808</strong></td>
+                </tr>
+            
+                <tr>
+                    <td>strict_level1</td>
+                    <td>80</td>
+                    <td class="correct">80</td>
+                    <td class="wrong">0</td>
+                    <td class="missing">0</td>
+                    <td class="unexpected">23</td>
+                    <td><strong>0.713</strong></td>
+                </tr>
+            
+                <tr>
+                    <td>abs_level2</td>
+                    <td>120</td>
+                    <td class="correct">103</td>
+                    <td class="wrong">0</td>
+                    <td class="missing">17</td>
+                    <td class="unexpected">4</td>
+                    <td><strong>0.825</strong></td>
+                </tr>
+            
+                <tr>
+                    <td>abs-ex_level2</td>
+                    <td>120</td>
+                    <td class="correct">111</td>
+                    <td class="wrong">0</td>
+                    <td class="missing">9</td>
+                    <td class="unexpected">10</td>
+                    <td><strong>0.842</strong></td>
+                </tr>
+            
+                <tr>
+                    <td>strict-ex_level2</td>
+                    <td>120</td>
+                    <td class="correct">106</td>
+                    <td class="wrong">0</td>
+                    <td class="missing">14</td>
+                    <td class="unexpected">8</td>
+                    <td><strong>0.817</strong></td>
+                </tr>
+            
+                <tr>
+                    <td>persona-ex_level3</td>
+                    <td>160</td>
+                    <td class="correct">145</td>
+                    <td class="wrong">9</td>
+                    <td class="missing">6</td>
+                    <td class="unexpected">0</td>
+                    <td><strong>0.850</strong></td>
+                </tr>
+            
+                <tr>
+                    <td>persona_level3</td>
+                    <td>160</td>
+                    <td class="correct">148</td>
+                    <td class="wrong">7</td>
+                    <td class="missing">5</td>
+                    <td class="unexpected">0</td>
+                    <td><strong>0.881</strong></td>
+                </tr>
+            
+                <tr>
+                    <td>abs-ex_level1</td>
+                    <td>80</td>
+                    <td class="correct">80</td>
+                    <td class="wrong">0</td>
+                    <td class="missing">0</td>
+                    <td class="unexpected">16</td>
+                    <td><strong>0.800</strong></td>
+                </tr>
+            
+                <tr>
+                    <td>abs_level1</td>
+                    <td>80</td>
+                    <td class="correct">80</td>
+                    <td class="wrong">0</td>
+                    <td class="missing">0</td>
+                    <td class="unexpected">18</td>
+                    <td><strong>0.775</strong></td>
+                </tr>
+            
+                <tr>
+                    <td>strict_level2</td>
+                    <td>120</td>
+                    <td class="correct">102</td>
+                    <td class="wrong">0</td>
+                    <td class="missing">18</td>
+                    <td class="unexpected">3</td>
+                    <td><strong>0.825</strong></td>
+                </tr>
+            
+                <tr>
+                    <td>persona-ex_level1</td>
+                    <td>80</td>
+                    <td class="correct">80</td>
+                    <td class="wrong">0</td>
+                    <td class="missing">0</td>
+                    <td class="unexpected">22</td>
+                    <td><strong>0.725</strong></td>
+                </tr>
+            
+                <tr>
+                    <td>strict-ex_level3</td>
+                    <td>160</td>
+                    <td class="correct">145</td>
+                    <td class="wrong">12</td>
+                    <td class="missing">3</td>
+                    <td class="unexpected">0</td>
+                    <td><strong>0.831</strong></td>
+                </tr>
+            
+                <tr>
+                    <td>strict_level3</td>
+                    <td>160</td>
+                    <td class="correct">146</td>
+                    <td class="wrong">11</td>
+                    <td class="missing">3</td>
+                    <td class="unexpected">0</td>
+                    <td><strong>0.844</strong></td>
+                </tr>
+            
+                <tr>
+                    <td>persona_level2</td>
+                    <td>120</td>
+                    <td class="correct">105</td>
+                    <td class="wrong">0</td>
+                    <td class="missing">15</td>
+                    <td class="unexpected">6</td>
+                    <td><strong>0.825</strong></td>
+                </tr>
+            
+                <tr>
+                    <td>abs-ex_level3</td>
+                    <td>160</td>
+                    <td class="correct">140</td>
+                    <td class="wrong">15</td>
+                    <td class="missing">5</td>
+                    <td class="unexpected">0</td>
+                    <td><strong>0.781</strong></td>
+                </tr>
+            
+                <tr>
+                    <td>strict-ex_level1</td>
+                    <td>80</td>
+                    <td class="correct">80</td>
+                    <td class="wrong">0</td>
+                    <td class="missing">0</td>
+                    <td class="unexpected">17</td>
+                    <td><strong>0.787</strong></td>
+                </tr>
+            
+            </tbody>
+        </table>
+    </div>
+        
+    <div class="section">
+        <h3>🧠 Algo別×レベル別分析</h3>
+        
+            <h4>📊 Level 1 ランキング</h4>
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 10px 0;">
+                <table style="width: 100%; border-collapse: collapse; margin: 10px 0;">
+                    <thead>
+                        <tr style="background: #e9ecef;">
+                            <th style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">順位</th>
+                            <th style="border: 1px solid #dee2e6; padding: 8px; text-align: left;">Algo</th>
+                            <th style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">正規化スコア</th>
+                            <th style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">正解数</th>
+                            <th style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">誤り数</th>
+                            <th style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">欠落数</th>
+                            <th style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">過剰数</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="background: #d4edda; font-weight: bold;">
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">1</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: left;">abs-ex</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center; font-weight: bold; color: #28a745;">0.800</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">80</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">0</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">0</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">16</td>
+                        </tr>
+                        <tr style="background: #d1ecf1;">
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">2</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: left;">strict-ex</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center; font-weight: bold; color: #28a745;">0.787</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">80</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">0</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">0</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">17</td>
+                        </tr>
+                        <tr style="background: #fff3cd;">
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">3</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: left;">abs</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center; font-weight: bold; color: #28a745;">0.775</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">80</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">0</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">0</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">18</td>
+                        </tr>
+                        <tr style="">
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">4</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: left;">persona</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center; font-weight: bold; color: #28a745;">0.738</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">80</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">0</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">0</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">21</td>
+                        </tr>
+                        <tr style="">
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">5</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: left;">persona-ex</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center; font-weight: bold; color: #28a745;">0.725</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">80</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">0</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">0</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">22</td>
+                        </tr>
+                        <tr style="">
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">6</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: left;">strict</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center; font-weight: bold; color: #28a745;">0.713</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">80</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">0</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">0</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">23</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <h4>📊 Level 2 ランキング</h4>
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 10px 0;">
+                <table style="width: 100%; border-collapse: collapse; margin: 10px 0;">
+                    <thead>
+                        <tr style="background: #e9ecef;">
+                            <th style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">順位</th>
+                            <th style="border: 1px solid #dee2e6; padding: 8px; text-align: left;">Algo</th>
+                            <th style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">正規化スコア</th>
+                            <th style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">正解数</th>
+                            <th style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">誤り数</th>
+                            <th style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">欠落数</th>
+                            <th style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">過剰数</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="background: #d4edda; font-weight: bold;">
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">1</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: left;">abs-ex</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center; font-weight: bold; color: #28a745;">0.842</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">111</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">0</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">9</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">10</td>
+                        </tr>
+                        <tr style="background: #d1ecf1;">
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">2</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: left;">abs</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center; font-weight: bold; color: #28a745;">0.825</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">103</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">0</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">17</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">4</td>
+                        </tr>
+                        <tr style="background: #fff3cd;">
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">3</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: left;">strict</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center; font-weight: bold; color: #28a745;">0.825</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">102</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">0</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">18</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">3</td>
+                        </tr>
+                        <tr style="">
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">4</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: left;">persona</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center; font-weight: bold; color: #28a745;">0.825</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">105</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">0</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">15</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">6</td>
+                        </tr>
+                        <tr style="">
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">5</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: left;">strict-ex</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center; font-weight: bold; color: #28a745;">0.817</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">106</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">0</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">14</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">8</td>
+                        </tr>
+                        <tr style="">
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">6</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: left;">persona-ex</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center; font-weight: bold; color: #28a745;">0.808</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">101</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">0</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">19</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">4</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <h4>📊 Level 3 ランキング</h4>
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 10px 0;">
+                <table style="width: 100%; border-collapse: collapse; margin: 10px 0;">
+                    <thead>
+                        <tr style="background: #e9ecef;">
+                            <th style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">順位</th>
+                            <th style="border: 1px solid #dee2e6; padding: 8px; text-align: left;">Algo</th>
+                            <th style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">正規化スコア</th>
+                            <th style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">正解数</th>
+                            <th style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">誤り数</th>
+                            <th style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">欠落数</th>
+                            <th style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">過剰数</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="background: #d4edda; font-weight: bold;">
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">1</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: left;">persona</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center; font-weight: bold; color: #28a745;">0.881</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">148</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">7</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">5</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">0</td>
+                        </tr>
+                        <tr style="background: #d1ecf1;">
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">2</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: left;">persona-ex</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center; font-weight: bold; color: #28a745;">0.850</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">145</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">9</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">6</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">0</td>
+                        </tr>
+                        <tr style="background: #fff3cd;">
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">3</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: left;">strict</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center; font-weight: bold; color: #28a745;">0.844</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">146</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">11</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">3</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">0</td>
+                        </tr>
+                        <tr style="">
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">4</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: left;">abs</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center; font-weight: bold; color: #28a745;">0.831</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">145</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">12</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">3</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">0</td>
+                        </tr>
+                        <tr style="">
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">5</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: left;">strict-ex</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center; font-weight: bold; color: #28a745;">0.831</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">145</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">12</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">3</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">0</td>
+                        </tr>
+                        <tr style="">
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">6</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: left;">abs-ex</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center; font-weight: bold; color: #28a745;">0.781</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">140</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">15</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">5</td>
+                            <td style="border: 1px solid #dee2e6; padding: 8px; text-align: center;">0</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <h4>🔬 全体分析</h4>
+            <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin: 10px 0;">
+                <p><strong>最良パフォーマンス:</strong> persona_level3 (正規化スコア: 0.881)</p>
+                <p><strong>最悪パフォーマンス:</strong> strict_level1 (正規化スコア: 0.713)</p>
+                <p><strong>全体の正規化スコア差:</strong> 0.169</p>
+                <p><strong>総組み合わせ数:</strong> 18個のalgo×レベル組み合わせ</p>
+            </div>
+    </div>
+        
+    <div class="section">
+        <h3>🏷️ フィールド別精度分析</h3>
+        <table class="metrics-table">
+            <thead>
+                <tr>
+                    <th>フィールド</th>
+                    <th>正解率</th>
+                    <th>誤り率</th>
+                    <th>欠落率</th>
+                    <th>過剰抽出率</th>
+                </tr>
+            </thead>
+            <tbody>
+
+            </tbody>
+        </table>
+    </div>
+
+    <div class="section">
+        <h3>📊 項目数ベース分析（レベル別）</h3>
+        <table class="metrics-table">
+            <thead>
+                <tr>
+                    <th>レベル</th>
+                    <th>期待項目数</th>
+                    <th>正解項目数</th>
+                    <th>誤り項目数</th>
+                    <th>欠落項目数</th>
+                    <th>過剰項目数</th>
+                    <th>テストケース数</th>
+                    <th>正規化スコア</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                <tr>
+                    <td>Level 3</td>
+                    <td>960</td>
+                    <td class="correct">869</td>
+                    <td class="wrong">66</td>
+                    <td class="missing">25</td>
+                    <td class="unexpected">0</td>
+                    <td>120</td>
+                    <td style="color: #007bff; font-weight: bold;">0.836</td>
+                </tr>
+
+                <tr>
+                    <td>Level 1</td>
+                    <td>480</td>
+                    <td class="correct">480</td>
+                    <td class="wrong">0</td>
+                    <td class="missing">0</td>
+                    <td class="unexpected">117</td>
+                    <td>120</td>
+                    <td style="color: #007bff; font-weight: bold;">0.756</td>
+                </tr>
+
+                <tr>
+                    <td>Level 2</td>
+                    <td>720</td>
+                    <td class="correct">628</td>
+                    <td class="wrong">0</td>
+                    <td class="missing">92</td>
+                    <td class="unexpected">35</td>
+                    <td>120</td>
+                    <td style="color: #007bff; font-weight: bold;">0.824</td>
+                </tr>
+
+                <tr>
+                    <td>Level 0</td>
+                    <td>0</td>
+                    <td class="correct">0</td>
+                    <td class="wrong">0</td>
+                    <td class="missing">0</td>
+                    <td class="unexpected">0</td>
+                    <td>2</td>
+                    <td style="color: #007bff; font-weight: bold;">0.000</td>
+                </tr>
+
+            </tbody>
+        </table>
+    </div>
+
+    <div class="section">
+        <h3>📋 メトリクス定義</h3>
+        <div style="background: #f8f9fa; padding: 20px; border-radius: 8px;">
+            <h4>精度メトリクス（項目数ベース）</h4>
+            <ul>
+                <li><strong>期待項目数 (Expected Items)</strong>: 評価対象フィールド総数</li>
+                <li><strong>正解項目数 (Correct Items)</strong>: 期待項目のうち正しい値を抽出できた数</li>
+                <li><strong>誤り項目数 (Wrong Items)</strong>: 期待項目のうち誤った値を抽出した数</li>
+                <li><strong>欠落項目数 (Missing Items)</strong>: 期待項目のうち抽出に失敗した数</li>
+                <li><strong>過剰項目数 (Unexpected Items)</strong>: 期待されない項目を抽出した数</li>
+                <li><strong>正規化スコア (Normalized Score)</strong>: (正解項目数 − 誤り項目数 − 過剰項目数) / 期待項目数</li>
+            </ul>
+            
+            <h4>抽出時間メトリクス</h4>
+            <ul>
+                <li><strong>平均抽出時間</strong>: 全テストケースの抽出時間の平均値</li>
+                <li><strong>最小抽出時間</strong>: 全テストケースの抽出時間の最小値</li>
+                <li><strong>最大抽出時間</strong>: 全テストケースの抽出時間の最大値</li>
+                <li><strong>総抽出時間</strong>: 全テストケースの抽出時間の合計</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>📊 総合分析・まとめ</h3>
+        <div style="background: #e3f2fd; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h4>🎯 全体パフォーマンス概要</h4>
+            <p><strong>全体正規化スコア:</strong> 0.814</p>
+            <p><strong>総期待項目数:</strong> 2160 | <strong>正解項目数:</strong> 1977 | <strong>誤り項目数:</strong> 66 | <strong>欠落項目数:</strong> 117 | <strong>過剰項目数:</strong> 152</p>
+        </div>
+        
+        <div style="background: #f3e5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h4>🔍 主要な発見・傾向</h4>
+            <h5>1. 抽出方法別の特徴</h5>
+            <ul>
+                <li><strong>最良:</strong> generable (正規化スコア: 0.814)</li>
+                <li><strong>最悪:</strong> experiment (正規化スコア: 0.000)</li>
+                <li><strong>性能差:</strong> 0.814</li>
+            </ul>
+            
+            <h5>2. 言語別の特徴</h5>
+            <ul>
+                <li><strong>最良:</strong> ja (正規化スコア: 0.814)</li>
+                <li><strong>最悪:</strong> results (正規化スコア: 0.000)</li>
+                <li><strong>言語間差:</strong> 0.814</li>
+            </ul>
+            
+            <h5>3. パターン別の特徴</h5>
+            <ul>
+                <li><strong>最良:</strong> Chat (正規化スコア: 0.814)</li>
+                <li><strong>最悪:</strong> Chat (正規化スコア: 0.814)</li>
+                <li><strong>パターン間差:</strong> 0.000</li>
+            </ul>
+        </div>
+        
+        <div style="background: #fff3e0; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h4>💡 仮説・推奨事項</h4>
+            <h5>1. 抽出方法の最適化</h5>
+            <ul>
+                <li>generableが最も高い性能を示しているため、この方法の特性を他の方法に適用することを検討</li>
+                <li>experimentの性能改善のため、プロンプト設計やパラメータ調整を検討</li>
+            </ul>
+            
+            <h5>2. 言語対応の改善</h5>
+            <ul>
+                <li>言語間の性能差を縮小するため、言語固有の最適化を検討</li>
+                <li>低性能言語のプロンプト設計や前処理の改善を検討</li>
+            </ul>
+            
+            <h5>3. パターン別の最適化</h5>
+            <ul>
+                <li>Chatパターンの複雑さを分析し、段階的な学習アプローチを検討</li>
+                <li>高性能パターンの成功要因を他のパターンに適用</li>
+            </ul>
+            
+            <h5>4. 全体的な改善提案</h5>
+            <ul>
+                <li>過剰抽出率の削減: 現在152項目の過剰抽出を削減</li>
+                <li>欠落率の削減: 現在117項目の欠落を削減</li>
+                <li>正解率の向上: 現在1977/2160 (91.5%)の正解率を向上</li>
+            </ul>
+        </div>
+        
+        <div style="background: #e8f5e8; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h4>📈 今後の検討事項</h4>
+            <ul>
+                <li><strong>データ拡張:</strong> 不足しているパターン（CreditCard, PasswordManager, VoiceRecognition）のデータ追加</li>
+                <li><strong>プロンプト最適化:</strong> 各抽出方法・言語・パターンに特化したプロンプト設計</li>
+                <li><strong>パラメータ調整:</strong> 温度設定、最大トークン数等の最適化</li>
+                <li><strong>評価指標の拡張:</strong> 抽出時間、コスト効率等の追加評価</li>
+                <li><strong>継続的改善:</strong> 定期的なベンチマーク実行と性能追跡</li>
+            </ul>
+        </div>
+    </div>
+        
+    <div class="header">
+        <h2>📊 分析完了</h2>
+        <p>@ai[2024-12-19 18:30] FoundationModels 精度分析レポート</p>
+        <p><strong>注意:</strong> pending項目はAIによる詳細検証が必要です。</p>
+    </div>
+    
+    <script>
+        // グラフデータの準備
+        const experimentData = {
+            labels: [],
+            correct: [],
+            wrong: [],
+            missing: [],
+            unexpected: []
+        };
+        
+        const timingData = {
+            labels: [],
+            avgTime: [],
+            minTime: [],
+            maxTime: []
+        };
+        
+        const levelData = {
+            labels: [],
+            correct: [],
+            wrong: [],
+            missing: [],
+            unexpected: []
+        };
+        
+        const patternData = {
+            labels: [],
+            correct: [],
+            wrong: [],
+            missing: [],
+            unexpected: []
+        };
+        
+        // 項目数ベースのグラフデータ
+        const itemLevelData = {
+            labels: [],
+            expected: [],
+            correct: [],
+            wrong: [],
+            missing: [],
+            unexpected: []
+        };
+        
+        const itemPatternLevelData = {
+            labels: [],
+            expected: [],
+            correct: [],
+            wrong: [],
+            missing: [],
+            unexpected: []
+        };
+        
+        // データを設定
+
+        itemLevelData.labels.push('Level 3');
+        itemLevelData.expected.push(960);
+        itemLevelData.correct.push(869);
+        itemLevelData.wrong.push(66);
+        itemLevelData.missing.push(25);
+        itemLevelData.unexpected.push(0);
+
+        itemLevelData.labels.push('Level 1');
+        itemLevelData.expected.push(480);
+        itemLevelData.correct.push(480);
+        itemLevelData.wrong.push(0);
+        itemLevelData.missing.push(0);
+        itemLevelData.unexpected.push(117);
+
+        itemLevelData.labels.push('Level 2');
+        itemLevelData.expected.push(720);
+        itemLevelData.correct.push(628);
+        itemLevelData.wrong.push(0);
+        itemLevelData.missing.push(92);
+        itemLevelData.unexpected.push(35);
+
+        itemLevelData.labels.push('Level 0');
+        itemLevelData.expected.push(0);
+        itemLevelData.correct.push(0);
+        itemLevelData.wrong.push(0);
+        itemLevelData.missing.push(0);
+        itemLevelData.unexpected.push(0);
+
+        
+        // グラフの描画
+        const chartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 1
+                }
+            }
+        };
+        
+        // 実験別精度比較グラフ
+        new Chart(document.getElementById('accuracyChart'), {
+            type: 'bar',
+            data: {
+                labels: experimentData.labels,
+                datasets: [
+                    {
+                        label: '正解率',
+                        data: experimentData.correct,
+                        backgroundColor: 'rgba(40, 167, 69, 0.7)',
+                        borderColor: 'rgba(40, 167, 69, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: '誤り率',
+                        data: experimentData.wrong,
+                        backgroundColor: 'rgba(220, 53, 69, 0.7)',
+                        borderColor: 'rgba(220, 53, 69, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: '欠落率',
+                        data: experimentData.missing,
+                        backgroundColor: 'rgba(255, 193, 7, 0.7)',
+                        borderColor: 'rgba(255, 193, 7, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: '過剰抽出率',
+                        data: experimentData.unexpected,
+                        backgroundColor: 'rgba(111, 66, 193, 0.7)',
+                        borderColor: 'rgba(111, 66, 193, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: chartOptions
+        });
+        
+        // 抽出時間比較グラフ
+        new Chart(document.getElementById('timingChart'), {
+            type: 'bar',
+            data: {
+                labels: timingData.labels,
+                datasets: [
+                    {
+                        label: '平均時間',
+                        data: timingData.avgTime,
+                        backgroundColor: 'rgba(0, 123, 255, 0.7)',
+                        borderColor: 'rgba(0, 123, 255, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: '最小時間',
+                        data: timingData.minTime,
+                        backgroundColor: 'rgba(40, 167, 69, 0.7)',
+                        borderColor: 'rgba(40, 167, 69, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: '最大時間',
+                        data: timingData.maxTime,
+                        backgroundColor: 'rgba(220, 53, 69, 0.7)',
+                        borderColor: 'rgba(220, 53, 69, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+        
+        // レベル別精度分析グラフ
+        new Chart(document.getElementById('levelChart'), {
+            type: 'bar',
+            data: {
+                labels: levelData.labels,
+                datasets: [
+                    {
+                        label: '正解率',
+                        data: levelData.correct,
+                        backgroundColor: 'rgba(40, 167, 69, 0.7)',
+                        borderColor: 'rgba(40, 167, 69, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: '誤り率',
+                        data: levelData.wrong,
+                        backgroundColor: 'rgba(220, 53, 69, 0.7)',
+                        borderColor: 'rgba(220, 53, 69, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: '欠落率',
+                        data: levelData.missing,
+                        backgroundColor: 'rgba(255, 193, 7, 0.7)',
+                        borderColor: 'rgba(255, 193, 7, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: '過剰抽出率',
+                        data: levelData.unexpected,
+                        backgroundColor: 'rgba(111, 66, 193, 0.7)',
+                        borderColor: 'rgba(111, 66, 193, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: chartOptions
+        });
+        
+        // パターン別精度分析グラフ
+        new Chart(document.getElementById('patternChart'), {
+            type: 'bar',
+            data: {
+                labels: patternData.labels,
+                datasets: [
+                    {
+                        label: '正解率',
+                        data: patternData.correct,
+                        backgroundColor: 'rgba(40, 167, 69, 0.7)',
+                        borderColor: 'rgba(40, 167, 69, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: '誤り率',
+                        data: patternData.wrong,
+                        backgroundColor: 'rgba(220, 53, 69, 0.7)',
+                        borderColor: 'rgba(220, 53, 69, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: '欠落率',
+                        data: patternData.missing,
+                        backgroundColor: 'rgba(255, 193, 7, 0.7)',
+                        borderColor: 'rgba(255, 193, 7, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: '過剰抽出率',
+                        data: patternData.unexpected,
+                        backgroundColor: 'rgba(111, 66, 193, 0.7)',
+                        borderColor: 'rgba(111, 66, 193, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: chartOptions
+        });
+        
+        // 項目数ベースのレベル別グラフ
+        new Chart(document.getElementById('itemLevelChart'), {
+            type: 'bar',
+            data: {
+                labels: itemLevelData.labels,
+                datasets: [
+                    {
+                        label: '期待項目数',
+                        data: itemLevelData.expected,
+                        backgroundColor: 'rgba(0, 123, 255, 0.7)',
+                        borderColor: 'rgba(0, 123, 255, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: '正解項目数',
+                        data: itemLevelData.correct,
+                        backgroundColor: 'rgba(40, 167, 69, 0.7)',
+                        borderColor: 'rgba(40, 167, 69, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: '誤り項目数',
+                        data: itemLevelData.wrong,
+                        backgroundColor: 'rgba(220, 53, 69, 0.7)',
+                        borderColor: 'rgba(220, 53, 69, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: '欠落項目数',
+                        data: itemLevelData.missing,
+                        backgroundColor: 'rgba(255, 193, 7, 0.7)',
+                        borderColor: 'rgba(255, 193, 7, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: '過剰項目数',
+                        data: itemLevelData.unexpected,
+                        backgroundColor: 'rgba(111, 66, 193, 0.7)',
+                        borderColor: 'rgba(111, 66, 193, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+        
+        // 項目数ベースのパターン・レベル別グラフ
+        new Chart(document.getElementById('itemPatternLevelChart'), {
+            type: 'bar',
+            data: {
+                labels: itemPatternLevelData.labels,
+                datasets: [
+                    {
+                        label: '期待項目数',
+                        data: itemPatternLevelData.expected,
+                        backgroundColor: 'rgba(0, 123, 255, 0.7)',
+                        borderColor: 'rgba(0, 123, 255, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: '正解項目数',
+                        data: itemPatternLevelData.correct,
+                        backgroundColor: 'rgba(40, 167, 69, 0.7)',
+                        borderColor: 'rgba(40, 167, 69, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: '誤り項目数',
+                        data: itemPatternLevelData.wrong,
+                        backgroundColor: 'rgba(220, 53, 69, 0.7)',
+                        borderColor: 'rgba(220, 53, 69, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: '欠落項目数',
+                        data: itemPatternLevelData.missing,
+                        backgroundColor: 'rgba(255, 193, 7, 0.7)',
+                        borderColor: 'rgba(255, 193, 7, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: '過剰項目数',
+                        data: itemPatternLevelData.unexpected,
+                        backgroundColor: 'rgba(111, 66, 193, 0.7)',
+                        borderColor: 'rgba(111, 66, 193, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+
+    <!-- 詳細分析と考察セクション -->
+    <div class="section">
+        <h2>詳細分析と考察 (Detailed Analysis and Consideration)</h2>
+        
+        <h3>1. Level 1の過剰項目分析</h3>
+        <p>Level 1では正解数は80で完璧ですが、過剰項目によりスコアが低下しています。以下の共通パターンが確認されました：</p>
+        
+        <h4>共通の過剰項目パターン</h4>
+        <ul>
+            <li><strong>host項目</strong>: 6-7件の過剰抽出
+                <ul>
+                    <li>abs-ex: nil, aws.amazon.com, nil</li>
+                    <li>strict-ex: nil, aws.example.com, nil</li>
+                    <li>abs: localhost, nil, nil</li>
+                </ul>
+            </li>
+            <li><strong>port項目</strong>: 6-7件の過剰抽出
+                <ul>
+                    <li>abs-ex: 22, 22, 9200</li>
+                    <li>strict-ex: 443, 22, 443</li>
+                    <li>abs: 22, 1, 443</li>
+                </ul>
+            </li>
+            <li><strong>authKey項目</strong>: 4-5件の過剰抽出（すべてnil）</li>
+        </ul>
+        
+        <p><strong>問題点</strong>: Level 1ではhost、port、authKeyは期待されない項目ですが、すべてのアルゴリズムで過剰抽出されています。これは、プロンプトがこれらの項目を抽出するよう指示しているためです。</p>
+        
+        <h3>2. Level 2の欠落項目分析</h3>
+        <p>Level 2では誤り数は0ですが、欠落が増加しています。主な欠落項目は以下の通りです：</p>
+        
+        <h4>主要な欠落項目</h4>
+        <ul>
+            <li><strong>port項目</strong>: 最も多い欠落項目
+                <ul>
+                    <li>abs-ex: 8件欠落</li>
+                    <li>abs: 17件欠落</li>
+                    <li>strict: 18件欠落</li>
+                </ul>
+            </li>
+            <li><strong>url項目</strong>: abs-exのみ1件欠落</li>
+        </ul>
+        
+        <p><strong>特徴</strong>: 例示あり（abs-ex）が最も効果的で、port項目の抽出精度が向上しています。</p>
+        
+        <h3>3. Level 3の誤り項目分析</h3>
+        <p>Level 3ではすべてが期待項目となるため過剰項目は0ですが、誤り数が増加しています。誤りの多い項目と実例は以下の通りです：</p>
+        
+        <h4>誤りの多い項目</h4>
+        <ul>
+            <li><strong>authKey項目</strong>: 最も多い誤り項目
+                <ul>
+                    <li>abs: 10件誤り（最多）</li>
+                    <li>persona-ex: 7件誤り</li>
+                    <li>strict: 6件誤り</li>
+                    <li>persona: 5件誤り</li>
+                </ul>
+                <p><strong>誤りの実例</strong>: 複数行のSSH秘密鍵の正確な抽出ができていない。期待値は完全な鍵形式ですが、抽出値に不完全な部分が含まれています。</p>
+            </li>
+            <li><strong>host項目</strong>: 2-4件誤り（すべてのアルゴリズムで発生）
+                <p><strong>誤りの実例</strong>: IPアドレス情報が混入
+                <br>抽出値: <code>ec2-54-123-45-67.compute-1.amazonaws.com(197.78.64.33)</code>
+                <br>期待値: <code>ec2-54-123-45-67.compute-1.amazonaws.com</code></p>
+            </li>
+            <li><strong>password項目</strong>: strictのみ1件誤り
+                <p><strong>誤りの実例</strong>: 抽出値がnil、期待値は実際のパスワード</p>
+            </li>
+        </ul>
+        
+        <h3>4. 推奨改善策</h3>
+        <ul>
+            <li><strong>Level 1</strong>: プロンプトからhost、port、authKeyの抽出指示を削除</li>
+            <li><strong>Level 2</strong>: port項目の抽出精度向上（例示の効果を活用）</li>
+            <li><strong>Level 3</strong>: authKeyの複数行テキスト抽出精度向上、host項目のIPアドレス除外処理</li>
+        </ul>
+    </div>
+
+    <!-- 主要アルゴリズムのプロンプト比較セクション -->
+    <div class="section">
+        <h2>主要アルゴリズムのプロンプト比較 (Prompt Comparison of Main Algorithms)</h2>
+        
+        <h3>1. Persona プロンプト</h3>
+        <div class="code-block">
+            <pre>あなたはプロの秘書として、添付したドキュメントからアカウント情報を抽出し、以下の有効なJSON形式で回答してください。
+情報を漏れなく整理して処理することを心がけ、各フィールドは1つの値のみ設定してください。
+
+出力のJSON形式:
+{
+  "title": "サービス名、アプリ名、サイト名",
+  "userID": "メールアドレス、ユーザー名、ログインID",
+  "password": "パスワード文字列",
+  "url": "ログインページURL、サービスURL",
+  "note": "備考、メモ、追加情報",
+  "host": "ホスト名またはIPアドレス",
+  "port": ポート番号,
+  "authKey": "認証キー（SSH秘密鍵など）"
+}
+
+制約:
+- 抽出できなかった項目はnullを設定すること
+- titleとnoteの項目は必須とする
+- 鍵情報(authKey)は、先頭行(BEGIN)と末尾行(END)を含む完全な文字列で出力すること
+- 各項目の値はすべて文字列型とし、改行を含む場合はエスケープすること
+- 回答はjson文字列のみとし、余計なテキストを含めないこと</pre>
+        </div>
+        
+        <h3>2. Strict プロンプト</h3>
+        <div class="code-block">
+            <pre>添付したドキュメントからアカウントに関する情報を抽出し、以下の有効なJSON形式で回答してください。
+
+step1: 内容からサービスの名称(title)を特定しましょう
+step2: サービスを利用するためのID、パスワードなどのアカウントに関する情報をピックアップします。
+step3: 最後にサービスに関する補足情報(note)をまとめましょう
+
+出力のJSON形式:
+{
+  "title": "サービス名、アプリ名、サイト名",
+  "userID": "メールアドレス、ユーザー名、ログインID",
+  "password": "パスワード文字列",
+  "url": "ログインページURL、サービスURL",
+  "note": "備考、メモ、追加情報",
+  "host": "ホスト名またはIPアドレス",
+  "port": ポート番号,
+  "authKey": "認証キー（SSH秘密鍵など）"
+}
+
+制約:
+- 抽出できない項目はnullを設定すること
+- 各項目は1つの値のみ含むこと
+- titleとnoteの項目は必須とする
+- 推測や創作は禁止
+- 例示の転載は禁止
+- 曖昧な場合はnullを設定すること
+- 鍵情報(authKey)は、先頭行(BEGIN)と末尾行(END)を含む完全な文字列で出力すること
+- 各項目の値はすべて文字列型とし、改行を含む場合はエスケープすること
+- 回答はjson文字列のみとし、余計なテキストを含めないこと</pre>
+        </div>
+        
+        <h3>3. Abstract プロンプト</h3>
+        <div class="code-block">
+            <pre>添付ドキュメントからアカウントに関する情報を抽出し、以下の有効なJSON形式で回答してください。
+
+出力のJSON形式:
+{
+  "title": "サービスやアカウントの名称",
+  "userID": "ユーザーIDとなるメールアドレスやユーザー名",
+  "password": "アカウントのパスワード文字列",
+  "url": "サービスやログインページのURL",
+  "note": "アカウントに関する備考、メモ、追加情報",
+  "host": "SSHなどでログインするためのホスト名またはIPアドレス",
+  "port": "SSHなどでログインするためのポート番号",
+  "authKey": "SSHなどでログインするための認証キー（SSH秘密鍵など）"
+}
+
+制約:
+- 抽出できなかった項目はnullを設定すること
+- titleとnoteの項目は必須とする
+- 鍵情報(authKey)は、先頭行(BEGIN)と末尾行(END)を含む完全な文字列で出力すること
+- 各項目の値はすべて文字列型とし、改行を含む場合はエスケープすること
+- 回答はjson文字列のみとし、余計なテキストを含めないこと</pre>
+        </div>
+        
+        <h3>4. Example プロンプト（例示あり）</h3>
+        <div class="code-block">
+            <pre>例示:
+
+入力ドキュメント:
+「AWS EC2にログインするには、アカウントはadmin/SecurePass18329です。よろしく！」
+
+期待される出力:
+{
+  "title": "AWS EC2",
+  "userID": "admin",
+  "password": "SecurePass18329",
+  "url": null,
+  "note": "AWS EC2にログインするには、アカウントはadmin/SecurePass18329です。よろしく！",
+  "host": null,
+  "port": null,
+  "authKey": null
+}</pre>
+        </div>
+        
+        <h3>5. プロンプトの特徴比較</h3>
+        <table class="analysis-table">
+            <tr>
+                <th>プロンプト</th>
+                <th>特徴</th>
+                <th>効果</th>
+            </tr>
+            <tr>
+                <td>Persona</td>
+                <td>プロの秘書としての役割設定</td>
+                <td>情報の漏れなく整理、Level 3での誤りが最少</td>
+            </tr>
+            <tr>
+                <td>Strict</td>
+                <td>3ステップの詳細な手順、厳格な制約</td>
+                <td>推測や創作を禁止、一貫性の高い抽出</td>
+            </tr>
+            <tr>
+                <td>Abstract</td>
+                <td>最小限の指示、シンプルな構造</td>
+                <td>AIの創造性を最大限発揮、過剰抽出が多い</td>
+            </tr>
+            <tr>
+                <td>Example</td>
+                <td>具体的な例示によるfew-shot学習</td>
+                <td>Level 2でのport項目抽出精度向上</td>
+            </tr>
+        </table>
+    </div>
+
+    <style>
+        .code-block {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+        
+        .code-block pre {
+            margin: 0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.4;
+            white-space: pre-wrap;
+        }
+        
+        .analysis-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        .analysis-table th,
+        .analysis-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        .analysis-table th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        
+        .analysis-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+    </style>
+</body>
+</html>

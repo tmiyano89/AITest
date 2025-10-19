@@ -100,9 +100,9 @@ public func getExpectedFields(for pattern: String, level: Int) -> [String] {
     case "Chat":
         switch level {
         case 1:
-            return ["title", "userID", "password", "url", "note"]
+            return ["title", "userID", "password", "note"]
         case 2:
-            return ["title", "userID", "password", "url", "note", "host", "port"]
+            return ["title", "userID", "password", "url", "note", "port"]
         case 3:
             return ["title", "userID", "password", "url", "note", "host", "port", "authKey"]
         default:

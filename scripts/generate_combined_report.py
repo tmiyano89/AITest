@@ -280,13 +280,15 @@ def compute_grouped_item_scores(all_results):
             
             # algo別×レベル別集計
             if exp_patt:
-                # experiment_patternからalgoを抽出 (例: chat_abs_gen -> abs)
+                # experiment_patternからalgoを抽出 (例: abs_json -> abs)
                 algo_parts = exp_patt.split('_')
-                if len(algo_parts) >= 2:
-                    algo = algo_parts[1]  # abs, strict, persona, twosteps, abs-ex, strict-ex, persona-ex
-                    algo_level_key = f"{algo}_level{level}"
-                    by_algo_level.setdefault(algo_level_key, {}); ensure_group(by_algo_level[algo_level_key])
-                    g = by_algo_level[algo_level_key]; g['expected_items']+=expected; g['correct_items']+=correct; g['wrong_items']+=wrong; g['missing_items']+=missing; g['unexpected_items']+=unexpected; g['tests']+=1
+                if len(algo_parts) >= 1:
+                    algo = algo_parts[0]  # abs, strict, persona, abs-ex, strict-ex, persona-ex
+                    # twostepsは現在サポートしていないので除外
+                    if algo not in ['twosteps']:
+                        algo_level_key = f"{algo}_level{level}"
+                        by_algo_level.setdefault(algo_level_key, {}); ensure_group(by_algo_level[algo_level_key])
+                        g = by_algo_level[algo_level_key]; g['expected_items']+=expected; g['correct_items']+=correct; g['wrong_items']+=wrong; g['missing_items']+=missing; g['unexpected_items']+=unexpected; g['tests']+=1
 
     def add_score(dct):
         out = {}
@@ -707,12 +709,17 @@ def generate_html_report(all_results, output_path, rates=None, timing_stats=None
             # algo別×レベル別の分析 - レベルごとのランキング表示
             level_rankings = {}
             
+            # サポートされているアルゴリズムのみを対象とする
+            supported_algos = ['abs', 'strict', 'persona', 'abs-ex', 'strict-ex', 'persona-ex']
+            
             for key, stats in data.items():
                 if '_level' in key:
                     algo, level = key.split('_level')
-                    if level not in level_rankings:
-                        level_rankings[level] = []
-                    level_rankings[level].append((algo, stats['normalized_score'], stats))
+                    # サポートされているアルゴリズムのみを処理
+                    if algo in supported_algos:
+                        if level not in level_rankings:
+                            level_rankings[level] = []
+                        level_rankings[level].append((algo, stats['normalized_score'], stats))
             
             # 各レベルでランキングを作成
             analysis_content = ""
