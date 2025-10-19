@@ -53,9 +53,9 @@ class ExperimentRunner:
         self.base_output_dir.mkdir(parents=True, exist_ok=True)
         self.results = []
     
-    def run_single_experiment(self, config: ExperimentConfig, run_id: int) -> Optional[Dict[str, Any]]:
-        """単一の実験を実行"""
-        print(f"🔬 実験実行中: {config.get_experiment_name()} (実行 {run_id}/{config.runs})")
+    def run_single_experiment(self, config: ExperimentConfig) -> Optional[Dict[str, Any]]:
+        """単一の実験設定をまとめて実行"""
+        print(f"🔬 実験実行中: {config.get_experiment_name()} ({config.runs}回実行)")
         
         # 実験実行コマンド（新しい引数形式）
         # パターン名は {testcase}_{algo}_{method} の形式
@@ -71,25 +71,20 @@ class ExperimentRunner:
             "swift", "run", "AITestApp", 
             "--method", method,
             "--testcase", testcase,
-            "--algo", algo,
+            "--algos", algo,
             "--language", config.language,
-            "--runs", "1",
+            "--runs", str(config.runs),
             "--test-dir", log_dir
         ]
         
-        # 環境変数としてrunNumberを渡す
-        env = os.environ.copy()
-        env['AITEST_RUN_NUMBER'] = str(run_id)
-        
         try:
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=300, env=env)
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=600, env=os.environ)
             if result.returncode != 0:
                 print(f"❌ 実験失敗: {result.stderr}")
                 return None
             
             return {
                 'config': config,
-                'run_id': run_id,
                 'success': True,
                 'stdout': result.stdout,
                 'stderr': result.stderr
@@ -105,28 +100,27 @@ class ExperimentRunner:
         """複数の実験設定を実行"""
         all_results = []
         
-        # 総実行回数を計算
-        total_runs = sum(config.runs for config in configs)
-        completed_runs = 0
+        # 総実験数を計算
+        total_experiments = len(configs)
+        completed_experiments = 0
         
         for config in configs:
             print(f"\n🚀 パターン {config.pattern} の実験を開始 ({config.runs}回実行)")
             print(f"📁 出力先: {self.base_output_dir}")
             
-            for run_id in range(1, config.runs + 1):
-                # 進捗表示
-                progress = (completed_runs / total_runs) * 100
-                print(f"📊 進捗: {progress:.1f}% ({completed_runs}/{total_runs})")
-                
-                result = self.run_single_experiment(config, run_id)
-                if result:
-                    all_results.append(result)
-                    self.results.append(result)
-                
-                completed_runs += 1
+            # 進捗表示
+            progress = (completed_experiments / total_experiments) * 100
+            print(f"📊 進捗: {progress:.1f}% ({completed_experiments}/{total_experiments})")
+            
+            result = self.run_single_experiment(config)
+            if result:
+                all_results.append(result)
+                self.results.append(result)
+            
+            completed_experiments += 1
         
         # 最終進捗表示
-        print(f"📊 進捗: 100.0% ({completed_runs}/{total_runs}) - 完了!")
+        print(f"📊 進捗: 100.0% ({completed_experiments}/{total_experiments}) - 完了!")
         
         return all_results
     

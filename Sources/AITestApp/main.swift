@@ -40,14 +40,8 @@ if #available(iOS 26.0, macOS 26.0, *) {
         
         // デバッグモード: 単一テスト実行
         if CommandLine.arguments.contains("--debug-single") {
-            await runWithTimeout(timeoutSeconds: timeoutSeconds) {
-                // 実験設定を取得
-                guard let experiment = extractExperimentFromArguments() else {
-                    print("❌ 実験設定が取得できませんでした")
-                    print("使用例: --debug-single --method json --testcase chat --language ja")
-                    return
-                }
-                
+            // 実験設定を取得
+            if let experiment = extractExperimentFromArguments() {
                 // パターンを生成（最初のアルゴリズムを使用）
                 let methodSuffix = experiment.method.rawValue == "generable" ? "gen" : experiment.method.rawValue
                 let patternName = "\(experiment.algos.first ?? "strict")_\(methodSuffix)"
@@ -58,15 +52,14 @@ if #available(iOS 26.0, macOS 26.0, *) {
                 print(String(repeating: "=", count: 80))
                 
                 await processExperiment(experiment: experiment, pattern: pattern, timeoutSeconds: timeoutSeconds)
+            } else {
+                print("❌ 実験設定が取得できませんでした")
+                print("使用例: --debug-single --method json --testcase chat --language ja")
             }
         } else if CommandLine.arguments.contains("--debug-prompt") {
-            await runWithTimeout(timeoutSeconds: timeoutSeconds) {
-                await runPromptDebug()
-            }
+            await runPromptDebug()
         } else if CommandLine.arguments.contains("--collect-responses") {
-            await runWithTimeout(timeoutSeconds: timeoutSeconds) {
-                await runResponseCollection()
-            }
+            await runResponseCollection()
         } else if CommandLine.arguments.contains("--test-extraction-methods") || CommandLine.arguments.contains("--experiment") || 
                   CommandLine.arguments.contains("--method") || CommandLine.arguments.contains("--language") || CommandLine.arguments.contains("--testcase") || CommandLine.arguments.contains("--testcases") || CommandLine.arguments.contains("--algos") || CommandLine.arguments.contains("--levels") {
         // 特定のexperimentを実行するかチェック
@@ -82,10 +75,8 @@ if #available(iOS 26.0, macOS 26.0, *) {
                 print("⚠️ 特定のexperimentが指定されていません - デフォルトでyaml_enを実行")
                 // デフォルトでyaml_enを実行
                 let defaultExperiment = (method: ExtractionMethod.yaml, language: PromptLanguage.english, testcase: "chat", algos: ["abs"])
-                let testDir = extractTestDirFromArguments()
-                await runWithTimeout(timeoutSeconds: timeoutSeconds) {
-                    await processExperiment(experiment: defaultExperiment, pattern: ExperimentPattern.defaultPattern, timeoutSeconds: timeoutSeconds)
-                }
+                _ = extractTestDirFromArguments()
+                await processExperiment(experiment: defaultExperiment, pattern: ExperimentPattern.defaultPattern, timeoutSeconds: timeoutSeconds)
             }
         }
         
@@ -657,9 +648,7 @@ func processExperiment(experiment: (method: ExtractionMethod, language: PromptLa
         if let pattern = ExperimentPattern.allCases.first(where: { $0.rawValue == patternName }) {
             // パターンが見つかった場合の処理
             let singleExperiment = (method: experiment.method, language: experiment.language, testcase: experiment.testcase, algo: algo)
-            await runWithTimeout(timeoutSeconds: timeoutSeconds) {
-                await runSpecificExperiment(singleExperiment, pattern: pattern, testDir: finalTestDir, externalLLMConfig: configCopy)
-            }
+            await runSpecificExperiment(singleExperiment, pattern: pattern, testDir: finalTestDir, externalLLMConfig: configCopy)
         } else {
             print("❌ 無効なパターン組み合わせ: \(patternName)")
             print("   有効な組み合わせ: testcase + algo + method")
@@ -769,6 +758,7 @@ func runWithTimeout(timeoutSeconds: Int, task: @escaping @Sendable () async -> V
         
         // 最初に完了したタスクを待つ
         await group.next()
+        // すべてのタスクをキャンセル
         group.cancelAll()
     }
 }
@@ -933,7 +923,7 @@ func runSpecificExperiment(_ experiment: (method: ExtractionMethod, language: Pr
             
             // テストケース名からレベルを抽出
             let (testPattern, level) = parseTestCaseName(testCase.name)
-            let (accountInfo, metrics, rawResponse, requestContent) = try await unifiedExtractor.extract(
+            let (accountInfo, metrics, _, requestContent) = try await unifiedExtractor.extract(
                 testcase: testPattern,
                 level: level,
                 method: experiment.method,

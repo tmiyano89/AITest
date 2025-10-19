@@ -31,45 +31,69 @@ public class FoundationModelsExtractor: ModelExtractor {
         log.info("🤖 FoundationModels抽出開始 - method: \(method.rawValue)")
         
         let startTime = CFAbsoluteTimeGetCurrent()
+        var rawResponse: String = ""
         
-        // セッション初期化
-        if session == nil {
-            try await initializeSession()
+        do {
+            // セッション初期化
+            if session == nil {
+                try await initializeSession()
+            }
+            
+            guard let session = self.session else {
+                throw ExtractionError.languageModelUnavailable
+            }
+            
+            defer {
+                log.debug("🧹 セッションを解放")
+                self.session = nil
+            }
+            
+            // 抽出方法に応じた処理を実行
+            let accountInfo: AccountInfo
+            
+            switch method {
+            case .generable:
+                (accountInfo, rawResponse) = try await performGenerableExtraction(session: session, prompt: prompt)
+            case .json:
+                (accountInfo, rawResponse) = try await performJSONExtraction(session: session, prompt: prompt)
+            case .yaml:
+                throw ExtractionError.methodNotSupported("YAML method is not supported in FoundationModels")
+            }
+            
+            let extractionTime = CFAbsoluteTimeGetCurrent() - startTime
+            
+            log.info("✅ FoundationModels抽出完了 - 時間: \(String(format: "%.3f", extractionTime))秒")
+            
+            return ExtractionResult(
+                accountInfo: accountInfo,
+                rawResponse: rawResponse,
+                requestContent: prompt, // FoundationModelsではプロンプト全文をリクエスト内容として使用
+                extractionTime: extractionTime,
+                method: method
+            )
+        } catch let error as ExtractionError {
+            // ExtractionErrorの場合は、rawResponseを含めて再スロー
+            if rawResponse.isEmpty {
+                throw error
+            } else {
+                // rawResponseがある場合は、aiResponseを含む新しいエラーを作成
+                switch error {
+                case .invalidJSONFormat:
+                    throw ExtractionError.invalidJSONFormat(aiResponse: rawResponse)
+                case .externalLLMError:
+                    throw ExtractionError.externalLLMError(response: rawResponse)
+                default:
+                    throw error
+                }
+            }
+        } catch {
+            // その他のエラーの場合は、rawResponseを含むExtractionErrorに変換
+            if !rawResponse.isEmpty {
+                throw ExtractionError.invalidJSONFormat(aiResponse: rawResponse)
+            } else {
+                throw ExtractionError.invalidInput
+            }
         }
-        
-        guard let session = self.session else {
-            throw ExtractionError.languageModelUnavailable
-        }
-        
-        defer {
-            log.debug("🧹 セッションを解放")
-            self.session = nil
-        }
-        
-        // 抽出方法に応じた処理を実行
-        let accountInfo: AccountInfo
-        let rawResponse: String
-        
-        switch method {
-        case .generable:
-            (accountInfo, rawResponse) = try await performGenerableExtraction(session: session, prompt: prompt)
-        case .json:
-            (accountInfo, rawResponse) = try await performJSONExtraction(session: session, prompt: prompt)
-        case .yaml:
-            throw ExtractionError.methodNotSupported("YAML method is not supported in FoundationModels")
-        }
-        
-        let extractionTime = CFAbsoluteTimeGetCurrent() - startTime
-        
-        log.info("✅ FoundationModels抽出完了 - 時間: \(String(format: "%.3f", extractionTime))秒")
-        
-        return ExtractionResult(
-            accountInfo: accountInfo,
-            rawResponse: rawResponse,
-            requestContent: prompt, // FoundationModelsではプロンプト全文をリクエスト内容として使用
-            extractionTime: extractionTime,
-            method: method
-        )
     }
     
     /// セッションを初期化
