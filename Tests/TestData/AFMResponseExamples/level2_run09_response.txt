@@ -1,0 +1,12 @@
+```json
+{
+  "title": "AWS EC2アカウント",
+  "userID": "admin@example.com",
+  "password": "SecurePass18329",
+  "url": "https://aws.amazon.com/ec2/v2/",
+  "note": "AWS EC2アカウント情報",
+  "host": "169.254.169.254",
+  "port": "22",
+  "authKey": "BEGIN\nSecurePass18329\nEND"
+}
+```

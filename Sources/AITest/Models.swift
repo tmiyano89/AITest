@@ -133,3 +133,23 @@ struct PerformanceStatistics {
         self.percentile99 = sortedValues[Int(count * 0.99)]
     }
 }
+
+/// @ai[2024-12-19 15:30] アカウント抽出結果の構造体
+/// アカウント情報抽出の結果を格納
+@available(iOS 26.0, macOS 26.0, *)
+public struct AccountExtractionResult: Identifiable {
+    public let id = UUID()
+    public let success: Bool
+    public let accountInfo: AccountInfo?
+    public let metrics: ExtractionMetrics?
+    public let error: Error?
+    public let timestamp: Date
+    
+    public init(success: Bool, accountInfo: AccountInfo? = nil, metrics: ExtractionMetrics? = nil, error: Error? = nil) {
+        self.success = success
+        self.accountInfo = accountInfo
+        self.metrics = metrics
+        self.error = error
+        self.timestamp = Date()
+    }
+}

@@ -1,0 +1,33 @@
+# AI Response Collection
+Level: level3
+Run: 6
+Extraction Time: 2.671 seconds
+Timestamp: 2025-10-19 05:01:19 +0000
+
+# Raw AI Response
+```json
+{
+  "title": "MyServer",
+  "userID": "myusername@example.com",
+  "note": "This is a test account for server management.",
+  "url": "https://example.com/login",
+  "host": "192.168.1.1",
+  "port": 22,
+  "authKey": "BEGINssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAoIBAQYJQ396dQ==END"
+}
+```
+
+# Extracted AccountInfo
+Title: MyServer
+UserID: myusername@example.com
+Password: nil
+URL: https://example.com/login
+Note: This is a test account for server management.
+Host: 192.168.1.1
+Port: 22
+AuthKey: BEGINssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAoIBAQYJQ396dQ==END
+Confidence: nil
+
+# Note
+This response was generated using the new unified extraction flow.
+The raw response text is now accessible for analysis.

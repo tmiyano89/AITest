@@ -1,0 +1,5 @@
+# AI Response Collection - Error
+Level: level1
+Run: 8
+Error: 無効なJSON形式です
+Timestamp: 2025-10-19 04:36:00 +0000

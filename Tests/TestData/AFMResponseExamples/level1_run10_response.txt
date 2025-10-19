@@ -1,0 +1,34 @@
+# AI Response Collection
+Level: level1
+Run: 10
+Extraction Time: 10.424 seconds
+Timestamp: 2025-10-19 04:59:20 +0000
+
+# Raw AI Response
+```json
+{
+  "title": "MyWebService",
+  "userID": "user@example.com",
+  "password": "******",
+  "url": "https://example.com/login",
+  "note": "このアカウントはテスト目的で使用中",
+  "host": "localhost",
+  "port": 22,
+  "authKey": "BEGINssh-rsa AAAAB3NzaC1yc2EAAAACgkIDAQABAAABAAICQ35x58gXaV8oH7wXfK4s0KJgXv5o57F2k9oYyvjR72vj5tTm3q0x53v16P7nWcI2F02F6Z0N9LmWUyYz0zJqU78Nj8YG45NtI5f7KJt5ZjY9h9TkZgK10H34oZ7GdA35J+8i/q5B0L5V30W+YvB27n7K/hFgL3mZ0e6Bd9J0Y3wJp1Pk0xqY+zZVt3K41fXqXy2F16s8sY133I5r/2gO/rVX5G4H44a0t3iE+d4aMqK9s6d8+cW1+2q3g==END"
+}
+```
+
+# Extracted AccountInfo
+Title: MyWebService
+UserID: user@example.com
+Password: ******
+URL: https://example.com/login
+Note: このアカウントはテスト目的で使用中
+Host: localhost
+Port: 22
+AuthKey: BEGINssh-rsa AAAAB3NzaC1yc2EAAAACgkIDAQABAAABAAICQ35x58gXaV8oH7wXfK4s0KJgXv5o57F2k9oYyvjR72vj5tTm3q0x53v16P7nWcI2F02F6Z0N9LmWUyYz0zJqU78Nj8YG45NtI5f7KJt5ZjY9h9TkZgK10H34oZ7GdA35J+8i/q5B0L5V30W+YvB27n7K/hFgL3mZ0e6Bd9J0Y3wJp1Pk0xqY+zZVt3K41fXqXy2F16s8sY133I5r/2gO/rVX5G4H44a0t3iE+d4aMqK9s6d8+cW1+2q3g==END
+Confidence: nil
+
+# Note
+This response was generated using the new unified extraction flow.
+The raw response text is now accessible for analysis.

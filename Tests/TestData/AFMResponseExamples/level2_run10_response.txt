@@ -1,0 +1,37 @@
+# AI Response Collection
+Level: level2
+Run: 10
+Extraction Time: 3.931 seconds
+Timestamp: 2025-10-19 05:00:52 +0000
+
+# Raw AI Response
+```json
+{
+  "title": "My SSH Server",
+  "userID": "user@example.com",
+  "password": "******",
+  "url": "https://example.com/ssh/login",
+  "note": "This is a note about the SSH server.",
+  "host": "192.168.1.10",
+  "port": 22,
+  "authKey": "-----BEGIN SSH PRIVATE KEY-----\nNjA1MTQ0NjA1MTQ0NjA1MTQ0NjA1MTQ0NjA1MTQ0NjA1MTQ0NjA1MTQ0NjA1MTQ0\nMTQ0NjA1MTQ0NjA1MTQ0NjA1MTQ0NjA1MTQ0NjA1MTQ0NjA1MTQ0NjA1MTQ0NjA1MTQ0\n-----END SSH PRIVATE KEY-----"
+}
+```
+
+# Extracted AccountInfo
+Title: My SSH Server
+UserID: user@example.com
+Password: ******
+URL: https://example.com/ssh/login
+Note: This is a note about the SSH server.
+Host: 192.168.1.10
+Port: 22
+AuthKey: -----BEGIN SSH PRIVATE KEY-----
+NjA1MTQ0NjA1MTQ0NjA1MTQ0NjA1MTQ0NjA1MTQ0NjA1MTQ0NjA1MTQ0NjA1MTQ0
+MTQ0NjA1MTQ0NjA1MTQ0NjA1MTQ0NjA1MTQ0NjA1MTQ0NjA1MTQ0NjA1MTQ0NjA1MTQ0
+-----END SSH PRIVATE KEY-----
+Confidence: nil
+
+# Note
+This response was generated using the new unified extraction flow.
+The raw response text is now accessible for analysis.

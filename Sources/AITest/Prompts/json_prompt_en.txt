@@ -1,11 +1,11 @@
-Extract account-related information from the following text data and respond in the following JSON format.
+Extract account-related information from the following text data and respond in the following valid JSON format.
 
 Constraints:
 - Set any fields that cannot be extracted to null
-- For the note field, summarize the account's purpose and any important details
+- title and note fields are required
 - For the authKey field, output the complete string including the BEGIN and END lines of the key
-- Port numbers should be integers in the range 1-65535
-- Confidence should be a self-evaluation in the range 0.0-1.0
+- All values must be string type and escape newlines if included
+- Respond with JSON string only, no other text
 
 JSON format:
 {
@@ -16,8 +16,7 @@ JSON format:
   "note": "Notes, memos, additional information",
   "host": "Hostname or IP address",
   "port": Port number,
-  "authKey": "Authentication key (SSH private key, etc.)",
-  "confidence": Confidence level
+  "authKey": "Authentication key (SSH private key, etc.)"
 }
 
 Text data:

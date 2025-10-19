@@ -8,12 +8,12 @@ import FoundationModels
 /// 注意：現在のマクロの仕様により、@Generableを指定した構造体をpublicにするとビルドエラーが発生します
 /// そのため、SecureExtractAPIのメソッドもinternalとして定義し、外部からは別の方法でアクセスします
 @available(iOS 26.0, macOS 26.0, *)
-@Generable(description: "アカウントに関する情報の構造化データ")
+@Generable(description: "サービスのアカウントに関する情報")
 public struct AccountInfo: Codable, Identifiable, Sendable {
     public let id = UUID()
     
     /// サービス名、アプリ名、サイト名
-    @Guide(description: "サービスやシステムの名前または提供者名(例: 'Example Server', 'GitHub')")
+    @Guide(description: "サービスやシステムの名前または提供者名(例: 'Example Server', 'GitHub')[必須]")
     public var title: String?
     
     /// メールアドレス、ユーザー名、ログインID
@@ -29,7 +29,7 @@ public struct AccountInfo: Codable, Identifiable, Sendable {
     public var url: String?
     
     /// 備考、メモ、追加情報
-    @Guide(description: "ToDoや注意事項などの補足情報の要約(例: 'Firewall allows port 8080\nufw allow 8080/tcp\n契約期限は2025年12月31日まで')")
+    @Guide(description: "サービスに関する補足情報(例: 'Firewall allows port 8080\nufw allow 8080/tcp\n契約期限は2025年12月31日まで')[必須]")
     public var note: String?
     
     /// ホスト名またはIPアドレス（SSH/RDP接続用）
@@ -359,7 +359,7 @@ public struct FieldLevelAnalysis: Codable, Sendable {
     /// 総テスト数
     public let totalTests: Int
     
-    public init(results: [SingleTestResult], testText: String) {
+    public init(results: [AccountExtractionResult], testText: String) {
         let fields = ["title", "userID", "password", "url", "note", "host", "port", "authKey"]
         var fieldSuccessRates: [String: Double] = [:]
         var fieldExtractionCounts: [String: Int] = [:]
@@ -422,8 +422,8 @@ public struct FieldLevelAnalysis: Codable, Sendable {
         self.fieldErrorCounts = fieldErrorCounts
         self.fieldCharacterAccuracy = fieldCharacterAccuracy
         self.fieldExpectedValues = fieldExpectedValues
-        self.noteContentAnalysis = NoteContentAnalysis(results: results)
-        self.aiResponseAnalysis = AIResponseAnalysis(results: results, testText: testText)
+        self.noteContentAnalysis = NoteContentAnalysis(from: results)
+        self.aiResponseAnalysis = AIResponseAnalysis(from: results)
         self.totalTests = totalTests
     }
     
@@ -514,170 +514,6 @@ public struct NoteContentItem: Codable, Sendable {
     }
 }
 
-/// noteフィールドの内容分析
-@available(iOS 26.0, macOS 26.0, *)
-public struct NoteContentAnalysis: Codable, Sendable {
-    /// 抽出されたnote内容のランキング
-    public let noteContentRanking: [NoteContentItem]
-    /// 最も頻出するnote内容
-    public let mostCommonNote: String?
-    /// note内容の多様性スコア（0.0-1.0）
-    public let diversityScore: Double
-    /// 総note抽出数
-    public let totalNoteExtractions: Int
-    
-    public init(results: [SingleTestResult]) {
-        var noteCounts: [String: Int] = [:]
-        var totalExtractions = 0
-        
-        for result in results {
-            guard let accountInfo = result.accountInfo,
-                  let note = accountInfo.note,
-                  !note.isEmpty else { continue }
-            
-            totalExtractions += 1
-            noteCounts[note, default: 0] += 1
-        }
-        
-        // 頻度順にソート
-        self.noteContentRanking = noteCounts.sorted { $0.value > $1.value }.map { NoteContentItem(content: $0.key, count: $0.value) }
-        self.mostCommonNote = noteContentRanking.first?.content
-        self.totalNoteExtractions = totalExtractions
-        
-        // 多様性スコアを計算（ユニークな内容数 / 総抽出数）
-        self.diversityScore = totalExtractions > 0 ? Double(noteCounts.count) / Double(totalExtractions) : 0.0
-    }
-}
-
-/// AI回答分析
-@available(iOS 26.0, macOS 26.0, *)
-public struct AIResponseAnalysis: Codable, Sendable {
-    /// 分析者の所感
-    public let analysisInsights: String
-    /// 主要な問題点
-    public let mainIssues: [String]
-    /// 成功パターン
-    public let successPatterns: [String]
-    /// 改善提案
-    public let improvementSuggestions: [String]
-    /// 総分析回数
-    public let totalAnalyses: Int
-    
-    public init(results: [SingleTestResult], testText: String) {
-        self.totalAnalyses = results.count
-        
-        // 基本的な分析を実行
-        let successCount = results.filter { $0.success }.count
-        
-        var issues: [String] = []
-        var patterns: [String] = []
-        var suggestions: [String] = []
-        
-        // 成功率に基づく分析
-        if successCount == 0 {
-            issues.append("全テストで抽出失敗 - テストケースの複雑さが高すぎる可能性")
-            suggestions.append("テストケースを簡素化するか、プロンプトを改善する")
-        } else if successCount < results.count / 2 {
-            issues.append("成功率が50%未満 - 一貫性に問題")
-            suggestions.append("AIの理解を深めるためのプロンプト改善が必要")
-        } else if successCount == results.count {
-            patterns.append("100%成功 - テストケースが適切な難易度")
-        }
-        
-        // フィールド別分析
-        let fieldAnalysis = Self.analyzeFieldConsistency(results: results)
-        issues.append(contentsOf: fieldAnalysis.issues)
-        patterns.append(contentsOf: fieldAnalysis.patterns)
-        suggestions.append(contentsOf: fieldAnalysis.suggestions)
-        
-        // バリデーションエラー分析
-        let validationIssues = Self.analyzeValidationErrors(results: results)
-        issues.append(contentsOf: validationIssues)
-        
-        self.mainIssues = Array(Set(issues)) // 重複除去
-        self.successPatterns = Array(Set(patterns))
-        self.improvementSuggestions = Array(Set(suggestions))
-        
-        // 総合所感を生成
-        self.analysisInsights = Self.generateInsights(
-            successCount: successCount,
-            totalCount: results.count,
-            issues: self.mainIssues,
-            patterns: self.successPatterns
-        )
-    }
-    
-    private static func analyzeFieldConsistency(results: [SingleTestResult]) -> (issues: [String], patterns: [String], suggestions: [String]) {
-        var issues: [String] = []
-        var patterns: [String] = []
-        var suggestions: [String] = []
-        
-        let fields = ["title", "userID", "password", "url", "note", "host", "port", "authKey"]
-        
-        for field in fields {
-            let fieldResults = results.compactMap { result -> String? in
-                guard let accountInfo = result.accountInfo else { return nil }
-                return accountInfo.getValue(for: field)
-            }
-            
-            let uniqueValues = Set(fieldResults)
-            if uniqueValues.count > 1 {
-                issues.append("\(field)フィールドで一貫性がない - \(uniqueValues.count)種類の異なる値")
-                suggestions.append("\(field)フィールドの抽出ロジックを改善")
-            } else if uniqueValues.count == 1 && !fieldResults.isEmpty {
-                patterns.append("\(field)フィールドで一貫した抽出")
-            }
-        }
-        
-        return (issues, patterns, suggestions)
-    }
-    
-    private static func analyzeValidationErrors(results: [SingleTestResult]) -> [String] {
-        var issues: [String] = []
-        
-        let validationErrorCount = results.filter { result in
-            guard let metrics = result.metrics else { return false }
-            return !metrics.validationResult.isValid
-        }.count
-        
-        if validationErrorCount > 0 {
-            issues.append("\(validationErrorCount)回のバリデーションエラー - データ形式の問題")
-        }
-        
-        return issues
-    }
-    
-    private static func generateInsights(successCount: Int, totalCount: Int, issues: [String], patterns: [String]) -> String {
-        let successRate = Double(successCount) / Double(totalCount)
-        
-        var insights = "AI抽出性能分析結果:\n"
-        insights += "• 成功率: \(String(format: "%.1f", successRate * 100))% (\(successCount)/\(totalCount))\n"
-        
-        if !patterns.isEmpty {
-            insights += "• 成功パターン:\n"
-            for pattern in patterns.prefix(3) {
-                insights += "  - \(pattern)\n"
-            }
-        }
-        
-        if !issues.isEmpty {
-            insights += "• 主要な問題:\n"
-            for issue in issues.prefix(3) {
-                insights += "  - \(issue)\n"
-            }
-        }
-        
-        if successRate >= 0.8 {
-            insights += "• 総評: 良好な抽出性能を示している"
-        } else if successRate >= 0.5 {
-            insights += "• 総評: 改善の余地がある抽出性能"
-        } else {
-            insights += "• 総評: 大幅な改善が必要な抽出性能"
-        }
-        
-        return insights
-    }
-}
 
 /// AccountInfoのフィールド存在チェック用拡張
 @available(iOS 26.0, macOS 26.0, *)
@@ -802,10 +638,13 @@ public enum ExtractionError: LocalizedError {
     case modelNotReady
     case aifmNotSupported
     case invalidImageData
-    case promptTemplateNotFound
+    case promptTemplateNotFound(String)
     case invalidJSONFormat(aiResponse: String?)
     case invalidYAMLFormat
     case externalLLMError(response: String)
+    case methodNotSupported(String)
+    case invalidPattern(String)
+    case testDataNotFound(String)
     
     /// AIレスポンスを取得
     public var aiResponse: String? {
@@ -837,14 +676,20 @@ public enum ExtractionError: LocalizedError {
             return "FoundationModelsがサポートされていません"
         case .invalidImageData:
             return "無効な画像データです"
-        case .promptTemplateNotFound:
-            return "プロンプトテンプレートファイルが見つかりません"
+        case .promptTemplateNotFound(let filePath):
+            return "プロンプトテンプレートファイルが見つかりません: \(filePath)"
         case .invalidJSONFormat:
             return "無効なJSON形式です"
         case .invalidYAMLFormat:
             return "無効なYAML形式です"
-        case .externalLLMError(let response):
+        case .externalLLMError(_):
             return "外部LLMエラー: 無効なJSON形式です"
+        case .methodNotSupported(let method):
+            return "メソッドがサポートされていません: \(method)"
+        case .invalidPattern(let pattern):
+            return "無効なパターンです: \(pattern)"
+        case .testDataNotFound(let path):
+            return "テストデータが見つかりません: \(path)"
         }
     }
 }

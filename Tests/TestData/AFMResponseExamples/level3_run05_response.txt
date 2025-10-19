@@ -1,0 +1,36 @@
+# AI Response Collection
+Level: level3
+Run: 5
+Extraction Time: 1.792 seconds
+Timestamp: 2025-10-19 05:01:15 +0000
+
+# Raw AI Response
+```json
+{
+  "title": "メールアカウント",
+  "userID": "ユーザー@メールサーバー.com",
+  "password": null,
+  "url": "https://メールサーバー.com/accounts/login",
+  "note": "このアカウントはメール通知を受け取るために設定されています",
+  "host": null,
+  "port": null,
+  "authKey": "BEGIN\nSSH秘密鍵\nEND"
+}
+```
+
+# Extracted AccountInfo
+Title: メールアカウント
+UserID: ユーザー@メールサーバー.com
+Password: nil
+URL: https://メールサーバー.com/accounts/login
+Note: このアカウントはメール通知を受け取るために設定されています
+Host: nil
+Port: nil
+AuthKey: BEGIN
+SSH秘密鍵
+END
+Confidence: nil
+
+# Note
+This response was generated using the new unified extraction flow.
+The raw response text is now accessible for analysis.

@@ -28,7 +28,7 @@ class ExperimentConfig:
         """抽出方法を取得"""
         if "_json" in self.pattern:
             return "json"
-        elif "_gen" in self.pattern:
+        elif "_generable" in self.pattern:
             return "generable"
         elif "_yaml" in self.pattern:
             return "yaml"
@@ -57,12 +57,24 @@ class ExperimentRunner:
         """単一の実験を実行"""
         print(f"🔬 実験実行中: {config.get_experiment_name()} (実行 {run_id}/{config.runs})")
         
-        # 実験実行コマンド
+        # 実験実行コマンド（新しい引数形式）
+        # パターン名は {testcase}_{algo}_{method} の形式
+        pattern_parts = config.pattern.split('_')
+        testcase = pattern_parts[0]  # chat
+        algo = pattern_parts[1]      # abs, strict, etc.
+        method = pattern_parts[2]    # generable, json, yaml
+        
+        # ログファイル用のディレクトリを指定（全パターン共通）
+        log_dir = str(self.base_output_dir)
+        
         cmd = [
             "swift", "run", "AITestApp", 
-            "--experiment", f"{config.get_method()}_{config.language}",
-            "--test-dir", str(self.base_output_dir),
-            "--pattern", config.pattern
+            "--method", method,
+            "--testcase", testcase,
+            "--algo", algo,
+            "--language", config.language,
+            "--runs", "1",
+            "--test-dir", log_dir
         ]
         
         # 環境変数としてrunNumberを渡す
@@ -292,9 +304,9 @@ def main():
                        choices=['chat', 'creditcard', 'contract', 'password', 'voice'],
                        help='テストケース (chat/creditcard/contract/password/voice, デフォルト: chat)')
     parser.add_argument('--algos', nargs='+', 
-                       default=['abs', 'strict', 'persona', 'twosteps', 'abs-ex', 'strict-ex', 'persona-ex'],
-                       choices=['abs', 'strict', 'persona', 'twosteps', 'abs-ex', 'strict-ex', 'persona-ex'],
-                       help='アルゴリズム (abs/strict/persona/twosteps/abs-ex/strict-ex/persona-ex, デフォルト: すべて)')
+                       default=['abs', 'strict', 'persona', 'abs-ex', 'strict-ex', 'persona-ex'],
+                       choices=['abs', 'strict', 'persona', 'abs-ex', 'strict-ex', 'persona-ex'],
+                       help='アルゴリズム (abs/strict/persona/abs-ex/strict-ex/persona-ex, デフォルト: すべて)')
     parser.add_argument('--levels', nargs='+', type=int, default=[1, 2, 3],
                        choices=[1, 2, 3],
                        help='レベル (1/2/3, デフォルト: 1,2,3)')

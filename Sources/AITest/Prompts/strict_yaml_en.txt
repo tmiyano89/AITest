@@ -1,9 +1,0 @@
-Extract account information from the following input and respond in YAML format.
-
-Constraints:
-  - Set only one value per field
-  - Guessing or fabrication is prohibited
-  - Copying examples is prohibited
-  - Set to null if ambiguous
-  - Output in consistent format
-  - Output in YAML format

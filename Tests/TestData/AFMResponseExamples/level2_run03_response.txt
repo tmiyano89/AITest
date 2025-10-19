@@ -1,0 +1,34 @@
+# AI Response Collection
+Level: level2
+Run: 3
+Extraction Time: 6.280 seconds
+Timestamp: 2025-10-19 04:59:34 +0000
+
+# Raw AI Response
+```json
+{
+  "title": "メールアカウント",
+  "userID": "user@example.com",
+  "password": "password123",
+  "url": "https://mail.example.com/login",
+  "note": "メールアカウントの設定詳細",
+  "host": "localhost",
+  "port": 25,
+  "authKey": "BEGINssh-rsa AAAAB3NzaC1yc2EAAAACgkQDElU0g0sX7s7mJq1PXfPp1u45jU40Q67VxjWq3t5hQ88C3411rD52h3WZ36w0Mv7xMw8DxK1f2d4k5t1Mz9P91k70Q4Dp7I5pQ3Z5h65C69oF2Fj0F6QKfWk8I5uX/K9iY6ZtN4c80y21z8YJQ==END"
+}
+```
+
+# Extracted AccountInfo
+Title: メールアカウント
+UserID: user@example.com
+Password: password123
+URL: https://mail.example.com/login
+Note: メールアカウントの設定詳細
+Host: localhost
+Port: 25
+AuthKey: BEGINssh-rsa AAAAB3NzaC1yc2EAAAACgkQDElU0g0sX7s7mJq1PXfPp1u45jU40Q67VxjWq3t5hQ88C3411rD52h3WZ36w0Mv7xMw8DxK1f2d4k5t1Mz9P91k70Q4Dp7I5pQ3Z5h65C69oF2Fj0F6QKfWk8I5uX/K9iY6ZtN4c80y21z8YJQ==END
+Confidence: nil
+
+# Note
+This response was generated using the new unified extraction flow.
+The raw response text is now accessible for analysis.

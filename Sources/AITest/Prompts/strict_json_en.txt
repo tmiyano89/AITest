@@ -1,4 +1,8 @@
-Extract account information from the attached document and respond in the following JSON format.
+Extract account information from the attached document and respond in the following valid JSON format.
+
+step1: Identify the service name (title) from the content
+step2: Pick up account-related information such as ID, password, etc. needed to use the service
+step3: Finally, summarize supplementary information (note) about the service
 
 Output JSON format:
 {
@@ -14,11 +18,11 @@ Output JSON format:
 
 Constraints:
 - Set only one value per field
+- title and note fields are required
 - Guessing or fabrication is prohibited
 - Copying examples is prohibited
 - Set to null if ambiguous
 - Set items that cannot be extracted to null
-- Summarize account usage and notes in the note field
 - Include complete string with BEGIN and END lines for authKey
-- Port number must be an integer between 1-65535
+- All values must be string type and escape newlines if included
 - Respond with JSON string only, no other text

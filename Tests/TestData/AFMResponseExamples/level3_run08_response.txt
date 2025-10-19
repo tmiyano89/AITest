@@ -1,0 +1,34 @@
+# AI Response Collection
+Level: level3
+Run: 8
+Extraction Time: 9.920 seconds
+Timestamp: 2025-10-19 05:01:34 +0000
+
+# Raw AI Response
+```json
+{
+  "title": "GitHub",
+  "userID": "user@example.com",
+  "url": "https://github.com/user",
+  "note": "このアカウントは開発の目的で使用されています。",
+  "host": "192.168.1.1",
+  "port": "22",
+  "authKey": "BEGINssh-rsa AAAAB3NzaC1yc2EAAAACgkQ81XJ6u6nN1V3z4VJx95vRwMd2pQZmD3hS9d11FdXK2YxU3kZb220yIYJZ3i2c5w9v9r7hQVfZ3cWr7z7FqkO69Xw0w6lUJQy15oE06t8QKp7O62v18N77Zh6eYt8j8F4nL2RZgX6g8qyR0VvR5r5Sd7a3FkDf2cY6K1j5R98Z5Mf8CxZqzY4pV59ZKt3sY4eZh5aVZ5Vg4vj897L4Q0hNQV45Wt0Sd1xV6WZQ8bC8M59kq6ZgK4J8r524d2q7n2g==\nEND"
+}
+```
+
+# Extracted AccountInfo
+Title: GitHub
+UserID: user@example.com
+Password: nil
+URL: https://github.com/user
+Note: このアカウントは開発の目的で使用されています。
+Host: 192.168.1.1
+Port: 22
+AuthKey: BEGINssh-rsa AAAAB3NzaC1yc2EAAAACgkQ81XJ6u6nN1V3z4VJx95vRwMd2pQZmD3hS9d11FdXK2YxU3kZb220yIYJZ3i2c5w9v9r7hQVfZ3cWr7z7FqkO69Xw0w6lUJQy15oE06t8QKp7O62v18N77Zh6eYt8j8F4nL2RZgX6g8qyR0VvR5r5Sd7a3FkDf2cY6K1j5R98Z5Mf8CxZqzY4pV59ZKt3sY4eZh5aVZ5Vg4vj897L4Q0hNQV45Wt0Sd1xV6WZQ8bC8M59kq6ZgK4J8r524d2q7n2g==
+END
+Confidence: nil
+
+# Note
+This response was generated using the new unified extraction flow.
+The raw response text is now accessible for analysis.

@@ -3,12 +3,21 @@
 ## 概要
 @Guideマクロ改善のための実験パターン（抽象指示、厳格指示、人格指示、例示有無、フォーマット）の性能比較実験を実行し、包括的な分析レポートを作成するための指示書です。
 
+## アーキテクチャ（最新実装）
+- **統一抽出フロー**: `UnifiedExtractor`による共通処理
+- **モデル抽象化**: `ModelExtractor`プロトコルによるFoundationModels/外部LLMの統一インターフェース
+- **JSON処理**: `JSONExtractor`による堅牢なJSON解析・サニタイズ
+- **ディレクトリ統一**: 全アルゴリズムが同じディレクトリに出力（`--test-dir`対応）
+- **リトライ機能**: 外部LLMでの真のリトライ実装
+
 **利用可能な引数**:
-- `--method`: `json`, `generable`, `yaml`（デフォルト: `generable`）
-- `--testcases`: `chat`, `creditcard`, `contract`, `password`, `voice`（デフォルト: `chat`）
+- `--method`: `json`, `generable`（デフォルト: `generable`）
+- `--testcase`: `chat`, `creditcard`, `contract`, `password`, `voice`（デフォルト: `chat`）
 - `--algos`: `abs`, `strict`, `persona`, `abs-ex`, `strict-ex`, `persona-ex`（デフォルト: 全6つ）
 - `--levels`: `1`, `2`, `3`（デフォルト: 全3つ）
 - `--language`: `ja`, `en`（デフォルト: `ja`）
+- `--runs`: 各テストケースの実行回数（デフォルト: `1`）
+- `--test-dir`: ログ出力ディレクトリの指定（オプション）
 
 ## 作業手順
 
@@ -23,10 +32,10 @@ python3 scripts/run_experiments.py --method json --runs 20 --language ja
 python3 scripts/run_experiments.py --method generable --algos abs strict persona --runs 10 --language ja
 
 # 特定のテストケースとレベルで実行
-python3 scripts/run_experiments.py --method json --testcases chat contract --levels 1 2 --runs 5 --language ja
+python3 scripts/run_experiments.py --method json --testcase chat --levels 1 2 --runs 5 --language ja
 
 # 全パラメータを明示的に指定
-python3 scripts/run_experiments.py --method json --testcases chat --algos abs strict persona abs-ex strict-ex persona-ex --levels 1 2 3 --runs 20 --language ja
+python3 scripts/run_experiments.py --method json --testcase chat --algos abs strict persona abs-ex strict-ex persona-ex --levels 1 2 3 --runs 20 --language ja
 ```
 
 #### 1.2 並列実行スクリプト（新しい引数方式）
@@ -38,7 +47,7 @@ python3 scripts/parallel_experiment_manager.py --method json --runs 20 --languag
 python3 scripts/parallel_experiment_manager.py --method generable --algos abs strict persona --runs 10 --language ja
 
 # 特定のテストケースとレベルで並列実行
-python3 scripts/parallel_experiment_manager.py --method json --testcases chat contract --levels 1 2 --runs 5 --language ja
+python3 scripts/parallel_experiment_manager.py --method json --testcase chat --levels 1 2 --runs 5 --language ja
 
 # 実行結果の確認（タイムスタンプ付きテストディレクトリ内）
 ls -la test_logs/
@@ -73,7 +82,7 @@ FoundationModelsの性能を客観的に評価するため、外部ローカルL
 ##### その他の手順
 - **レポート生成**: 既存の手順と同じ（`python3 scripts/generate_combined_report.py test_logs/202510180757_external_llm_experiment`）
 - **pending項目検証**: 既存の手順と同じ（`python3 scripts/extract_pending_items.py "level1" "title" --log-dir "test_logs/202510180757_external_llm_experiment" --all-items`）
-- **ログ形式**: 既存の形式と同じ（`{pattern}_{algo}_{method}_{lang}_{level}_{run#}.json`）
+- **ログ形式**: 既存の形式と同じ（`{testcase}_{algo}_{method}_{lang}_{level}_{run#}.json`）
 
 **注意**: 外部LLM実験は、AI部分のみを置き換えるだけで、他の手順には一切影響を与えません。
 
@@ -81,27 +90,32 @@ FoundationModelsの性能を客観的に評価するため、外部ローカルL
 
 ```bash
 # プロンプトデバッグ（指定したパターンのプロンプトを確認）
-swift run AITestApp --debug-prompt --method json --testcase strict --language ja
+swift run AITestApp --debug-prompt --method json --testcase chat --language ja
 
 # 単一テスト実行（デバッグ用）
-swift run AITestApp --debug-single --method json --testcase strict --language ja
+swift run AITestApp --debug-single --method json --testcase chat --language ja
 
-# 特定パターンの実験実行
-swift run AITestApp --method json --testcase strict --language ja --runs 5
+# 特定パターンの実験実行（全アルゴリズム）
+swift run AITestApp --method json --testcase chat --language ja --algos abs strict persona --runs 5
 
 # 外部LLMでの実行
-swift run AITestApp --method json --testcase strict --language ja --external-llm-url "http://182.171.83.172" --external-llm-model "openai/gpt-oss-20b"
+swift run AITestApp --method json --testcase chat --language ja --external-llm-url "http://182.171.83.172" --external-llm-model "openai/gpt-oss-20b"
+
+# 統一ディレクトリでの実行（推奨）
+swift run AITestApp --method generable --testcase chat --language ja --algos abs strict persona abs-ex strict-ex persona-ex --runs 3 --test-dir test_logs/unified_experiment
 ```
 
 #### 1.5 ログファイルの場所（最新実装）
-- **実験実行ディレクトリ**: `test_logs/yyyymmddhhmm_実験名/`
+- **実験実行ディレクトリ**: `test_logs/yyyymmddhhmm_実験名/`（統一されたディレクトリ）
 - **最新実行ディレクトリ**: `test_logs/latest`（シンボリックリンク）
 - **構造化JSONログ**: `test_logs/yyyymmddhhmm_実験名/{testcase}_{algo}_{method}_{lang}_{level}_{run#}.json`
-  - 例: `test_logs/202510171800_multi_experiments/chat_abs_gen_ja_level1_run1.json`
-  - 例: `test_logs/202510180757_external_llm_experiment/chat_abs_json_ja_level1_run1.json`
-  - 例: `test_logs/202501181952_json_experiment/chat_strict_json_ja_level1_run1.json`
+  - 例: `test_logs/202510191631_generable_ja/chat_abs_generable_ja_level1_run1.json`
+  - 例: `test_logs/202510191631_generable_ja/chat_strict_generable_ja_level2_run3.json`
+  - 例: `test_logs/202510191631_generable_ja/chat_persona-ex_generable_ja_level3_run2.json`
 - **統合レポート**: `test_logs/yyyymmddhhmm_実験名/parallel_format_experiment_report.html`
 - **詳細メトリクス**: `test_logs/yyyymmddhhmm_実験名/detailed_metrics.json`
+
+**重要**: 最新の実装では、すべてのアルゴリズムが統一されたディレクトリに出力されます。`--test-dir`引数でディレクトリを指定することで、時間経過に関係なく同じディレクトリにログが出力されます。
 
 ### 2. レポート生成
 
@@ -204,7 +218,7 @@ python3 scripts/extract_pending_items.py "level3" "note" --log-dir "test_logs/20
 ```csv
 ファイル名,判定,理由
 chat_abs_generable_ja_level1_run1.json,title,wrong,テストデータに「AWO」の記述なし
-chat_twosteps_generable_ja_level1_run15.json,note,wrong,テストデータの内容と不整合
+chat_strict_generable_ja_level1_run15.json,note,wrong,テストデータの内容と不整合
 chat_abs_generable_ja_level2_run17.json,title,missing,テストデータに「AWS EC2インスタンス」の記述があるが抽出されていない
 ```
 
@@ -300,10 +314,9 @@ open test_logs/latest/parallel_format_experiment_report.html
    - 例示なし: 基本性能の測定
    - 例示あり: few-shot学習による性能向上効果
 
-3. **フォーマット別比較（@Generable vs JSON vs YAML）**
+3. **フォーマット別比較（@Generable vs JSON）**
    - @Generable: 型安全な構造化抽出（FoundationModels専用）
    - JSON: テキストベースの構造化抽出（外部LLM互換）
-   - YAML: 人間可読な構造化抽出
 
 
 #### 5.3 具体的な問題点の指摘と原因考察
@@ -328,7 +341,7 @@ open test_logs/latest/parallel_format_experiment_report.html
    - 人格指示の有効性
 
 5. **フォーマット別性能差の原因分析**
-   - @Generable vs JSON vs YAMLの性能差
+   - @Generable vs JSONの性能差
    - プロンプトテンプレートの効果
    - 外部LLM互換性の影響
 
@@ -395,8 +408,12 @@ open reports/final_format_experiment_report.html
 - `reports/final_format_experiment_report.html`: 最終レポート（AI分析・加筆後）
 - `Sources/AITest/Prompts/`: プロンプトテンプレートファイル（ファイルベース）
   - `{type}_{method}_{language}.txt`形式（例: `strict_json_ja.txt`）
-  - 基本指示文、JSONフォーマット、YAMLフォーマットに対応
-- `Sources/AITest/AccountExtractor.swift`: 抽出方法実装
+  - 基本指示文、JSONフォーマットに対応
+- `Sources/AITest/ModelExtractor.swift`: モデル抽象化インターフェース
+- `Sources/AITest/UnifiedExtractor.swift`: 統一抽出フロー
+- `Sources/AITest/FoundationModelsExtractor.swift`: FoundationModels抽出実装
+- `Sources/AITest/ExternalLLMExtractor.swift`: 外部LLM抽出実装
+- `Sources/AITest/JSONExtractor.swift`: JSON解析・サニタイズ処理
 - `Sources/AITestApp/main.swift`: コンソールアプリケーション
 - `Sources/AITest/PatternDefinitions.swift`: 実験パターン定義
 - `docs/EXPERIMENT_PATTERNS.md`: 実験パターン仕様書

@@ -1,0 +1,34 @@
+# AI Response Collection
+Level: level2
+Run: 7
+Extraction Time: 11.928 seconds
+Timestamp: 2025-10-19 05:00:03 +0000
+
+# Raw AI Response
+```json
+{
+  "title": "メールアカウント",
+  "userID": "user@example.com",
+  "password": "password123",
+  "url": "https://example.com/login",
+  "note": "このアカウントはメールサービスを利用するためのものです",
+  "host": "localhost",
+  "port": 22,
+  "authKey": "BEGINssh-rsa AAAAB3NzaC1yc2EAAAACgkIDAQABAAABAAEBAQABAC0wAAAIAAAJBAQEFAAQDBgQwAQEAwH5jg2Q8R6b3wLxK4h479tZG9ZlC2124T8mGQY5h3aYmXtY7gZ5fI6ZvWmE3e8qzHk3h0N3q5w7HkQ901jBQ3H0e5Q0eBz2w3WwNn071Mp6iZy9Qp8X491ZQ39fZ8R2g7nPwYy0Wr105Z54v7fR10D4WlY88f97v2kqMlW9R07u01JmQ2Wm13rO2pN1T9SxRw3LpO7hZ29bV7G2w2kQ5Vk1IcYvVk48f4hQo4u8g6aTb3M5pYzL01q175v5W7YR65nKt1q8w5VQ=="
+}
+```
+
+# Extracted AccountInfo
+Title: メールアカウント
+UserID: user@example.com
+Password: password123
+URL: https://example.com/login
+Note: このアカウントはメールサービスを利用するためのものです
+Host: localhost
+Port: 22
+AuthKey: BEGINssh-rsa AAAAB3NzaC1yc2EAAAACgkIDAQABAAABAAEBAQABAC0wAAAIAAAJBAQEFAAQDBgQwAQEAwH5jg2Q8R6b3wLxK4h479tZG9ZlC2124T8mGQY5h3aYmXtY7gZ5fI6ZvWmE3e8qzHk3h0N3q5w7HkQ901jBQ3H0e5Q0eBz2w3WwNn071Mp6iZy9Qp8X491ZQ39fZ8R2g7nPwYy0Wr105Z54v7fR10D4WlY88f97v2kqMlW9R07u01JmQ2Wm13rO2pN1T9SxRw3LpO7hZ29bV7G2w2kQ5Vk1IcYvVk48f4hQo4u8g6aTb3M5pYzL01q175v5W7YR65nKt1q8w5VQ==
+Confidence: nil
+
+# Note
+This response was generated using the new unified extraction flow.
+The raw response text is now accessible for analysis.

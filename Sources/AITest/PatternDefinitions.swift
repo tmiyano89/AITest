@@ -11,6 +11,25 @@ public enum ExtractionMethod: String, CaseIterable, Codable, Sendable {
     case yaml = "yaml"
 }
 
+/// @ai[2025-01-18 12:05] プロンプト言語の定義
+/// 目的: プロンプトの言語を型安全に管理
+/// 背景: 日本語と英語の2つの言語に対応
+/// 意図: 言語別のプロンプト生成を最適化
+@available(iOS 26.0, macOS 26.0, *)
+public enum PromptLanguage: String, CaseIterable, Codable, Sendable {
+    case japanese = "ja"
+    case english = "en"
+    
+    public var displayName: String {
+        switch self {
+        case .japanese:
+            return "日本語"
+        case .english:
+            return "English"
+        }
+    }
+}
+
 /// @ai[2025-01-10 22:20] 実験パターン定義
 /// 目的: @Guideマクロ改善のための組み合わせパターンを一元管理
 /// 背景: Instructions/Prompt/@Guide/@Generableの組み合わせでAFMの傾向を把握

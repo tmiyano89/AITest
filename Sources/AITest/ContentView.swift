@@ -4,8 +4,6 @@ import SwiftUI
 /// Apple Intelligence Foundation Modelの性能測定UIを提供
 @available(iOS 26.0, macOS 26.0, *)
 struct ContentView: View {
-    @StateObject private var benchmarkManager = BenchmarkManager()
-    @StateObject private var accountBenchmark = AccountExtractionBenchmark()
     // @ai[2024-12-19 17:00] ビルドエラー修正: AISupportCheckerはiOS 26+でのみ利用可能
     // エラー: 'AISupportChecker' is only available in macOS 26.0 or newer
     // エラー: generic struct 'StateObject' requires that 'AISupportChecker?' conform to 'ObservableObject'
@@ -149,246 +147,21 @@ struct ContentView: View {
         results = []
         accountResults = []
         
+        // ベンチマーク機能は削除されました
         Task {
-            do {
-                if selectedBenchmarkType == .general {
-                    let newResults = try await benchmarkManager.runBenchmark(type: selectedTestType)
-                    await MainActor.run {
-                        self.results = newResults
-                        self.isRunning = false
-                    }
-                } else {
-                    // @ai[2024-12-19 18:30] concurrencyエラー修正: 直接実行
-                    do {
-                        try await accountBenchmark.runBenchmark()
-                        await MainActor.run {
-                            self.accountResults = accountBenchmark.results
-                            self.isRunning = false
-                        }
-                    } catch {
-                        await MainActor.run {
-                            self.isRunning = false
-                            print("❌ Account benchmark failed: \(error.localizedDescription)")
-                        }
-                    }
-                }
-            } catch {
-                await MainActor.run {
-                    self.isRunning = false
-                    // エラーハンドリング
-                    print("❌ Benchmark failed: \(error.localizedDescription)")
-                }
+            await MainActor.run {
+                self.isRunning = false
+                print("ℹ️ ベンチマーク機能は削除されました")
             }
         }
     }
 }
 
-/// @ai[2024-12-19 15:30] 結果表示ビュー
-/// ベンチマーク結果を視覚的に表示
-@available(iOS 15.0, macOS 12.0, *)
-struct ResultsView: View {
-    let results: [BenchmarkResult]
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Results")
-                .font(.headline)
-                .padding(.horizontal)
-            
-            ScrollView {
-                LazyVStack(spacing: 8) {
-                    ForEach(results, id: \.id) { result in
-                        ResultRowView(result: result)
-                    }
-                }
-                .padding(.horizontal)
-            }
-        }
-        .background(Color.gray.opacity(0.1))
-        .cornerRadius(10)
-        .padding(.horizontal)
-    }
-}
 
-/// @ai[2024-12-19 15:30] 個別結果行ビュー
-/// 各ベンチマーク結果の詳細を表示
-@available(iOS 15.0, macOS 12.0, *)
-struct ResultRowView: View {
-    let result: BenchmarkResult
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack {
-                Text(result.modelName)
-                    .font(.subheadline)
-                    .fontWeight(.medium)
-                Spacer()
-                Text(String(format: "%.2fms", result.inferenceTime))
-                    .font(.caption)
-                    .foregroundColor(.blue)
-            }
-            
-            HStack {
-                Text("Memory: \(String(format: "%.1f", result.memoryUsage))MB")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                
-                Spacer()
-                
-                Text("CPU: \(String(format: "%.1f", result.cpuUsage))%")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-        }
-        .padding()
-        .background(Color.white.opacity(0.8))
-        .cornerRadius(8)
-    }
-}
 
-/// @ai[2024-12-19 16:00] Account結果表示ビュー
-/// Account情報抽出の結果を視覚的に表示
-@available(iOS 26.0, macOS 26.0, *)
-struct AccountResultsView: View {
-    let results: [AccountExtractionResult]
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Account Extraction Results")
-                .font(.headline)
-                .padding(.horizontal)
-            
-            ScrollView {
-                LazyVStack(spacing: 8) {
-                    ForEach(results, id: \.id) { result in
-                        AccountResultRowView(result: result)
-                    }
-                }
-                .padding(.horizontal)
-            }
-        }
-        .background(Color.gray.opacity(0.1))
-        .cornerRadius(10)
-        .padding(.horizontal)
-    }
-}
 
-/// @ai[2024-12-19 16:00] Account結果行ビュー
-/// 各Account抽出結果の詳細を表示
-@available(iOS 26.0, macOS 26.0, *)
-struct AccountResultRowView: View {
-    let result: AccountExtractionResult
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack {
-                Text("Test \(result.id.uuidString.prefix(8))")
-                    .font(.subheadline)
-                    .fontWeight(.medium)
-                Spacer()
-                if result.success {
-                    Text("✅ Success")
-                        .font(.caption)
-                        .foregroundColor(.green)
-                } else {
-                    Text("❌ Failed")
-                        .font(.caption)
-                        .foregroundColor(.red)
-                }
-            }
-            
-            if let metrics = result.metrics {
-                HStack {
-                    Text("Time: \(String(format: "%.2f", metrics.extractionTime))s")
-                        .font(.caption)
-                        .foregroundColor(.blue)
-                    
-                    Spacer()
-                    
-                    Text("Memory: \(String(format: "%.1f", metrics.memoryUsed))MB")
-                        .font(.caption)
-                        .foregroundColor(.orange)
-                    
-                    Spacer()
-                    
-                    Text("Fields: \(result.accountInfo?.extractedFieldsCount ?? 0)")
-                        .font(.caption)
-                        .foregroundColor(.purple)
-                }
-            }
-            
-            if let error = result.error {
-                Text("Error: \(error)")
-                    .font(.caption)
-                    .foregroundColor(.red)
-            }
-        }
-        .padding()
-        .background(Color.white.opacity(0.8))
-        .cornerRadius(8)
-    }
-}
 
-/// ベンチマークタイプ
-enum BenchmarkType: String, CaseIterable {
-    case general = "General"
-    case accountExtraction = "Account Extraction"
-    
-    var displayName: String {
-        switch self {
-        case .general:
-            return "一般性能"
-        case .accountExtraction:
-            return "Account抽出"
-        }
-    }
-}
 
-/// AIサポートステータス表示ビュー
-@available(iOS 26.0, macOS 26.0, *)
-struct AISupportStatusView: View {
-    let supportStatus: AISupportStatus
-    
-    var body: some View {
-        HStack {
-            Image(systemName: statusIcon)
-                .foregroundColor(statusColor)
-            Text(supportStatus.displayName)
-                .font(.caption)
-                .foregroundColor(statusColor)
-        }
-        .padding(.vertical, 8)
-        .padding(.horizontal, 12)
-        .background(statusColor.opacity(0.1))
-        .cornerRadius(8)
-    }
-    
-    private var statusIcon: String {
-        switch supportStatus {
-        case .checking:
-            return "clock"
-        case .supported:
-            return "checkmark.circle.fill"
-        case .unsupportedOS, .deviceNotEligible, .appleIntelligenceNotEnabled, .modelNotReady:
-            return "exclamationmark.triangle.fill"
-        case .error:
-            return "xmark.circle.fill"
-        }
-    }
-    
-    private var statusColor: Color {
-        switch supportStatus {
-        case .checking:
-            return .orange
-        case .supported:
-            return .green
-        case .unsupportedOS, .deviceNotEligible, .appleIntelligenceNotEnabled, .modelNotReady:
-            return .red
-        case .error:
-            return .red
-        }
-    }
-}
 
 @available(iOS 26.0, macOS 26.0, *)
 #Preview {

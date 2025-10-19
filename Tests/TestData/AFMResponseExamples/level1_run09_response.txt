@@ -1,0 +1,34 @@
+# AI Response Collection
+Level: level1
+Run: 9
+Extraction Time: 3.595 seconds
+Timestamp: 2025-10-19 04:59:08 +0000
+
+# Raw AI Response
+```json
+{
+    "title": "GitHub",
+    "userID": "user@example.com",
+    "password": "null",
+    "url": "https://github.com/login",
+    "note": "GitHubのアカウントに関する備考",
+    "host": "null",
+    "port": "22",
+    "authKey": "BEGIN ssh-rsa AAAAB3NzaC1yc2EAAAACgkQ8hM7NwUyQeF131R6q5Y/JFd1hJwq3qQxTk0g/OQVJ+zFh1Pz8= END"
+}
+```
+
+# Extracted AccountInfo
+Title: GitHub
+UserID: user@example.com
+Password: null
+URL: https://github.com/login
+Note: GitHubのアカウントに関する備考
+Host: null
+Port: 22
+AuthKey: BEGIN ssh-rsa AAAAB3NzaC1yc2EAAAACgkQ8hM7NwUyQeF131R6q5Y/JFd1hJwq3qQxTk0g/OQVJ+zFh1Pz8= END
+Confidence: nil
+
+# Note
+This response was generated using the new unified extraction flow.
+The raw response text is now accessible for analysis.

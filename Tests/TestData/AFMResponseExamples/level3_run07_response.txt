@@ -1,0 +1,38 @@
+# AI Response Collection
+Level: level3
+Run: 7
+Extraction Time: 3.082 seconds
+Timestamp: 2025-10-19 05:01:23 +0000
+
+# Raw AI Response
+申し訳ありませんが、添付されたドキュメントの内容を直接参照することはできません。ただし、一般的な情報や一般的な質問に対しては、そのフォーマットに従ってJSON形式で回答することはできます。以下は、一般的な例です。
+
+```json
+{
+  "title": "メールアカウント",
+  "userID": "user@example.com",
+  "url": "https://example.com/login",
+  "note": "メインメールアカウント",
+  "host": "localhost",
+  "port": "22",
+  "authKey": "BEGIN:SSH-KEY ID:my_private_key\nEND:SSH-KEY"
+}
+```
+
+具体的な情報が必要な場合は、元のドキュメントの内容を参照してください。
+
+# Extracted AccountInfo
+Title: メールアカウント
+UserID: user@example.com
+Password: nil
+URL: https://example.com/login
+Note: メインメールアカウント
+Host: localhost
+Port: 22
+AuthKey: BEGIN:SSH-KEY ID:my_private_key
+END:SSH-KEY
+Confidence: nil
+
+# Note
+This response was generated using the new unified extraction flow.
+The raw response text is now accessible for analysis.
