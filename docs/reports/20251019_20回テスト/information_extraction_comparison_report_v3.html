@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>情報抽出 比較レポート v3（FoundationModels vs gpt-oss-20b）</title>
+<style>
+  :root { --bg:#0b0c10; --card:#121318; --ink:#e6e6e6; --muted:#aeb3c2; --accent:#6aa6ff; --accent2:#ffc857; --good:#31d0aa; --warn:#ffb703; --bad:#ef476f; --extra:#9b5de5; }
+  body { margin:0; padding:24px; background:var(--bg); color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic UI",system-ui,Roboto,"Segoe UI",sans-serif; line-height:1.6; }
+  h1,h2,h3 { line-height:1.25; }
+  .header { background:linear-gradient(145deg,#1b2030,#0d0f14); border:1px solid #232634; border-radius:16px; padding:20px 24px; margin-bottom:24px; }
+  .grid { display:grid; gap:16px; }
+  .cols-2 { grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); }
+  .cols-3 { grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); }
+  .cols-1 { grid-template-columns:1fr; }
+  .card { background:var(--card); border:1px solid #1f2230; border-radius:14px; padding:16px; box-shadow:0 8px 24px rgba(0,0,0,.25), inset 0 0 0 1px rgba(255,255,255,.03); }
+  .kpi { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:10px; margin-top:12px; }
+  .kpi .tile { background:#0e1016; border:1px solid #1f2230; border-radius:12px; padding:12px; }
+  .mono { font-variant-numeric:tabular-nums; font-family:ui-monospace,Menlo,SFMono-Regular,monospace; }
+  canvas { width:100%; height:320px; display:block; background:#0e1016; border-radius:10px; border:1px solid #1f2230; }
+  table { width:100%; border-collapse:collapse; }
+  th, td { padding:8px 10px; border-bottom:1px solid #262a3a; }
+  th { text-align:left; color:var(--muted); font-weight:600; }
+  .caption { color:var(--muted); font-size:.95rem; }
+  .ok { color:var(--good); } .ng { color:var(--bad); } .ex { color:var(--extra); } .warn { color:var(--warn); }
+  .small { font-size:.9rem; }
+  details summary { cursor:pointer; color: var(--accent2); margin: 8px 0; }
+  pre { background:#0e1016; border:1px solid #1f2230; border-radius:10px; padding:12px; overflow:auto; max-height:320px; }
+</style>
+</head>
+<body>
+  <div class="header">
+    <h1>情報抽出 比較レポート v3</h1>
+    <div class="caption">FoundationModels（@generable） vs gpt-oss-20b（JSON）— 追加分析版</div>
+    <div class="kpi">
+      <div class="tile"><div>FM 正規化スコア</div><div id="kpiFm" class="mono ok" style="font-size:1.8rem">—</div></div>
+      <div class="tile"><div>gpt 正規化スコア</div><div id="kpiGpt" class="mono ok" style="font-size:1.8rem">—</div></div>
+      <div class="tile"><div>FM（正/誤/欠/過）</div><div id="kpiFmBreak" class="mono">—</div></div>
+      <div class="tile"><div>gpt（正/誤/欠/過）</div><div id="kpiGptBreak" class="mono">—</div></div>
+      <div class="tile"><div>注）擬似Precision/Recall/F1</div><div class="small">Precision=正/(正+誤+過), Recall=正/期待, F1=調和平均</div></div>
+    </div>
+  </div>
+
+  <div class="grid cols-2">
+    <div class="card">
+      <h2>① 全体スコア比較</h2>
+      <canvas id="overall"></canvas>
+      <div class="small caption">棒=エラー総数（誤+欠+過）／線=正規化スコア。</div>
+    </div>
+    <div class="card">
+      <h2>② レベル別スコア</h2>
+      <canvas id="byLevel"></canvas>
+      <div class="small caption">Level1–3の正規化スコアとエラー量を比較。</div>
+    </div>
+    <div class="card">
+      <h2>③ エラー内訳（積み上げ）</h2>
+      <canvas id="errorsStacked"></canvas>
+      <div class="small caption">誤り・欠落・過剰の比率を積み上げ棒で比較。</div>
+    </div>
+    <div class="card">
+      <h2>④ Algo×Level ヒートマップ</h2>
+      <canvas id="heatmap"></canvas>
+      <div class="small caption">abs/strict/persona と -ex × L1–L3 のスコア。</div>
+    </div>
+  </div>
+
+  <div class="grid cols-3">
+    <div class="card">
+      <h2>⑤ 擬似Precision/Recall/F1（全体）</h2>
+      <canvas id="prfBars"></canvas>
+      <div class="small caption">両モデルの全体Precision/Recall/F1を棒グラフで表示。</div>
+    </div>
+    <div class="card">
+      <h2>⑥ エラー構成比（円）</h2>
+      <canvas id="pies"></canvas>
+      <div class="small caption">左=FM, 右=gpt（誤/欠/過の割合）。</div>
+    </div>
+    <div class="card">
+      <h2>⑦ Δヒートマップ（FM−gpt）</h2>
+      <canvas id="deltaHeat"></canvas>
+      <div class="small caption">Algo×Levelのスコア差分（赤=FM優位, 青=gpt優位）。</div>
+    </div>
+  </div>
+
+  <div class="grid cols-2">
+    <div class="card">
+      <h2>⑧ Algo別 平均スコア（棒）</h2>
+      <canvas id="algoMeanBars"></canvas>
+      <div class="small caption">各AlgoのL1–L3平均スコア（FM / gpt）。</div>
+    </div>
+    <div class="card">
+      <h2>⑨ レベル別 PRF（棒）</h2>
+      <canvas id="levelPrfBars"></canvas>
+      <div class="small caption">各LevelでのPrecision/Recall/F1（FM / gpt）。</div>
+    </div>
+  </div>
+
+  <div class="grid cols-2">
+    <div class="card">
+      <h2>⑩ エラープロファイル（レーダー）</h2>
+      <canvas id="radar"></canvas>
+      <div class="small caption">軸＝誤り率/欠落率/過剰率/1−Precision。FM=実線、gpt=点線。</div>
+    </div>
+    <div class="card">
+      <h2>⑪ Algo別 レベル推移（折れ線）</h2>
+      <canvas id="algoLines"></canvas>
+      <div class="small caption">各アルゴリズムのレベル推移（FM=実線、gpt=点線）。</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>⑫ Algo×Level 詳細表</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>モデル</th><th>Algo</th><th>Level</th><th>期待</th><th>正解</th><th>誤り</th><th>欠落</th><th>過剰</th><th>正規化</th><th>Precision</th><th>Recall</th><th>F1</th>
+        </tr>
+      </thead>
+      <tbody id="algoDetailRows"></tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>⑬ Top-3 Algo（各Level）自動要約</h2>
+    <div id="top3Summary" class="small"></div>
+  </div>
+
+  <div class="card">
+    <h2>⑭ 量モデルの特徴 比較考察</h2>
+    <ul>
+      <li><b>FoundationModels</b>：@generableによる<b>構文拘束</b>で複雑構造保持に強く、L3での優位が目立つ。未知情報では<b>過剰</b>が増えやすい。</li>
+      <li><b>gpt-oss-20b</b>：自由度の高い<b>意味解釈能力</b>で、L1–L2やpersona系に強い。一方、スキーマ拘束が弱い場面では<b>欠落</b>が発生しやすい。</li>
+      <li><b>推奨アーキテクチャ</b>：<i>FM一次抽出→gpt補完→厳格スキーマ検証</i>で、欠落と過剰のバランスを最適化する<strong>ハイブリッド設計</strong>。</li>
+    </ul>
+    <details><summary>元データ（JSON）を開く</summary>
+      <pre id="rawJson"></pre>
+    </details>
+  </div>
+
+<script>
+const data = {"foundation_models": {"path": "/mnt/data/foundation_models_report.html", "title": "🔬 FoundationModels 精度分析レポート", "generated": "2025-10-19 21:25:12", "metrics": {"title": "🔬 FoundationModels 精度分析レポート", "generated": "2025-10-19 21:25:12", "total_expected": 2160, "total_correct": 1977, "total_wrong": 66, "total_missing": 117, "total_unexpected": 152, "normalized_score": 0.814, "total_tests": 362, "total_extracted": 2312}, "levels": {"3": {"expected": 960, "correct": 869, "wrong": 66, "missing": 25, "unexpected": 0, "score": 0.836}, "1": {"expected": 480, "correct": 480, "wrong": 0, "missing": 0, "unexpected": 117, "score": 0.756}, "2": {"expected": 720, "correct": 628, "wrong": 0, "missing": 92, "unexpected": 35, "score": 0.824}, "0": {"expected": 0, "correct": 0, "wrong": 0, "missing": 0, "unexpected": 0, "score": 0.0}}, "algo_levels": {"abs": {"3": {"expected": 160, "correct": 145, "wrong": 12, "missing": 3, "unexpected": 0, "score": 0.831}, "2": {"expected": 120, "correct": 103, "wrong": 0, "missing": 17, "unexpected": 4, "score": 0.825}, "1": {"expected": 80, "correct": 80, "wrong": 0, "missing": 0, "unexpected": 18, "score": 0.775}}, "persona": {"1": {"expected": 80, "correct": 80, "wrong": 0, "missing": 0, "unexpected": 21, "score": 0.738}, "3": {"expected": 160, "correct": 148, "wrong": 7, "missing": 5, "unexpected": 0, "score": 0.881}, "2": {"expected": 120, "correct": 105, "wrong": 0, "missing": 15, "unexpected": 6, "score": 0.825}}, "persona-ex": {"2": {"expected": 120, "correct": 101, "wrong": 0, "missing": 19, "unexpected": 4, "score": 0.808}, "3": {"expected": 160, "correct": 145, "wrong": 9, "missing": 6, "unexpected": 0, "score": 0.85}, "1": {"expected": 80, "correct": 80, "wrong": 0, "missing": 0, "unexpected": 22, "score": 0.725}}, "strict": {"1": {"expected": 80, "correct": 80, "wrong": 0, "missing": 0, "unexpected": 23, "score": 0.713}, "2": {"expected": 120, "correct": 102, "wrong": 0, "missing": 18, "unexpected": 3, "score": 0.825}, "3": {"expected": 160, "correct": 146, "wrong": 11, "missing": 3, "unexpected": 0, "score": 0.844}}, "abs-ex": {"2": {"expected": 120, "correct": 111, "wrong": 0, "missing": 9, "unexpected": 10, "score": 0.842}, "1": {"expected": 80, "correct": 80, "wrong": 0, "missing": 0, "unexpected": 16, "score": 0.8}, "3": {"expected": 160, "correct": 140, "wrong": 15, "missing": 5, "unexpected": 0, "score": 0.781}}, "strict-ex": {"2": {"expected": 120, "correct": 106, "wrong": 0, "missing": 14, "unexpected": 8, "score": 0.817}, "3": {"expected": 160, "correct": 145, "wrong": 12, "missing": 3, "unexpected": 0, "score": 0.831}, "1": {"expected": 80, "correct": 80, "wrong": 0, "missing": 0, "unexpected": 17, "score": 0.787}}}}, "gpt_oss_20b": {"path": "/mnt/data/external_llm_report.html", "title": "🔬 FoundationModels 精度分析レポート", "generated": "2025-10-19 20:58:56", "metrics": {"title": "🔬 FoundationModels 精度分析レポート", "generated": "2025-10-19 20:58:56", "total_expected": 2160, "total_correct": 1877, "total_wrong": 97, "total_missing": 186, "total_unexpected": 8, "normalized_score": 0.82, "total_tests": 361, "total_extracted": 2168}, "levels": {"1": {"expected": 480, "correct": 465, "wrong": 0, "missing": 15, "unexpected": 8, "score": 0.952}, "2": {"expected": 720, "correct": 717, "wrong": 0, "missing": 3, "unexpected": 0, "score": 0.996}, "3": {"expected": 960, "correct": 695, "wrong": 97, "missing": 168, "unexpected": 0, "score": 0.623}, "0": {"expected": 0, "correct": 0, "wrong": 0, "missing": 0, "unexpected": 0, "score": 0.0}}, "algo_levels": {"strict-ex": {"1": {"expected": 80, "correct": 80, "wrong": 0, "missing": 0, "unexpected": 2, "score": 0.975}, "2": {"expected": 120, "correct": 119, "wrong": 0, "missing": 1, "unexpected": 0, "score": 0.992}, "3": {"expected": 160, "correct": 102, "wrong": 16, "missing": 42, "unexpected": 0, "score": 0.537}}, "abs": {"2": {"expected": 120, "correct": 120, "wrong": 0, "missing": 0, "unexpected": 0, "score": 1.0}, "1": {"expected": 80, "correct": 74, "wrong": 0, "missing": 6, "unexpected": 0, "score": 0.925}, "3": {"expected": 160, "correct": 105, "wrong": 19, "missing": 36, "unexpected": 0, "score": 0.537}}, "strict": {"3": {"expected": 160, "correct": 123, "wrong": 25, "missing": 12, "unexpected": 0, "score": 0.613}, "2": {"expected": 120, "correct": 120, "wrong": 0, "missing": 0, "unexpected": 0, "score": 1.0}, "1": {"expected": 80, "correct": 80, "wrong": 0, "missing": 0, "unexpected": 0, "score": 1.0}}, "persona-ex": {"3": {"expected": 160, "correct": 101, "wrong": 17, "missing": 42, "unexpected": 0, "score": 0.525}, "1": {"expected": 80, "correct": 77, "wrong": 0, "missing": 3, "unexpected": 1, "score": 0.95}, "2": {"expected": 120, "correct": 119, "wrong": 0, "missing": 1, "unexpected": 0, "score": 0.992}}, "persona": {"1": {"expected": 80, "correct": 80, "wrong": 0, "missing": 0, "unexpected": 5, "score": 0.938}, "2": {"expected": 120, "correct": 120, "wrong": 0, "missing": 0, "unexpected": 0, "score": 1.0}, "3": {"expected": 160, "correct": 160, "wrong": 0, "missing": 0, "unexpected": 0, "score": 1.0}}, "abs-ex": {"3": {"expected": 160, "correct": 104, "wrong": 20, "missing": 36, "unexpected": 0, "score": 0.525}, "2": {"expected": 120, "correct": 119, "wrong": 0, "missing": 1, "unexpected": 0, "score": 0.992}, "1": {"expected": 80, "correct": 74, "wrong": 0, "missing": 6, "unexpected": 0, "score": 0.925}}}}};
+
+// ---------- helper functions ----------
+function prf(m) {
+  const tp = (m.correct||m.total_correct||0);
+  const fp = (m.wrong||m.total_wrong||0) + (m.unexpected||m.total_unexpected||0);
+  const fn = (m.missing||m.total_missing||0);
+  const exp = (m.expected||m.total_expected||0);
+  const precision = (tp+fp)>0 ? tp/(tp+fp) : 0;
+  const recall = exp>0 ? tp/exp : 0;
+  const f1 = (precision+recall)>0 ? 2*precision*recall/(precision+recall) : 0;
+  return {precision, recall, f1};
+}
+function rateProfile(m){
+  const exp = (m.expected||m.total_expected||0) || 1;
+  const wrong = (m.wrong||m.total_wrong||0)/exp;
+  const missing = (m.missing||m.total_missing||0)/exp;
+  const unexpected = (m.unexpected||m.total_unexpected||0)/exp;
+  const p = prf(m).precision;
+  const oneMinusP = 1 - p;
+  return {wrong, missing, unexpected, oneMinusP};
+}
+
+function drawBars(ctx, labels, series, colors, maxVal=null) {
+  const W = ctx.canvas.width, H = ctx.canvas.height, pad=48;
+  ctx.clearRect(0,0,W,H);
+  ctx.font="14px 'Hiragino Sans','Yu Gothic UI',sans-serif";
+  ctx.textBaseline="middle";
+  const n = labels.length, k = series.length;
+  const groupW = (W-2*pad)/n;
+  const barW = Math.max(6, groupW/(k+1));
+  let mv = maxVal || 0;
+  series.forEach(arr => arr.forEach(v=> { if(v>mv) mv=v; }));
+  mv = Math.max(1, mv);
+  // axes & grid
+  ctx.strokeStyle="#2a2f45"; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(pad,pad); ctx.lineTo(pad,H-pad); ctx.lineTo(W-pad,H-pad); ctx.stroke();
+  ctx.strokeStyle="rgba(255,255,255,.06)";
+  for (let i=1;i<=4;i++){ const y=pad+(H-2*pad)*i/5; ctx.beginPath(); ctx.moveTo(pad,y); ctx.lineTo(W-pad,y); ctx.stroke(); }
+  // bars
+  for (let i=0;i<n;i++) {
+    const x0 = pad + i*groupW + groupW/2;
+    ctx.fillStyle="#aeb3c2"; ctx.textAlign="center"; ctx.fillText(labels[i], x0, H-pad+16);
+    for (let j=0;j<k;j++) {
+      const v = series[j][i];
+      const y = (H - pad) - (v/mv)*(H-2*pad);
+      ctx.fillStyle = colors[j % colors.length];
+      ctx.fillRect(x0 - (k/2 - j)*barW - barW/2, y, barW, (H - pad) - y);
+    }
+  }
+}
+
+function drawLines(ctx, labels, lines, colors, dashedIdx=[]) {
+  const W = ctx.canvas.width, H = ctx.canvas.height, pad=48;
+  ctx.clearRect(0,0,W,H);
+  ctx.font="14px 'Hiragino Sans','Yu Gothic UI',sans-serif";
+  ctx.textBaseline="middle";
+  const n = labels.length;
+  // axes & grid
+  ctx.strokeStyle="#2a2f45"; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(pad,pad); ctx.lineTo(pad,H-pad); ctx.lineTo(W-pad,H-pad); ctx.stroke();
+  ctx.strokeStyle="rgba(255,255,255,.06)";
+  for (let i=1;i<=4;i++){ const y=pad+(H-2*pad)*i/5; ctx.beginPath(); ctx.moveTo(pad,y); ctx.lineTo(W-pad,y); ctx.stroke(); }
+  const groupW = (W-2*pad)/(n-1 || 1);
+  function xy(i, v) {
+    const x = pad + i*groupW;
+    const y = pad + (1 - Math.max(0,Math.min(1,v)))*(H-2*pad);
+    return {x,y};
+  }
+  lines.forEach((vals, idx)=>{
+    const color = colors[idx % colors.length];
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
+    if (dashedIdx.includes(idx)) ctx.setLineDash([6,6]); else ctx.setLineDash([]);
+    ctx.beginPath();
+    for (let i=0;i<n;i++) {
+      const {x,y} = xy(i, vals[i]);
+      if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      ctx.fillStyle=color; ctx.beginPath(); ctx.arc(x,y,2,0,Math.PI*2); ctx.fill();
+    }
+    ctx.stroke();
+  });
+  // x labels
+  ctx.fillStyle="#aeb3c2"; ctx.textAlign="center";
+  labels.forEach((lb,i)=> ctx.fillText(lb, pad + i*groupW, H - pad + 16));
+}
+
+function drawPiePair(ctx, partsA, partsB, labels) {
+  const W = ctx.canvas.width, H = ctx.canvas.height;
+  ctx.clearRect(0,0,W,H);
+  ctx.font="14px 'Hiragino Sans','Yu Gothic UI',sans-serif";
+  const R = Math.min(W,H)/4;
+  const centers = [{x: W*0.33, y: H*0.55}, {x: W*0.67, y: H*0.55}];
+  const colors=["#ef476f","#ffb703","#9b5de5"];
+  function drawPie(center, parts) {
+    const sum = parts.reduce((a,b)=>a+b,0) || 1;
+    let ang = -Math.PI/2;
+    for (let i=0;i<parts.length;i++) {
+      const a2 = ang + (parts[i]/sum)*Math.PI*2;
+      ctx.beginPath(); ctx.moveTo(center.x,center.y);
+      ctx.fillStyle = colors[i];
+      ctx.arc(center.x,center.y,R,ang,a2); ctx.closePath(); ctx.fill();
+      ang = a2;
+    }
+  }
+  drawPie(centers[0], partsA);
+  drawPie(centers[1], partsB);
+  // legends
+  let lx = 20, ly = 20;
+  for (let i=0;i<labels.length;i++) {
+    ctx.fillStyle=["#ef476f","#ffb703","#9b5de5"][i];
+    ctx.fillRect(lx, ly, 12, 12);
+    ctx.fillStyle="#e6e6e6"; ctx.fillText(labels[i], lx+18, ly+6);
+    ly += 18;
+  }
+  ctx.fillStyle="#6aa6ff"; ctx.fillRect(lx, ly, 12, 12); ctx.fillStyle="#e6e6e6"; ctx.fillText("FM", lx+18, ly+6); ly+=18;
+  ctx.fillStyle="#ffc857"; ctx.fillRect(lx, ly, 12, 12); ctx.fillStyle="#e6e6e6"; ctx.fillText("gpt", lx+18, ly+6);
+}
+
+function drawHeatmap(ctx, grid, rowLabels, colLabels, diverge=false) {
+  const W = ctx.canvas.width, H = ctx.canvas.height;
+  const padL=120, padT=36, padR=20, padB=40;
+  ctx.clearRect(0,0,W,H);
+  ctx.font = "14px 'Hiragino Sans','Yu Gothic UI',sans-serif";
+  const rows = rowLabels.length, cols = colLabels.length;
+  const cw = (W - padL - padR) / cols;
+  const ch = (H - padT - padB) / rows;
+  function colorFor(v) {
+    if (v==null || isNaN(v)) return "#222636";
+    if (!diverge) {
+      const t = Math.max(0, Math.min(1, (v - 0.5) / 0.5));
+      const c1=[90,150,255], c2=[255,100,100];
+      const r = Math.round(c1[0]+(c2[0]-c1[0])*t);
+      const g = Math.round(c1[1]+(c2[1]-c1[1])*t);
+      const b = Math.round(c1[2]+(c2[2]-c1[2])*t);
+      return "rgb("+r+","+g+","+b+")";
+    } else {
+      const t = Math.max(-1, Math.min(1, v/0.5));
+      if (t>=0) {
+        const c1=[40,50,90], c2=[255,100,100];
+        const r = Math.round(c1[0]+(c2[0]-c1[0])*t);
+        const g = Math.round(c1[1]+(c2[1]-c1[1])*t);
+        const b = Math.round(c1[2]+(c2[2]-c1[2])*t);
+        return "rgb("+r+","+g+","+b+")";
+      } else {
+        const u = -t;
+        const c1=[40,50,90], c2=[90,150,255];
+        const r = Math.round(c1[0]+(c2[0]-c1[0])*u);
+        const g = Math.round(c1[1]+(c2[1]-c1[1])*u);
+        const b = Math.round(c1[2]+(c2[2]-c1[2])*u);
+        return "rgb("+r+","+g+","+b+")";
+      }
+    }
+  }
+  // axes
+  ctx.fillStyle="#aeb3c2";
+  ctx.textAlign="center";
+  for (let j=0;j<cols;j++) { const x=padL+j*cw+cw/2; ctx.fillText(colLabels[j], x, padT-12); }
+  ctx.textAlign="right";
+  for (let i=0;i<rows;i++) { const y=padT+i*ch+ch/2; ctx.fillText(rowLabels[i], padL-10, y); }
+  // cells
+  ctx.textAlign="center"; ctx.textBaseline="middle";
+  for (let i=0;i<rows;i++) {
+    for (let j=0;j<cols;j++) {
+      const v = grid[i][j];
+      const x = padL + j*cw, y = padT + i*ch;
+      ctx.fillStyle = colorFor(v);
+      ctx.fillRect(x, y, cw-2, ch-2);
+      ctx.fillStyle = "#e6e6e6";
+      if (v != null && !isNaN(v)) ctx.fillText((v).toFixed(3), x+cw/2, y+ch/2);
+    }
+  }
+}
+
+function drawRadar(ctx, labels, series, colors, dashedIdx=[]) {
+  const W = ctx.canvas.width, H = ctx.canvas.height;
+  ctx.clearRect(0,0,W,H);
+  ctx.font="14px 'Hiragino Sans','Yu Gothic UI',sans-serif";
+  const cx=W/2, cy=H/2+10, R=Math.min(W,H)/3;
+  const K = labels.length;
+  // grid
+  ctx.strokeStyle="rgba(255,255,255,.08)";
+  for(let g=1; g<=5; g++){
+    ctx.beginPath();
+    for(let i=0;i<K;i++){
+      const t= (i/K)*Math.PI*2 - Math.PI/2;
+      const x = cx + R*(g/5)*Math.cos(t);
+      const y = cy + R*(g/5)*Math.sin(t);
+      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.closePath(); ctx.stroke();
+  }
+  // axes & labels
+  ctx.fillStyle="#aeb3c2"; ctx.textAlign="center";
+  for(let i=0;i<K;i++){
+    const t=(i/K)*Math.PI*2 - Math.PI/2;
+    const x=cx + (R+14)*Math.cos(t);
+    const y=cy + (R+14)*Math.sin(t);
+    ctx.fillText(labels[i], x, y);
+  }
+  // series
+  series.forEach((vals, idx)=>{
+    const color = colors[idx % colors.length];
+    if (dashedIdx.includes(idx)) ctx.setLineDash([6,6]); else ctx.setLineDash([]);
+    ctx.strokeStyle=color; ctx.lineWidth=2; ctx.beginPath();
+    for(let i=0;i<K;i++){
+      const t=(i/K)*Math.PI*2 - Math.PI/2;
+      const r = R * Math.max(0, Math.min(1, vals[i])); // values 0..1
+      const x=cx + r*Math.cos(t); const y=cy + r*Math.sin(t);
+      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    }
+    ctx.closePath(); ctx.stroke();
+  });
+}
+
+// ---------- data prep ----------
+const fmData = data.foundation_models;
+const gptData = data.gpt_oss_20b;
+
+document.getElementById("kpiFm").textContent = (fmData.metrics.normalized_score ?? "—");
+document.getElementById("kpiGpt").textContent = (gptData.metrics.normalized_score ?? "—");
+document.getElementById("kpiFmBreak").textContent = [fmData.metrics.total_correct,fmData.metrics.total_wrong,fmData.metrics.total_missing,fmData.metrics.total_unexpected].join("/");
+document.getElementById("kpiGptBreak").textContent = [gptData.metrics.total_correct,gptData.metrics.total_wrong,gptData.metrics.total_missing,gptData.metrics.total_unexpected].join("/");
+document.getElementById("rawJson").textContent = JSON.stringify(data, null, 2);
+
+// overall / levels
+const overallLabels = ["全体"];
+const fmErr = [ (fmData.metrics.total_wrong||0)+(fmData.metrics.total_missing||0)+(fmData.metrics.total_unexpected||0) ];
+const gptErr = [ (gptData.metrics.total_wrong||0)+(gptData.metrics.total_missing||0)+(gptData.metrics.total_unexpected||0) ];
+const fmScore = [ parseFloat(fmData.metrics.normalized_score||0) ];
+const gptScore = [ parseFloat(gptData.metrics.normalized_score||0) ];
+
+const levelLabels = ["Level1","Level2","Level3"];
+function lv(obj,k){ return obj.levels && obj.levels[k] ? obj.levels[k] : {}; }
+const fmLevelScore = ["1","2","3"].map(k=> (lv(fmData,k).score||0) );
+const gptLevelScore = ["1","2","3"].map(k=> (lv(gptData,k).score||0) );
+const fmLevelErr = ["1","2","3"].map(k=> (lv(fmData,k).wrong||0)+(lv(fmData,k).missing||0)+(lv(fmData,k).unexpected||0) );
+const gptLevelErr = ["1","2","3"].map(k=> (lv(gptData,k).wrong||0)+(lv(gptData,k).missing||0)+(lv(gptData,k).unexpected||0) );
+
+// stacked
+const stackedLabels = ["全体","L1","L2","L3"];
+const fmTrip = [
+  [fmData.metrics.total_wrong||0, fmData.metrics.total_missing||0, fmData.metrics.total_unexpected||0],
+  [lv(fmData,"1").wrong||0, lv(fmData,"1").missing||0, lv(fmData,"1").unexpected||0],
+  [lv(fmData,"2").wrong||0, lv(fmData,"2").missing||0, lv(fmData,"2").unexpected||0],
+  [lv(fmData,"3").wrong||0, lv(fmData,"3").missing||0, lv(fmData,"3").unexpected||0],
+];
+const gptTrip = [
+  [gptData.metrics.total_wrong||0, gptData.metrics.total_missing||0, gptData.metrics.total_unexpected||0],
+  [lv(gptData,"1").wrong||0, lv(gptData,"1").missing||0, lv(gptData,"1").unexpected||0],
+  [lv(gptData,"2").wrong||0, lv(gptData,"2").missing||0, lv(gptData,"2").unexpected||0],
+  [lv(gptData,"3").wrong||0, lv(gptData,"3").missing||0, lv(gptData,"3").unexpected||0],
+];
+
+// heatmaps
+const algos = ["abs","strict","persona","abs-ex","strict-ex","persona-ex"];
+const cols = ["L1","L2","L3"];
+function getScore(model, algo, lv) {
+  const a = model.algo_levels||{};
+  const entry = a[algo] && a[algo][lv];
+  return entry && typeof entry.score==="number" ? entry.score : null;
+}
+const heatRows = [];
+algos.forEach(al=>{
+  heatRows.push(cols.map((c,i)=> getScore(fmData, al, String(i+1)) ));
+  heatRows.push(cols.map((c,i)=> getScore(gptData, al, String(i+1)) ));
+});
+const deltaRows = [];
+algos.forEach(al=>{
+  deltaRows.push(cols.map((c,i)=> {
+    const f = getScore(fmData, al, String(i+1));
+    const g = getScore(gptData, al, String(i+1));
+    if (f==null || g==null) return null;
+    return (f - g);
+  }));
+});
+
+// PRF overall
+function prfFromMetrics(m){ return prf(m); }
+const prfFm = prfFromMetrics(fmData.metrics);
+const prfGpt = prfFromMetrics(gptData.metrics);
+const prfLabels = ["Precision","Recall","F1"];
+const prfSeries = [
+  [prfFm.precision, prfFm.recall, prfFm.f1],
+  [prfGpt.precision, prfGpt.recall, prfGpt.f1],
+];
+
+// pies
+const piesLabels = ["誤り","欠落","過剰"];
+const fmPie = [fmData.metrics.total_wrong||0, fmData.metrics.total_missing||0, fmData.metrics.total_unexpected||0];
+const gptPie = [gptData.metrics.total_wrong||0, gptData.metrics.total_missing||0, gptData.metrics.total_unexpected||0];
+
+// algo mean bars
+function algoMean(model, algo){
+  let sum=0, cnt=0;
+  for (let lv=1; lv<=3; lv++){
+    const s = getScore(model, algo, String(lv));
+    if (typeof s === "number") { sum+=s; cnt++; }
+  }
+  return cnt? sum/cnt : 0;
+}
+const algoLabels = algos.map(a=>a);
+const fmAlgoMeans = algos.map(a=> algoMean(fmData,a));
+const gptAlgoMeans = algos.map(a=> algoMean(gptData,a));
+
+// level PRF bars
+function prfLevel(model, k){
+  const obj = lv(model, k);
+  const m = { expected: obj.expected||0, correct: obj.correct||0, wrong: obj.wrong||0, missing: obj.missing||0, unexpected: obj.unexpected||0 };
+  return prf(m);
+}
+const fmPrfLevels = ["1","2","3"].map(k=> prfLevel(fmData, k));
+const gptPrfLevels = ["1","2","3"].map(k=> prfLevel(gptData, k));
+const levelPrfLabels = ["L1","L2","L3"];
+const levelPrfSeries = [
+  levelPrfLabels.map((_,i)=> fmPrfLevels[i].precision),
+  levelPrfLabels.map((_,i)=> fmPrfLevels[i].recall),
+  levelPrfLabels.map((_,i)=> fmPrfLevels[i].f1),
+  levelPrfLabels.map((_,i)=> gptPrfLevels[i].precision),
+  levelPrfLabels.map((_,i)=> gptPrfLevels[i].recall),
+  levelPrfLabels.map((_,i)=> gptPrfLevels[i].f1),
+];
+
+// radar (error profile)
+const radarLabels = ["誤り率","欠落率","過剰率","1−Precision"];
+const fmRates = rateProfile(fmData.metrics);
+const gptRates = rateProfile(gptData.metrics);
+const radarSeries = [
+  [fmRates.wrong, fmRates.missing, fmRates.unexpected, fmRates.oneMinusP],
+  [gptRates.wrong, gptRates.missing, gptRates.unexpected, gptRates.oneMinusP],
+];
+
+// algo lines
+const algoLinesLabels = ["L1","L2","L3"];
+const fmLines = algos.map(al=> algoLinesLabels.map((_,i)=> getScore(fmData, al, String(i+1)) || 0 ));
+const gptLines = algos.map(al=> algoLinesLabels.map((_,i)=> getScore(gptData, al, String(i+1)) || 0 ));
+
+// algo detail rows
+const algoBody = document.getElementById("algoDetailRows");
+function addAlgoRow(modelName, modelObj, algo, lvKey, row){
+  const m = { expected: row.expected||0, correct: row.correct||0, wrong: row.wrong||0, missing: row.missing||0, unexpected: row.unexpected||0, normalized_score: row.score||0 };
+  const p = prf(m);
+  const tr = document.createElement("tr");
+  function td(txt, cls=""){ const e=document.createElement("td"); e.textContent=(typeof txt==="number") ? (Number.isInteger(txt)? txt : txt.toFixed(3)) : (txt ?? ""); if (cls) e.className=cls; return e; }
+  tr.appendChild(td(modelName));
+  tr.appendChild(td(algo));
+  tr.appendChild(td("L"+lvKey));
+  tr.appendChild(td(m.expected));
+  tr.appendChild(td(m.correct,"ok"));
+  tr.appendChild(td(m.wrong,"ng"));
+  tr.appendChild(td(m.missing,"warn"));
+  tr.appendChild(td(m.unexpected,"ex"));
+  tr.appendChild(td(m.normalized_score));
+  tr.appendChild(td(p.precision));
+  tr.appendChild(td(p.recall));
+  tr.appendChild(td(p.f1));
+  algoBody.appendChild(tr);
+}
+for (const [algo, levels] of Object.entries(fmData.algo_levels||{})){
+  for (const [lvKey, row] of Object.entries(levels)){
+    addAlgoRow("FM", fmData, algo, lvKey, row);
+  }
+}
+for (const [algo, levels] of Object.entries(gptData.algo_levels||{})){
+  for (const [lvKey, row] of Object.entries(levels)){
+    addAlgoRow("gpt", gptData, algo, lvKey, row);
+  }
+}
+
+// top-3 per level
+function top3PerLevel(model, name){
+  const res = {};
+  for (let k=1;k<=3;k++){
+    const lvStr = String(k);
+    const list = [];
+    for (const al of algos){
+      const s = getScore(model, al, lvStr);
+      if (typeof s === "number") list.push({algo: al, score: s});
+    }
+    list.sort((a,b)=> b.score - a.score);
+    res["L"+k] = list.slice(0,3).map(o=> `${o.algo}(${o.score.toFixed(3)})`);
+  }
+  return {name, res};
+}
+const tFm = top3PerLevel(fmData, "FM");
+const tGpt = top3PerLevel(gptData, "gpt");
+const top3Div = document.getElementById("top3Summary");
+top3Div.innerHTML = `
+  <p><b>FM Top-3</b>：L1=${tFm.res.L1.join(", ")} ／ L2=${tFm.res.L2.join(", ")} ／ L3=${tFm.res.L3.join(", ")}</p>
+  <p><b>gpt Top-3</b>：L1=${tGpt.res.L1.join(", ")} ／ L2=${tGpt.res.L2.join(", ")} ／ L3=${tGpt.res.L3.join(", ")}</p>
+`;
+
+// ---------- draw all ----------
+function ready(fn){ if (document.readyState !== 'loading') fn(); else document.addEventListener('DOMContentLoaded', fn); }
+ready(()=>{
+  // ① overall
+  (function(){
+    const c = document.getElementById("overall").getContext("2d");
+    const W=c.canvas.width,H=c.canvas.height,pad=48;
+    c.clearRect(0,0,W,H); c.font="14px 'Hiragino Sans','Yu Gothic UI',sans-serif"; c.textBaseline="middle";
+    c.strokeStyle="#2a2f45"; c.lineWidth=1; c.beginPath(); c.moveTo(pad,pad); c.lineTo(pad,H-pad); c.lineTo(W-pad,H-pad); c.stroke();
+    c.strokeStyle="rgba(255,255,255,.06)"; for(let i=1;i<=4;i++){const y=pad+(H-2*pad)*i/5; c.beginPath(); c.moveTo(pad,y); c.lineTo(W-pad,y); c.stroke();}
+    const labels=overallLabels, barsA=fmErr, barsB=gptErr, lineA=fmScore, lineB=gptScore;
+    const maxBar=Math.max(...barsA,...barsB,1), groupW=(W-2*pad)/labels.length, barW=groupW/3;
+    for(let i=0;i<labels.length;i++){
+      const x0=pad+i*groupW+groupW/2;
+      c.fillStyle="#aeb3c2"; c.textAlign="center"; c.fillText(labels[i], x0, H-pad+16);
+      const yS=(v)=> (H-pad)-(v/maxBar)*(H-2*pad);
+      c.fillStyle="#6aa6ff"; const xA=x0 - barW*1.1; c.fillRect(xA,yS(barsA[i]),barW,(H-pad)-yS(barsA[i]));
+      c.fillStyle="#ffc857"; const xB=x0 + barW*0.1; c.fillRect(xB,yS(barsB[i]),barW,(H-pad)-yS(barsB[i]));
+    }
+    function drawLine(vals,color){
+      c.strokeStyle=color; c.lineWidth=2; c.beginPath();
+      for(let i=0;i<labels.length;i++){
+        const x=pad+i*groupW+groupW/2;
+        const y=pad + (1 - vals[i])*(H-2*pad);
+        if(i===0)c.moveTo(x,y); else c.lineTo(x,y);
+        c.fillStyle=color; c.beginPath(); c.arc(x,y,3,0,Math.PI*2); c.fill();
+      }
+      c.stroke();
+    }
+    drawLine(lineA,"#6aa6ff"); drawLine(lineB,"#ffc857");
+  })();
+
+  // ② byLevel
+  (function(){
+    const c = document.getElementById("byLevel").getContext("2d");
+    const W=c.canvas.width,H=c.canvas.height,pad=48;
+    c.clearRect(0,0,W,H); c.font="14px 'Hiragino Sans','Yu Gothic UI',sans-serif"; c.textBaseline="middle";
+    c.strokeStyle="#2a2f45"; c.lineWidth=1; c.beginPath(); c.moveTo(pad,pad); c.lineTo(pad,H-pad); c.lineTo(W-pad,H-pad); c.stroke();
+    c.strokeStyle="rgba(255,255,255,.06)"; for(let i=1;i<=4;i++){const y=pad+(H-2*pad)*i/5; c.beginPath(); c.moveTo(pad,y); c.lineTo(W-pad,y); c.stroke();}
+    const labels=levelLabels, barsA=fmLevelErr, barsB=gptLevelErr, lineA=fmLevelScore, lineB=gptLevelScore;
+    const maxBar=Math.max(...barsA,...barsB,1), groupW=(W-2*pad)/labels.length, barW=groupW/3;
+    for(let i=0;i<labels.length;i++){
+      const x0=pad+i*groupW+groupW/2;
+      c.fillStyle="#aeb3c2"; c.textAlign="center"; c.fillText(labels[i], x0, H-pad+16);
+      const yS=(v)=> (H-pad)-(v/maxBar)*(H-2*pad);
+      c.fillStyle="#6aa6ff"; const xA=x0 - barW*1.1; c.fillRect(xA,yS(barsA[i]),barW,(H-pad)-yS(barsA[i]));
+      c.fillStyle="#ffc857"; const xB=x0 + barW*0.1; c.fillRect(xB,yS(barsB[i]),barW,(H-pad)-yS(barsB[i]));
+    }
+    function drawLine(vals,color){
+      c.strokeStyle=color; c.lineWidth=2; c.beginPath();
+      for(let i=0;i<labels.length;i++){
+        const x=pad+i*groupW+groupW/2;
+        const y=pad + (1 - vals[i])*(H-2*pad);
+        if(i===0)c.moveTo(x,y); else c.lineTo(x,y);
+        c.fillStyle=color; c.beginPath(); c.arc(x,y,3,0,Math.PI*2); c.fill();
+      }
+      c.stroke();
+    }
+    drawLine(lineA,"#6aa6ff"); drawLine(lineB,"#ffc857");
+  })();
+
+  // ③ stacked
+  (function(){
+    const c = document.getElementById("errorsStacked").getContext("2d");
+    const W=c.canvas.width,H=c.canvas.height,pad=48;
+    c.clearRect(0,0,W,H); c.font="14px 'Hiragino Sans','Yu Gothic UI',sans-serif"; c.textBaseline="middle";
+    c.strokeStyle="#2a2f45"; c.lineWidth=1; c.beginPath(); c.moveTo(pad,pad); c.lineTo(pad,H-pad); c.lineTo(W-pad,H-pad); c.stroke();
+    const labels=stackedLabels, colors=["#ef476f","#ffb703","#9b5de5"];
+    const maxVal = Math.max(
+      ...[0,1,2,3].map(i=> fmTrip[i].reduce((a,b)=>a+b,0)),
+      ...[0,1,2,3].map(i=> gptTrip[i].reduce((a,b)=>a+b,0)), 1
+    );
+    const groupW=(W-2*pad)/labels.length, barW=groupW/2;
+    function drawParts(parts, xLeft) {
+      let yBase=H-pad;
+      for (let j=0;j<parts.length;j++) {
+        const h = (parts[j]/maxVal)*(H-2*pad);
+        c.fillStyle = colors[j];
+        c.fillRect(xLeft, yBase - h, barW, h);
+        yBase -= h;
+      }
+    }
+    for(let i=0;i<labels.length;i++){
+      const x0=pad+i*groupW+groupW/2;
+      c.fillStyle="#aeb3c2"; c.textAlign="center"; c.fillText(labels[i], x0, H-pad+16);
+      drawParts(fmTrip[i], x0 - barW - 4);
+      drawParts(gptTrip[i], x0 + 4);
+    }
+  })();
+
+  // ④ heatmap
+  (function(){
+    const ctx = document.getElementById("heatmap").getContext("2d");
+    const rows = []; const labels=[];
+    const rLabels = ["FM abs","gpt abs","FM strict","gpt strict","FM persona","gpt persona","FM abs-ex","gpt abs-ex","FM strict-ex","gpt strict-ex","FM persona-ex","gpt persona-ex"];
+    for (let i=0;i<algos.length;i++){ rows.push(heatRows[2*i]); rows.push(heatRows[2*i+1]); }
+    drawHeatmap(ctx, rows, rLabels, ["L1","L2","L3"], false);
+  })();
+
+  // ⑤ PRF bars
+  (function(){ const c = document.getElementById("prfBars").getContext("2d"); drawBars(c, ["Precision","Recall","F1"], prfSeries, ["#6aa6ff","#ffc857"], 1); })();
+
+  // ⑥ pies
+  (function(){ const c = document.getElementById("pies").getContext("2d"); drawPiePair(c, fmPie, gptPie, ["誤り","欠落","過剰"]); })();
+
+  // ⑦ delta heat
+  (function(){ const ctx = document.getElementById("deltaHeat").getContext("2d"); drawHeatmap(ctx, deltaRows, ["abs","strict","persona","abs-ex","strict-ex","persona-ex"], ["L1","L2","L3"], true); })();
+
+  // ⑧ algo mean bars
+  (function(){ const c = document.getElementById("algoMeanBars").getContext("2d"); drawBars(c, algoLabels, [fmAlgoMeans, gptAlgoMeans], ["#6aa6ff","#ffc857"], 1); })();
+
+  // ⑨ level PRF bars (FM vs gpt)
+  (function(){
+    const c = document.getElementById("levelPrfBars").getContext("2d");
+    // stack by metric; group by level
+    // We'll draw for metrics in triplets: [FM P, G P], [FM R, G R], [FM F1, G F1] across L1,L2,L3 -> produce 3*3=9 bars per group; simpler: draw 6 series across 3 labels
+    drawBars(c, levelPrfLabels, levelPrfSeries, ["#6aa6ff","#31d0aa","#9b5de5","#ffc857","#ffb703","#ef476f"], 1);
+  })();
+
+  // ⑩ radar
+  (function(){ const c = document.getElementById("radar").getContext("2d"); drawRadar(c, ["誤り率","欠落率","過剰率","1−Precision"], [[...radarSeries[0]],[...radarSeries[1]]], ["#6aa6ff","#ffc857"], [1]); })();
+
+  // ⑪ algo lines
+  (function(){
+    const c = document.getElementById("algoLines").getContext("2d");
+    const lines = []; const colors = [];
+    const baseColors = ["#7aa7ff","#9dd077","#ff9d76","#b19cd9","#ffd166","#4cc9f0"];
+    for (let i=0;i<algos.length;i++) {
+      lines.push(fmLines[i]); colors.push(baseColors[i%baseColors.length]);
+      lines.push(gptLines[i]); colors.push(baseColors[i%baseColors.length]);
+    }
+    const dashedIdx = algos.map((_,i)=> 2*i+1);
+    drawLines(c, ["L1","L2","L3"], lines, colors, dashedIdx);
+  })();
+});
+</script>
+</body>
+</html>
