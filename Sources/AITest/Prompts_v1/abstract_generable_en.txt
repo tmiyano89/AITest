@@ -1,0 +1,6 @@
+Extract account information from the attached document.
+
+Constraints:
+  - Set fields that cannot be extracted to nil
+  - Set only one value per field
+  - title and note fields are required

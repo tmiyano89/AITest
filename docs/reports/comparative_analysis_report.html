@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FoundationModels vs 外部LLM 性能比較レポート</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: #34495e;
+            border-left: 4px solid #3498db;
+            padding-left: 15px;
+            margin-top: 40px;
+        }
+        h3 {
+            color: #2c3e50;
+            margin-top: 30px;
+        }
+        h4 {
+            color: #7f8c8d;
+            margin-top: 25px;
+        }
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .comparison-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .comparison-table td {
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+        .comparison-table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .comparison-table tr:hover {
+            background-color: #e8f4f8;
+        }
+        .winner {
+            background-color: #d4edda !important;
+            font-weight: bold;
+            color: #155724;
+        }
+        .loser {
+            background-color: #f8d7da !important;
+            color: #721c24;
+        }
+        .metric-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+            text-align: center;
+        }
+        .metric-value {
+            font-size: 2em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .insight-box {
+            background-color: #e8f5e8;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .warning-box {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .code-block {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 10px 0;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+        }
+        .section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background-color: #fafafa;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>FoundationModels vs 外部LLM 性能比較レポート</h1>
+        <p style="text-align: center; color: #7f8c8d; font-size: 1.1em;">
+            @Guideマクロ改善実験 - 20回テスト結果の詳細比較分析<br>
+            <strong>補正後データに基づく正確な性能評価</strong>
+        </p>
+
+        <!-- エグゼクティブサマリー -->
+        <div class="section">
+            <h2>エグゼクティブサマリー</h2>
+            <div class="metric-card">
+                <div class="metric-value">外部LLM が全体的に優位</div>
+                <p>正規化スコア: 外部LLM 0.875 vs FoundationModels 0.855</p>
+            </div>
+            
+            <div class="insight-box">
+                <h4>🔍 主要な発見</h4>
+                <ul>
+                    <li><strong>Level 1</strong>: 外部LLM が圧倒的優位（0.975 vs 0.825）</li>
+                    <li><strong>Level 2</strong>: 外部LLM が優位（0.900 vs 0.850）</li>
+                    <li><strong>Level 3</strong>: FoundationModels が僅差で優位（0.900 vs 0.875）</li>
+                    <li><strong>過剰抽出</strong>: 外部LLM が大幅に少ない（1件 vs 25件）</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Level別最大スコア比較 -->
+        <div class="section">
+            <h2>1. Level別最大スコア比較</h2>
+            
+            <h3>1.1 正規化スコア比較</h3>
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Level</th>
+                        <th>FoundationModels<br>最高スコア</th>
+                        <th>外部LLM<br>最高スコア</th>
+                        <th>差</th>
+                        <th>優位モデル</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Level 1</strong></td>
+                        <td class="loser">0.825</td>
+                        <td class="winner">0.975</td>
+                        <td class="winner">+0.150</td>
+                        <td class="winner">外部LLM</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Level 2</strong></td>
+                        <td class="loser">0.850</td>
+                        <td class="winner">0.900</td>
+                        <td class="winner">+0.050</td>
+                        <td class="winner">外部LLM</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Level 3</strong></td>
+                        <td class="winner">0.900</td>
+                        <td class="loser">0.875</td>
+                        <td class="winner">+0.025</td>
+                        <td class="winner">FoundationModels</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>1.2 各Levelでの最高性能アルゴリズム</h3>
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Level</th>
+                        <th>FoundationModels<br>最高アルゴリズム</th>
+                        <th>外部LLM<br>最高アルゴリズム</th>
+                        <th>特徴</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Level 1</strong></td>
+                        <td>persona-ex (0.825)</td>
+                        <td class="winner">persona (0.975)</td>
+                        <td>外部LLMのpersonaが圧倒的優位</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Level 2</strong></td>
+                        <td>persona-ex (0.850)</td>
+                        <td class="winner">persona (0.900)</td>
+                        <td>外部LLMのpersonaが一貫して優位</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Level 3</strong></td>
+                        <td class="winner">persona (0.900)</td>
+                        <td>persona (0.875)</td>
+                        <td>FoundationModelsが僅差で優位</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- アルゴリズム別性能比較 -->
+        <div class="section">
+            <h2>2. アルゴリズム別性能比較</h2>
+            
+            <h3>2.1 全Level平均スコア</h3>
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>アルゴリズム</th>
+                        <th>FoundationModels</th>
+                        <th>外部LLM</th>
+                        <th>差</th>
+                        <th>優位モデル</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>persona</strong></td>
+                        <td class="loser">0.825</td>
+                        <td class="winner">0.950</td>
+                        <td class="winner">+0.125</td>
+                        <td class="winner">外部LLM</td>
+                    </tr>
+                    <tr>
+                        <td><strong>strict</strong></td>
+                        <td class="loser">0.800</td>
+                        <td class="winner">0.875</td>
+                        <td class="winner">+0.075</td>
+                        <td class="winner">外部LLM</td>
+                    </tr>
+                    <tr>
+                        <td><strong>abs</strong></td>
+                        <td class="loser">0.775</td>
+                        <td class="winner">0.800</td>
+                        <td class="winner">+0.025</td>
+                        <td class="winner">外部LLM</td>
+                    </tr>
+                    <tr>
+                        <td><strong>persona-ex</strong></td>
+                        <td class="winner">0.850</td>
+                        <td class="loser">0.825</td>
+                        <td class="winner">+0.025</td>
+                        <td class="winner">FoundationModels</td>
+                    </tr>
+                    <tr>
+                        <td><strong>strict-ex</strong></td>
+                        <td class="winner">0.825</td>
+                        <td class="loser">0.800</td>
+                        <td class="winner">+0.025</td>
+                        <td class="winner">FoundationModels</td>
+                    </tr>
+                    <tr>
+                        <td><strong>abs-ex</strong></td>
+                        <td class="winner">0.850</td>
+                        <td class="loser">0.800</td>
+                        <td class="winner">+0.050</td>
+                        <td class="winner">FoundationModels</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="insight-box">
+                <h4>📊 アルゴリズム別分析</h4>
+                <ul>
+                    <li><strong>基本アルゴリズム（persona, strict, abs）</strong>: 外部LLMが全体的に優位</li>
+                    <li><strong>例示ありアルゴリズム（*-ex）</strong>: FoundationModelsが優位</li>
+                    <li><strong>persona</strong>: 外部LLMで最も高い性能（0.950）</li>
+                    <li><strong>abs-ex</strong>: FoundationModelsで最も高い性能（0.850）</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- エラーパターン比較 -->
+        <div class="section">
+            <h2>3. エラーパターン比較</h2>
+            
+            <h3>3.1 過剰抽出の比較</h3>
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Level</th>
+                        <th>FoundationModels</th>
+                        <th>外部LLM</th>
+                        <th>差</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Level 1</strong></td>
+                        <td class="loser">25件</td>
+                        <td class="winner">0件</td>
+                        <td class="winner">-25件</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Level 2</strong></td>
+                        <td class="loser">26件</td>
+                        <td class="winner">1件</td>
+                        <td class="winner">-25件</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Level 3</strong></td>
+                        <td class="winner">0件</td>
+                        <td class="winner">0件</td>
+                        <td>0件</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>3.2 欠落項目の比較</h3>
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Level</th>
+                        <th>FoundationModels</th>
+                        <th>外部LLM</th>
+                        <th>差</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Level 1</strong></td>
+                        <td class="winner">0件</td>
+                        <td class="winner">0件</td>
+                        <td>0件</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Level 2</strong></td>
+                        <td class="loser">43件</td>
+                        <td class="winner">0件</td>
+                        <td class="winner">-43件</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Level 3</strong></td>
+                        <td class="loser">20件</td>
+                        <td class="winner">0件</td>
+                        <td class="winner">-20件</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>3.3 誤り項目の比較</h3>
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Level</th>
+                        <th>FoundationModels</th>
+                        <th>外部LLM</th>
+                        <th>差</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Level 1</strong></td>
+                        <td class="winner">0件</td>
+                        <td class="winner">0件</td>
+                        <td>0件</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Level 2</strong></td>
+                        <td class="winner">0件</td>
+                        <td class="winner">0件</td>
+                        <td>0件</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Level 3</strong></td>
+                        <td class="loser">24件</td>
+                        <td class="winner">20件</td>
+                        <td class="winner">-4件</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="warning-box">
+                <h4>⚠️ 重要な発見</h4>
+                <ul>
+                    <li><strong>過剰抽出</strong>: 外部LLMが圧倒的に少ない（1件 vs 51件）</li>
+                    <li><strong>欠落項目</strong>: 外部LLMが大幅に少ない（0件 vs 63件）</li>
+                    <li><strong>誤り項目</strong>: Level 3でのみ差が小さい（20件 vs 24件）</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- プロンプト最適化方針の違い -->
+        <div class="section">
+            <h2>4. プロンプト最適化方針の違い</h2>
+            
+            <h3>4.1 FoundationModelsの最適化方針</h3>
+            <div class="insight-box">
+                <h4>🎯 FoundationModels向け最適化</h4>
+                <ul>
+                    <li><strong>例示ありアルゴリズム（*-ex）が有効</strong>: 全体的に高い性能</li>
+                    <li><strong>過剰抽出の抑制が必要</strong>: Level 1-2で大量の過剰抽出</li>
+                    <li><strong>Level 3での精度向上</strong>: 複雑な抽出タスクで優位性</li>
+                    <li><strong>プロンプトの詳細化</strong>: より具体的な指示が必要</li>
+                </ul>
+            </div>
+
+            <h3>4.2 外部LLMの最適化方針</h3>
+            <div class="insight-box">
+                <h4>🚀 外部LLM向け最適化</h4>
+                <ul>
+                    <li><strong>基本アルゴリズム（persona, strict, abs）が有効</strong>: 高い性能</li>
+                    <li><strong>過剰抽出の自然な抑制</strong>: 自動的に適切な抽出</li>
+                    <li><strong>Level 1-2での圧倒的優位性</strong>: シンプルなタスクで最高性能</li>
+                    <li><strong>プロンプトの簡素化</strong>: 基本的な指示で十分</li>
+                </ul>
+            </div>
+
+            <h3>4.3 推奨プロンプト戦略</h3>
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>モデル</th>
+                        <th>推奨アルゴリズム</th>
+                        <th>プロンプト方針</th>
+                        <th>適用場面</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>FoundationModels</strong></td>
+                        <td>persona-ex, abs-ex, strict-ex</td>
+                        <td>例示を活用、詳細な制約</td>
+                        <td>複雑な抽出タスク、Level 3</td>
+                    </tr>
+                    <tr>
+                        <td><strong>外部LLM</strong></td>
+                        <td>persona, strict, abs</td>
+                        <td>シンプルな指示、役割設定</td>
+                        <td>基本的な抽出タスク、Level 1-2</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 詳細分析 -->
+        <div class="section">
+            <h2>5. 詳細分析</h2>
+            
+            <h3>5.1 Level 1での外部LLMの圧倒的優位性</h3>
+            <div class="code-block">
+                <strong>外部LLM persona: 0.975</strong> vs <strong>FoundationModels persona-ex: 0.825</strong>
+                
+                主な要因:
+                - 過剰抽出: 外部LLM 0件 vs FoundationModels 25件
+                - 外部LLMは自然に期待項目のみを抽出
+                - FoundationModelsは不要な項目も抽出してしまう
+            </div>
+
+            <h3>5.2 Level 2での外部LLMの優位性</h3>
+            <div class="code-block">
+                <strong>外部LLM persona: 0.900</strong> vs <strong>FoundationModels persona-ex: 0.850</strong>
+                
+                主な要因:
+                - 欠落項目: 外部LLM 0件 vs FoundationModels 43件
+                - 外部LLMはport項目を正確に抽出
+                - FoundationModelsはport項目の抽出に課題
+            </div>
+
+            <h3>5.3 Level 3でのFoundationModelsの僅差優位</h3>
+            <div class="code-block">
+                <strong>FoundationModels persona: 0.900</strong> vs <strong>外部LLM persona: 0.875</strong>
+                
+                主な要因:
+                - 複雑な抽出タスクでFoundationModelsが優位
+                - 誤り項目: FoundationModels 24件 vs 外部LLM 20件（差は小さい）
+                - 両モデルとも高精度だが、FoundationModelsが僅かに上回る
+            </div>
+        </div>
+
+        <!-- 結論と推奨事項 -->
+        <div class="section">
+            <h2>6. 結論と推奨事項</h2>
+            
+            <h3>6.1 主要な結論</h3>
+            <div class="metric-card">
+                <div class="metric-value">外部LLM が全体的に優位</div>
+                <p>特にLevel 1-2での圧倒的優位性が決定要因</p>
+            </div>
+
+            <h3>6.2 推奨事項</h3>
+            <ul>
+                <li><strong>Level 1-2のタスク</strong>: 外部LLM + persona/strict/abs</li>
+                <li><strong>Level 3のタスク</strong>: FoundationModels + persona-ex/abs-ex/strict-ex</li>
+                <li><strong>FoundationModels改善</strong>: 過剰抽出の抑制、port項目抽出精度向上</li>
+                <li><strong>外部LLM活用</strong>: 基本的な抽出タスクでの積極的活用</li>
+            </ul>
+
+            <h3>6.3 今後の研究方向</h3>
+            <ul>
+                <li>FoundationModelsの過剰抽出抑制手法の開発</li>
+                <li>外部LLMのLevel 3での性能向上策</li>
+                <li>ハイブリッドアプローチ（Level別モデル選択）の検討</li>
+                <li>プロンプト最適化の自動化</li>
+            </ul>
+        </div>
+
+        <div style="text-align: center; margin-top: 40px; padding: 20px; background-color: #f8f9fa; border-radius: 8px;">
+            <p style="color: #6c757d; font-size: 0.9em;">
+                レポート生成日時: 2025年1月19日<br>
+                データソース: FoundationModels実験（20250119_format_experiment_ja）、外部LLM実験（external_llm_20runs_experiment）<br>
+                補正後データに基づく正確な性能評価
+            </p>
+        </div>
+    </div>
+</body>
+</html>

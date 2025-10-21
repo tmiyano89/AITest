@@ -1,0 +1,13 @@
+Extract account information from the attached document.
+
+step1: Identify the service name (title) from the content
+step2: Pick up account-related information such as ID, password, etc. needed to use the service
+step3: Finally, summarize supplementary information (note) about the service
+
+Constraints:
+  - Set to nil for items that cannot be extracted
+  - Each field should contain only one value
+  - title and note fields are required
+  - Guessing or fabrication is prohibited
+  - Copying examples is prohibited
+  - Output in consistent format

@@ -1,0 +1,28 @@
+Extract account information from the attached document and respond in the following valid JSON format.
+
+step1: Identify the service name (title) from the content
+step2: Pick up account-related information such as ID, password, etc. needed to use the service
+step3: Finally, summarize supplementary information (note) about the service
+
+Output JSON format:
+{
+  "title": "Service name, app name, site name",
+  "userID": "Email address, username, login ID",
+  "password": "Password string",
+  "url": "Login page URL, service URL",
+  "note": "Remarks, notes, additional information",
+  "host": "Hostname or IP address",
+  "port": Port number,
+  "authKey": "Authentication key (SSH private key, etc.)"
+}
+
+Constraints:
+- Set only one value per field
+- title and note fields are required
+- Guessing or fabrication is prohibited
+- Copying examples is prohibited
+- Set to null if ambiguous
+- Set items that cannot be extracted to null
+- Include complete string with BEGIN and END lines for authKey
+- All values must be string type and escape newlines if included
+- Respond with JSON string only, no other text

@@ -226,7 +226,7 @@ def compute_grouped_item_scores(all_results):
     """method/language/patternの各軸で、項目数ベースと正規化スコアを集計"""
     def ensure_group(d):
         if 'expected_items' not in d:
-            d.update({'expected_items':0,'correct_items':0,'wrong_items':0,'missing_items':0,'unexpected_items':0,'tests':0})
+            d.update({'expected_items':0,'correct_items':0,'wrong_items':0,'missing_items':0,'pending_items':0,'unexpected_items':0,'tests':0})
 
     by_method = {}
     by_language = {}
@@ -242,16 +242,17 @@ def compute_grouped_item_scores(all_results):
             correct = sum(1 for f in tc.get('expected_fields', []) if f.get('status')=='correct')
             wrong = sum(1 for f in tc.get('expected_fields', []) if f.get('status')=='wrong')
             missing = sum(1 for f in tc.get('expected_fields', []) if f.get('status')=='missing')
+            pending = sum(1 for f in tc.get('expected_fields', []) if f.get('status')=='pending')
             unexpected = len(tc.get('unexpected_fields', []))
             
             # @ai[2025-01-10 15:30] デバッグログを削除してコードをクリーンアップ
             
             # 整合性チェック
-            accounted = correct + wrong + missing
+            accounted = correct + wrong + missing + pending
             if accounted > expected:
                 overflow = accounted - expected
                 wrong = max(0, wrong - overflow)
-                accounted = correct + wrong + missing
+                accounted = correct + wrong + missing + pending
             if accounted < expected:
                 missing += (expected - accounted)
 
@@ -262,21 +263,21 @@ def compute_grouped_item_scores(all_results):
 
             if meth:
                 by_method.setdefault(meth, {}); ensure_group(by_method[meth])
-                g = by_method[meth]; g['expected_items']+=expected; g['correct_items']+=correct; g['wrong_items']+=wrong; g['missing_items']+=missing; g['unexpected_items']+=unexpected; g['tests']+=1
+                g = by_method[meth]; g['expected_items']+=expected; g['correct_items']+=correct; g['wrong_items']+=wrong; g['missing_items']+=missing; g['pending_items']+=pending; g['unexpected_items']+=unexpected; g['tests']+=1
             if lang:
                 by_language.setdefault(lang, {}); ensure_group(by_language[lang])
-                g = by_language[lang]; g['expected_items']+=expected; g['correct_items']+=correct; g['wrong_items']+=wrong; g['missing_items']+=missing; g['unexpected_items']+=unexpected; g['tests']+=1
+                g = by_language[lang]; g['expected_items']+=expected; g['correct_items']+=correct; g['wrong_items']+=wrong; g['missing_items']+=missing; g['pending_items']+=pending; g['unexpected_items']+=unexpected; g['tests']+=1
             if patt:
                 by_pattern.setdefault(patt, {}); ensure_group(by_pattern[patt])
-                g = by_pattern[patt]; g['expected_items']+=expected; g['correct_items']+=correct; g['wrong_items']+=wrong; g['missing_items']+=missing; g['unexpected_items']+=unexpected; g['tests']+=1
+                g = by_pattern[patt]; g['expected_items']+=expected; g['correct_items']+=correct; g['wrong_items']+=wrong; g['missing_items']+=missing; g['pending_items']+=pending; g['unexpected_items']+=unexpected; g['tests']+=1
             if exp_patt:
                 by_experiment_pattern.setdefault(exp_patt, {}); ensure_group(by_experiment_pattern[exp_patt])
-                g = by_experiment_pattern[exp_patt]; g['expected_items']+=expected; g['correct_items']+=correct; g['wrong_items']+=wrong; g['missing_items']+=missing; g['unexpected_items']+=unexpected; g['tests']+=1
+                g = by_experiment_pattern[exp_patt]; g['expected_items']+=expected; g['correct_items']+=correct; g['wrong_items']+=wrong; g['missing_items']+=missing; g['pending_items']+=pending; g['unexpected_items']+=unexpected; g['tests']+=1
             
             # レベル別集計
             level = tc.get('level', 1)
             by_level.setdefault(level, {}); ensure_group(by_level[level])
-            g = by_level[level]; g['expected_items']+=expected; g['correct_items']+=correct; g['wrong_items']+=wrong; g['missing_items']+=missing; g['unexpected_items']+=unexpected; g['tests']+=1
+            g = by_level[level]; g['expected_items']+=expected; g['correct_items']+=correct; g['wrong_items']+=wrong; g['missing_items']+=missing; g['pending_items']+=pending; g['unexpected_items']+=unexpected; g['tests']+=1
             
             # algo別×レベル別集計
             if exp_patt:
@@ -288,7 +289,7 @@ def compute_grouped_item_scores(all_results):
                     if algo not in ['twosteps']:
                         algo_level_key = f"{algo}_level{level}"
                         by_algo_level.setdefault(algo_level_key, {}); ensure_group(by_algo_level[algo_level_key])
-                        g = by_algo_level[algo_level_key]; g['expected_items']+=expected; g['correct_items']+=correct; g['wrong_items']+=wrong; g['missing_items']+=missing; g['unexpected_items']+=unexpected; g['tests']+=1
+                        g = by_algo_level[algo_level_key]; g['expected_items']+=expected; g['correct_items']+=correct; g['wrong_items']+=wrong; g['missing_items']+=missing; g['pending_items']+=pending; g['unexpected_items']+=unexpected; g['tests']+=1
 
     def add_score(dct):
         out = {}
@@ -471,8 +472,8 @@ def generate_html_report(all_results, output_path, rates=None, timing_stats=None
             'correct': sum(g['correct_items'] for g in grouped_scores['by_experiment_pattern'].values()),
             'wrong': sum(g['wrong_items'] for g in grouped_scores['by_experiment_pattern'].values()),
             'missing': sum(g['missing_items'] for g in grouped_scores['by_experiment_pattern'].values()),
-            'unexpected': sum(g['unexpected_items'] for g in grouped_scores['by_experiment_pattern'].values()),
-            'pending': 0
+            'pending': sum(g['pending_items'] for g in grouped_scores['by_experiment_pattern'].values()),
+            'unexpected': sum(g['unexpected_items'] for g in grouped_scores['by_experiment_pattern'].values())
         }
     }
     
@@ -608,6 +609,7 @@ def generate_html_report(all_results, output_path, rates=None, timing_stats=None
                     <td class="correct">{v['correct_items']}</td>
                     <td class="wrong">{v['wrong_items']}</td>
                     <td class="missing">{v['missing_items']}</td>
+                    <td class="pending">{v.get('pending_items', 0)}</td>
                     <td class="unexpected">{v['unexpected_items']}</td>
                     <td><strong>{v['normalized_score']:.3f}</strong></td>
                 </tr>
@@ -623,6 +625,7 @@ def generate_html_report(all_results, output_path, rates=None, timing_stats=None
                     <th>正解項目数</th>
                     <th>誤り項目数</th>
                     <th>欠落項目数</th>
+                    <th>pending項目数</th>
                     <th>過剰項目数</th>
                     <th>正規化スコア</th>
                 </tr>
@@ -795,6 +798,7 @@ def generate_html_report(all_results, output_path, rates=None, timing_stats=None
         total_correct = sum(g['correct_items'] for g in grouped_scores['by_experiment_pattern'].values())
         total_wrong = sum(g['wrong_items'] for g in grouped_scores['by_experiment_pattern'].values())
         total_missing = sum(g['missing_items'] for g in grouped_scores['by_experiment_pattern'].values())
+        total_pending = sum(g['pending_items'] for g in grouped_scores['by_experiment_pattern'].values())
         total_unexpected = sum(g['unexpected_items'] for g in grouped_scores['by_experiment_pattern'].values())
         overall_score = (total_correct - total_wrong - total_unexpected) / (total_expected or 1)
         
@@ -814,7 +818,7 @@ def generate_html_report(all_results, output_path, rates=None, timing_stats=None
         <div style="background: #e3f2fd; padding: 20px; border-radius: 8px; margin: 20px 0;">
             <h4>🎯 全体パフォーマンス概要</h4>
             <p><strong>全体正規化スコア:</strong> {overall_score:.3f}</p>
-            <p><strong>総期待項目数:</strong> {total_expected} | <strong>正解項目数:</strong> {total_correct} | <strong>誤り項目数:</strong> {total_wrong} | <strong>欠落項目数:</strong> {total_missing} | <strong>過剰項目数:</strong> {total_unexpected}</p>
+            <p><strong>総期待項目数:</strong> {total_expected} | <strong>正解項目数:</strong> {total_correct} | <strong>誤り項目数:</strong> {total_wrong} | <strong>欠落項目数:</strong> {total_missing} | <strong>pending項目数:</strong> {total_pending} | <strong>過剰項目数:</strong> {total_unexpected}</p>
         </div>
         
         <div style="background: #f3e5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
@@ -1636,8 +1640,8 @@ def main():
             'correct': sum(g['correct_items'] for g in grouped_scores['by_experiment_pattern'].values()),
             'wrong': sum(g['wrong_items'] for g in grouped_scores['by_experiment_pattern'].values()),
             'missing': sum(g['missing_items'] for g in grouped_scores['by_experiment_pattern'].values()),
-            'unexpected': sum(g['unexpected_items'] for g in grouped_scores['by_experiment_pattern'].values()),
-            'pending': 0
+            'pending': sum(g['pending_items'] for g in grouped_scores['by_experiment_pattern'].values()),
+            'unexpected': sum(g['unexpected_items'] for g in grouped_scores['by_experiment_pattern'].values())
         }
     }
     
