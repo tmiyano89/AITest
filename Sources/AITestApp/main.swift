@@ -74,7 +74,7 @@ if #available(iOS 26.0, macOS 26.0, *) {
         } else {
                 print("⚠️ 特定のexperimentが指定されていません - デフォルトでyaml_enを実行")
                 // デフォルトでyaml_enを実行
-                let defaultExperiment = (method: ExtractionMethod.yaml, language: PromptLanguage.english, testcase: "chat", algos: ["abs"])
+                let defaultExperiment = (method: ExtractionMethod.yaml, language: PromptLanguage.english, testcase: "chat", algos: ["abs"], mode: ExtractionMode.simple, levels: [1, 2, 3])
                 _ = extractTestDirFromArguments()
                 await processExperiment(experiment: defaultExperiment, pattern: ExperimentPattern.defaultPattern, timeoutSeconds: timeoutSeconds)
             }
@@ -131,12 +131,13 @@ func generateFormatExperimentReport() async {
                     
                     // テストケース名からレベルを抽出
                     let (pattern, level) = parseTestCaseName(testCase.name)
-                    let (accountInfo, metrics, _, _) = try await unifiedExtractor.extract(
+                    let (accountInfo, metrics, _, _, _) = try await unifiedExtractor.extract(
                         testcase: pattern,
                         level: level,
                         method: method,
                         algo: "abs", // デフォルト値
-                        language: language
+                        language: language,
+                        useTwoSteps: ExtractionMode.simple.useTwoSteps // デフォルトは単純推定
                     )
                     
                     let result = """
@@ -344,7 +345,7 @@ func extractExternalLLMConfigFromArguments() -> LLMConfig? {
 @available(iOS 26.0, macOS 26.0, *)
 func validateArguments() -> (isValid: Bool, errors: [String]) {
     var errors: [String] = []
-    let validOptions = ["--method", "--language", "--testcase", "--testcases", "--algo", "--algos", "--levels", "--runs", "--external-llm-url", "--external-llm-model", "--timeout", "--debug-single", "--debug-prompt", "--collect-responses", "--test-extraction-methods", "--experiment", "--test-dir"]
+    let validOptions = ["--method", "--language", "--testcase", "--testcases", "--algo", "--algos", "--levels", "--runs", "--mode", "--external-llm-url", "--external-llm-model", "--timeout", "--debug-single", "--debug-prompt", "--collect-responses", "--test-extraction-methods", "--experiment", "--test-dir"]
     
     // サポートされているオプションをチェック
     for argument in CommandLine.arguments {
@@ -384,8 +385,10 @@ func printHelp() {
     print()
     print("引数:")
     print("  --method <method>     抽出方法 (json, generable, yaml) [デフォルト: generable]")
-    print("  --testcase <testcase> 指示タイプ (abs, strict, persona, twosteps, abs-ex, strict-ex, persona-ex) [デフォルト: strict]")
+    print("  --testcase <testcase> 指示タイプ (abs, strict, persona, abs-ex, strict-ex, persona-ex) [デフォルト: strict]")
     print("  --language <language> 言語 (ja, en) [デフォルト: ja]")
+    print("  --mode <mode>         抽出モード (simple, two-steps) [デフォルト: simple]")
+    print("  --levels <levels>     テストレベル (例: 1,2) [デフォルト: 1,2,3]")
     print("  --runs <number>       実行回数 [デフォルト: 1]")
     print("  --timeout <seconds>   タイムアウト秒数 [デフォルト: 300]")
     print()
@@ -400,6 +403,8 @@ func printHelp() {
     print()
     print("使用例:")
     print("  swift run AITestApp --method json --testcase strict --language ja")
+    print("  swift run AITestApp --method generable --testcase chat --language ja --mode two-steps")
+    print("  swift run AITestApp --method generable --testcase chat --language ja --levels 1")
     print("  swift run AITestApp --debug-prompt --method json --testcase strict --language ja")
     print("  swift run AITestApp --method generable --testcase abs --runs 5")
     print(String(repeating: "=", count: 60))
@@ -407,9 +412,9 @@ func printHelp() {
 
 /// コマンドライン引数からexperimentを抽出（新しい統一引数方式）
 @available(iOS 26.0, macOS 26.0, *)
-func extractExperimentFromArguments() -> (method: ExtractionMethod, language: PromptLanguage, testcase: String, algos: [String])? {
+func extractExperimentFromArguments() -> (method: ExtractionMethod, language: PromptLanguage, testcase: String, algos: [String], mode: ExtractionMode, levels: [Int])? {
     print("🔍 extractExperimentFromArguments 開始")
-    
+
     // 引数バリデーション
     let validation = validateArguments()
     if !validation.isValid {
@@ -420,16 +425,19 @@ func extractExperimentFromArguments() -> (method: ExtractionMethod, language: Pr
         printHelp()
         return nil
     }
-    
+
     print("   利用可能なExtractionMethod: \(ExtractionMethod.allCases.map { $0.rawValue })")
     print("   利用可能なPromptLanguage: \(PromptLanguage.allCases.map { $0.rawValue })")
+    print("   利用可能なExtractionMode: \(ExtractionMode.allCases.map { $0.rawValue })")
     print("   利用可能なTestcase: chat, creditcard, contract, password, voice")
     print("   利用可能なAlgo: abs, strict, persona, abs-ex, strict-ex, persona-ex")
-    
+
     var method: ExtractionMethod = .generable  // デフォルト
     var language: PromptLanguage = .japanese   // デフォルト
     var testcase: String = "chat"              // デフォルト
     var algos: [String] = ["strict"]           // デフォルト
+    var mode: ExtractionMode = .simple         // デフォルト
+    var levels: [Int] = [1, 2, 3]              // デフォルト（全レベル）
     
     // 有効なtestcase値の定義
     let validTestcases = ["chat", "creditcard", "contract", "password", "voice"]
@@ -575,7 +583,7 @@ func extractExperimentFromArguments() -> (method: ExtractionMethod, language: Pr
         if argument == "--language" && index + 1 < CommandLine.arguments.count {
             let languageString = CommandLine.arguments[index + 1]
             print("   --language 形式を検出: \(languageString)")
-            
+
             if let extractedLanguage = PromptLanguage.allCases.first(where: { $0.rawValue == languageString }) {
                 language = extractedLanguage
                 print("✅ languageを抽出: \(language.rawValue)")
@@ -586,16 +594,88 @@ func extractExperimentFromArguments() -> (method: ExtractionMethod, language: Pr
             }
         }
     }
-    
+
+    // --mode= の形式をチェック
+    for argument in CommandLine.arguments {
+        if argument.hasPrefix("--mode=") {
+            let modeString = String(argument.dropFirst("--mode=".count))
+            print("   --mode= 形式を検出: \(modeString)")
+
+            if let extractedMode = ExtractionMode.allCases.first(where: { $0.rawValue == modeString }) {
+                mode = extractedMode
+                print("✅ modeを抽出: \(mode.rawValue)")
+            } else {
+                print("❌ 無効なmode指定: \(modeString)")
+                print("   有効な値: \(ExtractionMode.allCases.map { $0.rawValue }.joined(separator: ", "))")
+                return nil
+            }
+        }
+    }
+
+    // --mode の形式をチェック（次の引数を取得）
+    for (index, argument) in CommandLine.arguments.enumerated() {
+        if argument == "--mode" && index + 1 < CommandLine.arguments.count {
+            let modeString = CommandLine.arguments[index + 1]
+            print("   --mode 形式を検出: \(modeString)")
+
+            if let extractedMode = ExtractionMode.allCases.first(where: { $0.rawValue == modeString }) {
+                mode = extractedMode
+                print("✅ modeを抽出: \(mode.rawValue)")
+            } else {
+                print("❌ 無効なmode指定: \(modeString)")
+                print("   有効な値: \(ExtractionMode.allCases.map { $0.rawValue }.joined(separator: ", "))")
+                return nil
+            }
+        }
+    }
+
+    // --levels= の形式をチェック
+    for argument in CommandLine.arguments {
+        if argument.hasPrefix("--levels=") {
+            let levelsString = String(argument.dropFirst("--levels=".count))
+            print("   --levels= 形式を検出: \(levelsString)")
+
+            let levelStrings = levelsString.split(separator: ",").map(String.init)
+            let extractedLevels = levelStrings.compactMap { Int($0.trimmingCharacters(in: .whitespaces)) }
+
+            if !extractedLevels.isEmpty {
+                levels = extractedLevels
+                print("✅ levelsを抽出: \(levels.map(String.init).joined(separator: ", "))")
+            } else {
+                print("❌ 無効なlevels指定: \(levelsString)")
+                return nil
+            }
+        }
+    }
+
+    // --levels の形式をチェック（次の引数を取得）
+    for (index, argument) in CommandLine.arguments.enumerated() {
+        if argument == "--levels" && index + 1 < CommandLine.arguments.count {
+            let levelsString = CommandLine.arguments[index + 1]
+            print("   --levels 形式を検出: \(levelsString)")
+
+            let levelStrings = levelsString.split(separator: ",").map(String.init)
+            let extractedLevels = levelStrings.compactMap { Int($0.trimmingCharacters(in: .whitespaces)) }
+
+            if !extractedLevels.isEmpty {
+                levels = extractedLevels
+                print("✅ levelsを抽出: \(levels.map(String.init).joined(separator: ", "))")
+            } else {
+                print("❌ 無効なlevels指定: \(levelsString)")
+                return nil
+            }
+        }
+    }
+
     // 最終結果を表示
-    print("✅ 最終結果: method=\(method.rawValue), language=\(language.rawValue), testcase=\(testcase), algos=\(algos.joined(separator: ", "))")
-    
-    return (method: method, language: language, testcase: testcase, algos: algos)
+    print("✅ 最終結果: method=\(method.rawValue), language=\(language.rawValue), testcase=\(testcase), algos=\(algos.joined(separator: ", ")), mode=\(mode.rawValue), levels=\(levels.map(String.init).joined(separator: ", "))")
+
+    return (method: method, language: language, testcase: testcase, algos: algos, mode: mode, levels: levels)
 }
 
 /// 実験処理を実行
 @available(iOS 26.0, macOS 26.0, *)
-func processExperiment(experiment: (method: ExtractionMethod, language: PromptLanguage, testcase: String, algos: [String]), pattern: ExperimentPattern, timeoutSeconds: Int) async {
+func processExperiment(experiment: (method: ExtractionMethod, language: PromptLanguage, testcase: String, algos: [String], mode: ExtractionMode, levels: [Int]), pattern: ExperimentPattern, timeoutSeconds: Int) async {
     // 外部LLM設定の取得
     let externalLLMConfig = extractExternalLLMConfigFromArguments()
     if let config = externalLLMConfig {
@@ -647,7 +727,7 @@ func processExperiment(experiment: (method: ExtractionMethod, language: PromptLa
         let patternName = "\(algo)_\(methodSuffix)"
         if let pattern = ExperimentPattern.allCases.first(where: { $0.rawValue == patternName }) {
             // パターンが見つかった場合の処理
-            let singleExperiment = (method: experiment.method, language: experiment.language, testcase: experiment.testcase, algo: algo)
+            let singleExperiment = (method: experiment.method, language: experiment.language, testcase: experiment.testcase, algo: algo, mode: experiment.mode, levels: experiment.levels)
             await runSpecificExperiment(singleExperiment, pattern: pattern, testDir: finalTestDir, externalLLMConfig: configCopy)
         } else {
             print("❌ 無効なパターン組み合わせ: \(patternName)")
@@ -843,7 +923,7 @@ func getAvailablePatterns(at basePath: String) -> [String] {
 /// 特定のexperimentを実行
 @available(iOS 26.0, macOS 26.0, *)
 @MainActor
-func runSpecificExperiment(_ experiment: (method: ExtractionMethod, language: PromptLanguage, testcase: String, algo: String), pattern: ExperimentPattern, testDir: String?, runNumber: Int = 1, externalLLMConfig: LLMConfig? = nil) async {
+func runSpecificExperiment(_ experiment: (method: ExtractionMethod, language: PromptLanguage, testcase: String, algo: String, mode: ExtractionMode, levels: [Int]), pattern: ExperimentPattern, testDir: String?, runNumber: Int = 1, externalLLMConfig: LLMConfig? = nil) async {
     let timer = PerformanceTimer("特定実験全体")
     timer.start()
     
@@ -877,9 +957,16 @@ func runSpecificExperiment(_ experiment: (method: ExtractionMethod, language: Pr
     // パターン名を実際のテストデータディレクトリ名にマッピング
     let actualPattern = mapPatternToTestDataDirectory(pattern.rawValue)
     print("🔍 DEBUG: パターンマッピング: \(pattern.rawValue) -> \(actualPattern)")
-    let testCases = loadTestCases(pattern: actualPattern)
+    let allTestCases = loadTestCases(pattern: actualPattern)
+
+    // levelsでテストケースをフィルタリング
+    let testCases = allTestCases.filter { testCase in
+        let (_, level) = parseTestCaseName(testCase.name)
+        return experiment.levels.contains(level)
+    }
+    print("🔍 DEBUG: 全テストケース数: \(allTestCases.count), フィルタ後: \(testCases.count), 対象レベル: \(experiment.levels.map(String.init).joined(separator: ", "))")
     timer.checkpoint("テストケース読み込み完了")
-    
+
     // 各テストケースに対して指定回数実行
     for (index, testCase) in testCases.enumerated() {
         let (testPattern, level) = parseTestCaseName(testCase.name)
@@ -923,21 +1010,22 @@ func runSpecificExperiment(_ experiment: (method: ExtractionMethod, language: Pr
             
             // テストケース名からレベルを抽出
             let (testPattern, level) = parseTestCaseName(testCase.name)
-            let (accountInfo, metrics, _, requestContent) = try await unifiedExtractor.extract(
+            let (accountInfo, metrics, _, requestContent, contentInfo) = try await unifiedExtractor.extract(
                 testcase: testPattern,
                 level: level,
                 method: experiment.method,
                 algo: "abs", // デフォルト値
-                language: experiment.language
+                language: experiment.language,
+                useTwoSteps: experiment.mode.useTwoSteps
             )
             testTimer.checkpoint("AI抽出完了")
-        
+
             print("✅ 抽出成功")
             print("  ⏱️  抽出時間: \(String(format: "%.3f", metrics.extractionTime))秒")
             print("  ⏱️  総時間: \(String(format: "%.3f", metrics.totalTime))秒")
             print("  📊 抽出フィールド数: \(accountInfo.extractedFieldsCount)")
             print("  ✅ バリデーション: \(metrics.isValid ? "成功" : "警告あり")")
-            
+
             // 抽出されたフィールドの詳細表示
             print("  📋 抽出結果:")
             if let title = accountInfo.title { print("    title: \(title)") }
@@ -948,10 +1036,10 @@ func runSpecificExperiment(_ experiment: (method: ExtractionMethod, language: Pr
             if let host = accountInfo.host { print("    host: \(host)") }
             if let port = accountInfo.port { print("    port: \(port)") }
             if let authKey = accountInfo.authKey { print("    authKey: \(authKey)") }
-            
+
             // 構造化ログの出力
             print("🔍 DEBUG: generateStructuredLog呼び出し開始")
-            await generateStructuredLog(testCase: testCase, accountInfo: accountInfo, experiment: experiment, pattern: pattern, iteration: 1, runNumber: run, testDir: finalTestDir, requestContent: requestContent)
+            await generateStructuredLog(testCase: testCase, accountInfo: accountInfo, experiment: experiment, pattern: pattern, iteration: 1, runNumber: run, testDir: finalTestDir, requestContent: requestContent, contentInfo: contentInfo)
             print("🔍 DEBUG: generateStructuredLog呼び出し完了")
             testTimer.checkpoint("ログ出力完了")
             
@@ -980,7 +1068,7 @@ func runSpecificExperiment(_ experiment: (method: ExtractionMethod, language: Pr
 
 /// フォーマット実験レポートを生成
 @available(iOS 26.0, macOS 26.0, *)
-func generateFormatExperimentReport(testDir: String, experiment: (method: ExtractionMethod, language: PromptLanguage, testcase: String, algo: String), pattern: ExperimentPattern, testCases: [(name: String, text: String)]) async {
+func generateFormatExperimentReport(testDir: String, experiment: (method: ExtractionMethod, language: PromptLanguage, testcase: String, algo: String, mode: ExtractionMode, levels: [Int]), pattern: ExperimentPattern, testCases: [(name: String, text: String)]) async {
     let formatter = DateFormatter()
     formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
     let timestamp = formatter.string(from: Date())
@@ -1080,14 +1168,15 @@ func createLogDirectory(_ path: String) {
 }
 
 /// 構造化ログを生成
+/// @ai[2025-10-22 18:25] 2ステップ方式のカテゴリ結果を追加
 @available(iOS 26.0, macOS 26.0, *)
-func generateStructuredLog(testCase: (name: String, text: String), accountInfo: AccountInfo, experiment: (method: ExtractionMethod, language: PromptLanguage, testcase: String, algo: String), pattern: ExperimentPattern, iteration: Int, runNumber: Int, testDir: String, requestContent: String?) async {
+func generateStructuredLog(testCase: (name: String, text: String), accountInfo: AccountInfo, experiment: (method: ExtractionMethod, language: PromptLanguage, testcase: String, algo: String, mode: ExtractionMode, levels: [Int]), pattern: ExperimentPattern, iteration: Int, runNumber: Int, testDir: String, requestContent: String?, contentInfo: ContentInfo?) async {
     print("🔍 DEBUG: generateStructuredLog開始 - testDir: \(testDir)")
     let (testPattern, level) = parseTestCaseName(testCase.name)
     print("🔍 DEBUG: パターン: \(testPattern), レベル: \(level)")
     let expectedFields = getExpectedFields(for: testPattern, level: level)
     print("🔍 DEBUG: 期待フィールド数: \(expectedFields.count)")
-    
+
     var structuredLog: [String: Any] = [
         "pattern": testPattern,
         "level": level,
@@ -1099,6 +1188,16 @@ func generateStructuredLog(testCase: (name: String, text: String), accountInfo: 
         "expected_fields": [],
         "unexpected_fields": []
     ]
+
+    // 2ステップ方式の場合、メインカテゴリとサブカテゴリの結果を追加
+    if experiment.mode == .twoSteps, let contentInfo = contentInfo {
+        structuredLog["two_steps_category"] = [
+            "main_category": contentInfo.mainCategory,
+            "main_category_display": contentInfo.mainCategoryEnum.displayName,
+            "sub_category": contentInfo.subCategory,
+            "sub_category_display": contentInfo.subCategoryEnum?.displayName ?? "不明"
+        ]
+    }
     
     // 期待されるフィールドの分析
     var expectedFieldsArray: [[String: Any]] = []
@@ -1153,7 +1252,7 @@ func generateStructuredLog(testCase: (name: String, text: String), accountInfo: 
 
 /// エラー時の構造化ログを生成
 @available(iOS 26.0, macOS 26.0, *)
-func generateErrorStructuredLog(testCase: (name: String, text: String), error: Error, experiment: (method: ExtractionMethod, language: PromptLanguage, testcase: String, algo: String), pattern: ExperimentPattern, iteration: Int, runNumber: Int, testDir: String, requestContent: String?) async {
+func generateErrorStructuredLog(testCase: (name: String, text: String), error: Error, experiment: (method: ExtractionMethod, language: PromptLanguage, testcase: String, algo: String, mode: ExtractionMode, levels: [Int]), pattern: ExperimentPattern, iteration: Int, runNumber: Int, testDir: String, requestContent: String?) async {
     let (testPattern, level) = parseTestCaseName(testCase.name)
     let expectedFields = getExpectedFields(for: testPattern, level: level)
     
@@ -1568,14 +1667,15 @@ func runResponseCollection() async {
                 let unifiedExtractor = UnifiedExtractor(modelExtractor: modelExtractor)
                 
                 print("📝 新しい統一フローで抽出開始")
-                
+
                 // 新しい統一フローで抽出実行
-                let (accountInfo, metrics, rawResponse, requestContent) = try await unifiedExtractor.extract(
+                let (accountInfo, metrics, rawResponse, requestContent, _) = try await unifiedExtractor.extract(
                     testcase: "Chat",
                     level: level == "level1" ? 1 : level == "level2" ? 2 : 3,
                     method: .json,
                     algo: "abs",
-                    language: .japanese
+                    language: .japanese,
+                    useTwoSteps: ExtractionMode.simple.useTwoSteps // デフォルトは単純推定
                 )
                 
                 // 生のレスポンスをファイルに保存

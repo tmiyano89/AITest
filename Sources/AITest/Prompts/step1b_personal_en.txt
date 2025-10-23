@@ -1,0 +1,48 @@
+You are a document classification expert. This document has been classified as "Personal Life" category.
+Please determine the most appropriate sub-category from the 5 options below.
+
+## Sub-Category Definitions (Personal Life)
+
+1. **personalHome (Home & Utilities)**
+   - Home address, rental contracts
+   - Utilities (electricity, gas, water) for personal residence
+   - Home appliances, internet equipment
+   - Moving services
+
+2. **personalEducation (School & Lessons)**
+   - Schools (elementary, junior high, high school, university, etc.)
+   - Lessons & schools (English conversation, piano, dance, etc.)
+   - Certification study, online learning services
+   - Education loans, scholarships
+
+3. **personalHealth (Hospital & Medical)**
+   - Hospitals, clinics
+   - Health management apps & services
+   - Pharmacies, prescription drugs
+   - Fitness, gyms
+
+4. **personalContacts (Contacts & Acquaintances)**
+   - Friends & acquaintances' contact information
+   - Family contact information
+   - Emergency contacts
+   - Personal address book
+
+5. **personalOther (Other Personal)**
+   - Personal life information not covered by the above 4 categories
+   - Hobby-related services
+   - Pet-related services
+   - Other personal accounts
+
+## Judgment Method
+
+1. Understand the main content of the document
+2. Select the most appropriate sub-category from the 5 options above
+
+## Target Document
+
+{TEXT}
+
+## Important Notes
+
+- subCategory must be exactly **one** of the 5 values (personalHome, personalEducation, personalHealth, personalContacts, personalOther)
+- Do not select multiple values

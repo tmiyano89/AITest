@@ -1,0 +1,8 @@
+Extract {infoType} information from the following document.
+
+Document content:
+{testData}
+
+{generatedStructDescription}
+
+Use @Generable macro to extract as {structName} structure.

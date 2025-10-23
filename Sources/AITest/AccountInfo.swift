@@ -628,6 +628,48 @@ public struct ExtractionMetrics: Codable, Sendable {
     }
 }
 
+/// 2ステップ抽出メトリクス
+/// @ai[2025-10-21 13:30] 2ステップ抽出のメトリクス定義
+/// @ai[2025-10-22 20:00] confidence関連フィールドを削除（信頼性評価は不要）
+/// 目的: 分割推定方式の各ステップの処理時間を記録
+/// 背景: 推定1と推定2の個別のメトリクスを分析する必要
+/// 意図: 2ステップ抽出の効果性を測定
+@available(iOS 26.0, macOS 26.0, *)
+public struct TwoStepsExtractionMetrics: Codable, Sendable {
+    /// 推定1の処理時間（秒）
+    public let step1Time: TimeInterval
+    /// 推定2の処理時間（秒）
+    public let step2Time: TimeInterval
+    /// 総処理時間（秒）
+    public let totalTime: TimeInterval
+    /// 判定されたカテゴリ
+    public let detectedCategory: String
+    /// 抽出された情報タイプ数
+    public let extractedInfoTypes: Int
+    /// 抽出戦略の効果性
+    public let strategyEffectiveness: Double
+    /// 通常のメトリクス
+    public let baseMetrics: ExtractionMetrics
+
+    public init(
+        step1Time: TimeInterval,
+        step2Time: TimeInterval,
+        totalTime: TimeInterval,
+        detectedCategory: String,
+        extractedInfoTypes: Int,
+        strategyEffectiveness: Double,
+        baseMetrics: ExtractionMetrics
+    ) {
+        self.step1Time = step1Time
+        self.step2Time = step2Time
+        self.totalTime = totalTime
+        self.detectedCategory = detectedCategory
+        self.extractedInfoTypes = extractedInfoTypes
+        self.strategyEffectiveness = strategyEffectiveness
+        self.baseMetrics = baseMetrics
+    }
+}
+
 /// 抽出エラー定義
 public enum ExtractionError: LocalizedError {
     case invalidInput
@@ -639,6 +681,7 @@ public enum ExtractionError: LocalizedError {
     case aifmNotSupported
     case invalidImageData
     case promptTemplateNotFound(String)
+    case mappingRuleNotFound(String)
     case invalidJSONFormat(aiResponse: String?)
     case invalidYAMLFormat
     case externalLLMError(response: String)
@@ -678,6 +721,8 @@ public enum ExtractionError: LocalizedError {
             return "無効な画像データです"
         case .promptTemplateNotFound(let filePath):
             return "プロンプトテンプレートファイルが見つかりません: \(filePath)"
+        case .mappingRuleNotFound(let fileName):
+            return "マッピングルールファイルが見つかりません: \(fileName)"
         case .invalidJSONFormat:
             return "無効なJSON形式です"
         case .invalidYAMLFormat:

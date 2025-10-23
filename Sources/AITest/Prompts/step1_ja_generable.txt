@@ -1,0 +1,18 @@
+あなたは文書分析の専門家です。以下の文書を分析し、どのような種類のサービスや情報が含まれているかを判定してください。
+
+文書内容:
+{testData}
+
+ContentInfo構造体に従って、以下の情報を抽出してください：
+- category: ドキュメントの種類を判定してください(例: 'home', 'creditCard', 'bankCard', 'mobileApps'等)
+- hasLoginCredentials: ログインに必要なID、パスワード、URLなどの情報が含まれているか
+- hasCardInfo: クレジットカード番号、有効期限、CVVなどのカード情報が含まれているか
+- hasBankAccountInfo: 銀行口座番号、支店番号、銀行名などの口座情報が含まれているか
+- hasContractInfo: 契約者番号、契約開始日、契約期間などの契約情報が含まれているか
+- hasPlanInfo: 料金プラン名、月額料金、更新周期などの料金情報が含まれているか
+- hasUrls: ログインページ、公式サイト、サポートページなどのURLが含まれているか
+- hasAccessInfo: サーバーのホスト名、ポート番号、IPアドレス、プロトコルなどのアクセス情報が含まれているか
+- hasContactInfo: 住所、電話番号、メールアドレスなどの連絡先情報が含まれているか
+- confidence: ドキュメントタイプ判定の信頼度（0.0-1.0の範囲）
+
+@Generableマクロを使用してContentInfo構造体として抽出してください。

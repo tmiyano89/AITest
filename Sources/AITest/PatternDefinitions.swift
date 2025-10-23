@@ -11,6 +11,29 @@ public enum ExtractionMethod: String, CaseIterable, Codable, Sendable {
     case yaml = "yaml"
 }
 
+/// @ai[2025-10-21 19:30] 抽出モードの定義
+/// 目的: 単純推定と分割推定（2ステップ）を型安全に管理
+/// 背景: 抽出フローの選択を拡張可能な形で実装
+/// 意図: 将来的な新しいモード追加に対応できる設計
+@available(iOS 26.0, macOS 26.0, *)
+public enum ExtractionMode: String, CaseIterable, Codable, Sendable {
+    case simple = "simple"      // 単純推定（従来の1ステップ抽出）
+    case twoSteps = "two-steps" // 分割推定（2ステップ抽出）
+
+    public var displayName: String {
+        switch self {
+        case .simple:
+            return "単純推定"
+        case .twoSteps:
+            return "分割推定（2ステップ）"
+        }
+    }
+
+    public var useTwoSteps: Bool {
+        return self == .twoSteps
+    }
+}
+
 /// @ai[2025-01-18 12:05] プロンプト言語の定義
 /// 目的: プロンプトの言語を型安全に管理
 /// 背景: 日本語と英語の2つの言語に対応

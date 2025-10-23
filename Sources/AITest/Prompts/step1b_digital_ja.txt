@@ -1,0 +1,50 @@
+あなたは文書分類の専門家です。この文書は「デジタルサービス」カテゴリに分類されています。
+以下の5つのサブカテゴリのうち、最も適切なサブカテゴリを判定してください。
+
+## サブカテゴリの定義（デジタルサービス）
+
+1. **digitalSubscription（サブスク）**
+   - 動画配信サービス（Netflix、Amazon Prime Videoなど）
+   - 音楽配信サービス（Spotify、Apple Musicなど）
+   - 電子書籍サービス（Kindle Unlimited、楽天マガジンなど）
+   - ニュース・雑誌の定期購読
+   - その他サブスクリプションサービス
+
+2. **digitalAI（AIサービス）**
+   - AI APIサービス（OpenAI、Anthropicなど）
+   - AI SaaS製品
+   - 機械学習プラットフォーム
+   - AI画像生成サービス
+   - AI音声合成サービス
+
+3. **digitalSocial（SNS）**
+   - ソーシャルネットワーキングサービス（Twitter/X、Facebookなど）
+   - メッセージングアプリ（LINE、Discordなど）
+   - オンラインコミュニティ・フォーラム
+   - 動画共有サービス（YouTube、TikTokなど）
+
+4. **digitalShopping（EC・ショッピング）**
+   - ECサイト（Amazon、楽天市場など）
+   - オンラインモール
+   - フリマアプリ（メルカリ、ヤフオクなど）
+   - デジタルギフトサービス
+
+5. **digitalApps（アプリ・ゲーム）**
+   - モバイルアプリストア（App Store、Google Playなど）
+   - オンラインゲーム
+   - ゲームプラットフォーム（Steam、PlayStation Networkなど）
+   - アプリ内課金サービス
+
+## 判定方法
+
+1. 文書の主な内容を理解する
+2. 上記5つのサブカテゴリのうち、最も適合するものを選択する
+
+## 対象文書
+
+{TEXT}
+
+## 注意事項
+
+- subCategoryは上記5つの値（digitalSubscription, digitalAI, digitalSocial, digitalShopping, digitalApps）のいずれか**1つだけ**を選択してください
+- 複数の値を選択しないでください

@@ -252,6 +252,24 @@ AIに「commands/format_experiment_command.mdに従ってフォーマット実�
 - **目的**: 新しい抽出アプローチの提案と設計
 - **開発ログ**: `docs/ai-logs/2025-10-21-two-steps-extraction-design.md`
 
+### 2025-10-22: 2ステップ抽出方式の基本実装完了
+
+- **目的**: 分割推定方式（2ステップ抽出）の基本実装と動作確認
+- **実装内容**:
+  - Step 1a: メインカテゴリ判定（5分類）
+  - Step 1b: サブカテゴリ判定（25分類）
+  - Step 2: サブカテゴリ別アカウント情報抽出
+  - 25個のサブカテゴリ専用構造体の実装
+  - 25個のマッピングルールファイルの作成
+  - プロンプトテンプレート（16ファイル）の作成
+  - 構造化ログへのカテゴリ情報追加
+- **動作確認**:
+  - level1/chat/generable/ja で動作確認成功
+  - メインカテゴリ判定: work (confidence: 0.9)
+  - サブカテゴリ判定: workServer (confidence: 0.9)
+  - マッピングルール読み込み成功
+- **仕様書**: `docs/TWO_STEPS_EXTRACTION_SPEC.md`
+
 ---
 
 **新しい実験を追加する際**: このセクションに日付、目的、コマンドファイル、結果レポートへのリンクを追加してください。
@@ -330,18 +348,22 @@ python3 scripts/generate_combined_report.py test_logs/latest --verbose
 - `docs/EXPERIMENT_PATTERNS.md`: 実験パターンの詳細仕様
 - `docs/LOG_SCHEMA.md`: ログスキーマの詳細定義
 - `docs/ARCHITECTURE.md`: アーキテクチャ設計ドキュメント
+- `docs/TWO_STEPS_EXTRACTION_SPEC.md`: 2ステップ抽出方式（分割推定方式）実装仕様書
 - `docs/ai-logs/`: AI開発ログ（日付別）
 
 ### 主要ソースファイル
 
 - `Sources/AITest/FoundationModelsExtractor.swift`: FoundationModels抽出実装
 - `Sources/AITest/UnifiedExtractor.swift`: 統一抽出フロー
+- `Sources/AITest/TwoStepsProcessor.swift`: 2ステップ抽出処理
 - `Sources/AITest/PatternDefinitions.swift`: 実験パターン定義
+- `Sources/AITest/SubCategoryExtractionStructs.swift`: サブカテゴリ別抽出構造体（25種類）
+- `Sources/AITest/SubCategoryConverter.swift`: サブカテゴリ構造体からAccountInfoへの変換
 - `Sources/AITestApp/main.swift`: コマンドラインアプリエントリーポイント
 
 ---
 
-**最終更新**: 2025-10-21
+**最終更新**: 2025-10-22
 **プロジェクトバージョン**: iOS 26+ / macOS 26+
 **Swift Version**: 6.0+
 

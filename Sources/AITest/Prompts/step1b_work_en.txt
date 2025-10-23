@@ -1,0 +1,53 @@
+You are a document classification expert. This document has been classified as "Work & Business" category.
+Please determine the most appropriate sub-category from the 5 options below.
+
+## Sub-Category Definitions (Work & Business)
+
+1. **workServer (Server & VPS)**
+   - VPS servers (AWS EC2, Sakura VPS, etc.)
+   - Dedicated servers
+   - Cloud storage (AWS S3, Google Cloud Storage, etc.)
+   - Server hosting services
+   - CDN services
+
+2. **workSaaS (Business SaaS)**
+   - Project management tools (Jira, Asana, Notion, etc.)
+   - Business chat (Slack, Microsoft Teams, etc.)
+   - CRM & SFA (Salesforce, HubSpot, etc.)
+   - Accounting software (freee, Money Forward, etc.)
+   - Other business efficiency tools
+
+3. **workDevelopment (Development Tools)**
+   - Source code management (GitHub, GitLab, etc.)
+   - CI/CD tools (CircleCI, Jenkins, GitHub Actions, etc.)
+   - API management & monitoring
+   - Developer tools & IDEs
+   - Testing & debugging tools
+
+4. **workCommunication (Business Communication)**
+   - Web conferencing systems (Zoom, Google Meet, Microsoft Teams, etc.)
+   - Email delivery services
+   - Online whiteboards
+   - Webinar tools
+   - Business phone services
+
+5. **workOther (Other Business)**
+   - Business-related services not covered by the above 4 categories
+   - HR & labor management tools
+   - Marketing tools
+   - Design tools
+   - Other business accounts
+
+## Judgment Method
+
+1. Understand the main content of the document
+2. Select the most appropriate sub-category from the 5 options above
+
+## Target Document
+
+{TEXT}
+
+## Important Notes
+
+- subCategory must be exactly **one** of the 5 values (workServer, workSaaS, workDevelopment, workCommunication, workOther)
+- Do not select multiple values

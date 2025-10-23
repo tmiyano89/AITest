@@ -110,15 +110,20 @@ public func printHelp() {
 
 /// 実験設定を引数から抽出
 @available(iOS 26.0, macOS 26.0, *)
-public func extractExperimentFromArguments() -> (method: ExtractionMethod, language: PromptLanguage, testcase: String, algos: [String])? {
+public func extractExperimentFromArguments() -> (method: ExtractionMethod, language: PromptLanguage, testcase: String, algos: [String], mode: ExtractionMode, levels: [Int])? {
     print("🔍 extractExperimentFromArguments 開始")
-    
+
     var method: ExtractionMethod = .json
     var language: PromptLanguage = .japanese
     var testcase: String = "Chat"
     var algos: [String] = ["abs"]
-    
-    for argument in CommandLine.arguments {
+    var mode: ExtractionMode = .simple  // デフォルト
+    var levels: [Int] = [1, 2, 3]  // デフォルトは全レベル
+
+    var i = 0
+    while i < CommandLine.arguments.count {
+        let argument = CommandLine.arguments[i]
+
         if argument.hasPrefix("--method=") {
             let methodString = String(argument.dropFirst("--method=".count))
             switch methodString.lowercased() {
@@ -148,11 +153,53 @@ public func extractExperimentFromArguments() -> (method: ExtractionMethod, langu
         } else if argument.hasPrefix("--algos=") {
             let algosString = String(argument.dropFirst("--algos=".count))
             algos = algosString.split(separator: ",").map(String.init)
+        } else if argument.hasPrefix("--mode=") {
+            let modeString = String(argument.dropFirst("--mode=".count))
+            switch modeString.lowercased() {
+            case "simple":
+                mode = .simple
+            case "two-steps":
+                mode = .twoSteps
+            default:
+                print("❌ 無効なモード: \(modeString)")
+                return nil
+            }
+        } else if argument == "--mode" && i + 1 < CommandLine.arguments.count {
+            let modeString = CommandLine.arguments[i + 1]
+            switch modeString.lowercased() {
+            case "simple":
+                mode = .simple
+            case "two-steps":
+                mode = .twoSteps
+            default:
+                print("❌ 無効なモード: \(modeString)")
+                return nil
+            }
+            i += 1  // スキップ
+        } else if argument.hasPrefix("--levels=") {
+            let levelsString = String(argument.dropFirst("--levels=".count))
+            let levelStrings = levelsString.split(separator: ",").map(String.init)
+            levels = levelStrings.compactMap { Int($0.trimmingCharacters(in: .whitespaces)) }
+            if levels.isEmpty {
+                print("❌ 無効なレベル指定: \(levelsString)")
+                return nil
+            }
+        } else if argument == "--levels" && i + 1 < CommandLine.arguments.count {
+            let levelsString = CommandLine.arguments[i + 1]
+            let levelStrings = levelsString.split(separator: ",").map(String.init)
+            levels = levelStrings.compactMap { Int($0.trimmingCharacters(in: .whitespaces)) }
+            if levels.isEmpty {
+                print("❌ 無効なレベル指定: \(levelsString)")
+                return nil
+            }
+            i += 1  // スキップ
         }
+
+        i += 1
     }
-    
-    print("✅ 実験設定: method=\(method.rawValue), language=\(language.rawValue), testcase=\(testcase), algos=\(algos.joined(separator: ", "))")
-    return (method, language, testcase, algos)
+
+    print("✅ 実験設定: method=\(method.rawValue), language=\(language.rawValue), testcase=\(testcase), algos=\(algos.joined(separator: ", ")), mode=\(mode.rawValue), levels=\(levels.map(String.init).joined(separator: ", "))")
+    return (method, language, testcase, algos, mode, levels)
 }
 
 /// テストディレクトリを引数から抽出

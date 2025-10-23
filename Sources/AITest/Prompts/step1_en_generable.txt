@@ -1,0 +1,18 @@
+You are a document analysis expert. Analyze the following document and determine what types of services and information it contains.
+
+Document content:
+{testData}
+
+Extract the following information according to the ContentInfo structure:
+- category: Determine the type of document (e.g., 'home', 'creditCard', 'bankCard', 'mobileApps', etc.)
+- hasLoginCredentials: Whether it contains login information such as ID, password, URL, etc.
+- hasCardInfo: Whether it contains card information such as credit card number, expiry date, CVV, etc.
+- hasBankAccountInfo: Whether it contains bank account information such as account number, branch code, bank name, etc.
+- hasContractInfo: Whether it contains contract information such as contract number, start date, contract period, etc.
+- hasPlanInfo: Whether it contains pricing information such as plan name, monthly fee, billing cycle, etc.
+- hasUrls: Whether it contains URLs such as login page, official site, support page, etc.
+- hasAccessInfo: Whether it contains access information such as hostname, port number, IP address, protocol, etc.
+- hasContactInfo: Whether it contains contact information such as address, phone number, email, etc.
+- confidence: Confidence level of document type determination (range 0.0-1.0)
+
+Use @Generable macro to extract as ContentInfo structure.

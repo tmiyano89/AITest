@@ -34,7 +34,9 @@ let package = Package(
             ],
             path: "Sources/AITest",
             resources: [
-                .process("Prompts")
+                .process("Prompts"),
+                .process("Mappings"),
+                .process("CategoryDefinitions")
             ]
         ),
         .executableTarget(

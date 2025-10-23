@@ -30,6 +30,7 @@ public struct ExtractionResult: Sendable {
 
 /// モデル抽出器のプロトコル
 /// @ai[2025-01-19 00:30] 統一された抽出インターフェース
+/// @ai[2025-10-23 20:00] @MainActor追加（Swift並行処理のデータ競合エラー修正）
 /// 目的: FoundationModelsと外部LLMの抽出処理を統一
 /// 背景: コードの重複を排除し、保守性を向上
 /// 意図: モデル固有の実装を抽象化
@@ -41,6 +42,7 @@ public protocol ModelExtractor {
     ///   - prompt: 生成されたプロンプト
     ///   - method: 抽出方法
     /// - Returns: 抽出結果（生のレスポンスを含む）
+    @MainActor
     func extract(from text: String, prompt: String, method: ExtractionMethod) async throws -> ExtractionResult
 }
 

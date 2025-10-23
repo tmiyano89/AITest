@@ -1,0 +1,52 @@
+You are a document classification expert. This document has been classified as "Infrastructure & Public" category.
+Please determine the most appropriate sub-category from the 5 options below.
+
+## Sub-Category Definitions (Infrastructure & Public)
+
+1. **infraTelecom (Mobile & Telecom)**
+   - Mobile carriers (docomo, au, SoftBank, etc.)
+   - MVNOs
+   - Fiber optic internet & ISPs
+   - Wi-Fi services
+   - Landline phones
+
+2. **infraUtilities (Utilities)**
+   - Electric companies
+   - Gas companies
+   - Water & sewage
+   - Other utilities (NHK subscription fees, etc.)
+
+3. **infraGovernment (Government Services)**
+   - My Number Portal
+   - e-Tax (electronic filing)
+   - Resident card & family register services
+   - Pension network
+   - Other administrative services
+
+4. **infraLicense (Licenses & Certifications)**
+   - Driver's license
+   - Various national certifications
+   - Professional licenses & certifications
+   - Passport
+   - Residence card & visa
+
+5. **infraTransportation (Transportation & Travel)**
+   - Transportation IC cards (Suica, PASMO, etc.)
+   - Taxi apps (Uber, DiDi, etc.)
+   - Car rental services
+   - Car sharing & bike sharing
+   - Travel booking services (flights, hotels, etc.)
+
+## Judgment Method
+
+1. Understand the main content of the document
+2. Select the most appropriate sub-category from the 5 options above
+
+## Target Document
+
+{TEXT}
+
+## Important Notes
+
+- subCategory must be exactly **one** of the 5 values (infraTelecom, infraUtilities, infraGovernment, infraLicense, infraTransportation)
+- Do not select multiple values
