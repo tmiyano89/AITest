@@ -2,6 +2,7 @@ import Foundation
 
 /// @ai[2025-10-21 16:30] サブカテゴリ構造体→AccountInfo変換器
 /// @ai[2025-10-21 19:00] JSON形式とマッピングルールベースに改善
+/// @ai[2025-10-24 12:00] CategoryDefinitionLoaderに統合（Mappingsディレクトリ削除）
 /// 目的: サブカテゴリごとの専用構造体を統一的にAccountInfoに変換
 /// 背景: JSON形式とGenerable形式の両方に対応し、マッピングルールを外部化
 /// 意図: 柔軟で保守性の高い変換ロジックを提供
@@ -9,7 +10,7 @@ import Foundation
 @available(iOS 26.0, macOS 26.0, *)
 public class SubCategoryConverter {
     private let log = LogWrapper(subsystem: "com.aitest.converter", category: "SubCategoryConverter")
-    private let ruleLoader = MappingRuleLoader()
+    private let categoryLoader = CategoryDefinitionLoader()
 
     public init() {}
 
@@ -46,6 +47,7 @@ public class SubCategoryConverter {
     /// JSON形式からAccountInfoに変換（マッピングルールベース）
     /// @ai[2025-10-21 19:00] 新しい統一変換ロジック
     /// @ai[2025-10-23 10:00] デバッグログ追加（マッピングルール適用状況を詳細表示）
+    /// @ai[2025-10-24 12:00] CategoryDefinitionLoaderのマッピング定義を使用
     /// 目的: JSON形式のデータをマッピングルールに従ってAccountInfoに変換
     /// 背景: JSON形式とGenerable形式の両方に対応
     /// 意図: マッピングルールの外部化により柔軟性と保守性を向上
@@ -56,16 +58,17 @@ public class SubCategoryConverter {
         var accountInfo = AccountInfo()
 
         do {
-            // マッピングルールを読み込み
-            let rule = try ruleLoader.loadRule(for: subCategory)
-            log.debug("✅ マッピングルール読み込み完了")
-            log.debug("📋 directMapping: \(rule.directMapping)")
-            if let noteAppend = rule.noteAppendMapping {
+            // サブカテゴリ定義からマッピング情報を読み込み
+            let definition = try categoryLoader.loadSubCategoryDefinition(subCategoryId: subCategory.rawValue)
+            let mapping = definition.mapping
+            log.debug("✅ マッピング情報読み込み完了")
+            log.debug("📋 directMapping: \(mapping.directMapping)")
+            if let noteAppend = mapping.noteAppendMapping {
                 log.debug("📋 noteAppendMapping: \(noteAppend)")
             }
 
             // 直接マッピングを適用
-            for (sourceField, targetField) in rule.directMapping {
+            for (sourceField, targetField) in mapping.directMapping {
                 guard let value = json[sourceField] else {
                     log.debug("⚠️ フィールド '\(sourceField)' が見つかりません")
                     continue
@@ -98,7 +101,7 @@ public class SubCategoryConverter {
             }
 
             // noteに追加するフィールドを処理
-            if let noteAppendMapping = rule.noteAppendMapping {
+            if let noteAppendMapping = mapping.noteAppendMapping {
                 var additionalNotes: [String] = []
 
                 for (sourceField, label) in noteAppendMapping {
@@ -123,7 +126,7 @@ public class SubCategoryConverter {
             log.debug("✅ 変換完了 - subCategory: \(subCategory.rawValue), title: \(accountInfo.title ?? "nil")")
 
         } catch {
-            log.error("❌ マッピングルール読み込みエラー: \(error.localizedDescription)")
+            log.error("❌ サブカテゴリ定義読み込みエラー: \(error.localizedDescription)")
         }
 
         return accountInfo

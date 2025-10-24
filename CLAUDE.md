@@ -270,6 +270,32 @@ AIに「commands/format_experiment_command.mdに従ってフォーマット実�
   - マッピングルール読み込み成功
 - **仕様書**: `docs/TWO_STEPS_EXTRACTION_SPEC.md`
 
+### 2025-10-24: Two-Steps vs Simple モード性能比較実験
+
+- **目的**: 分離推定方式（Two-Steps）と単純推定方式（Simple）の性能比較
+- **実験条件**:
+  - 抽出方法: JSON
+  - 言語: 日本語 (ja)
+  - テストケース: chat
+  - 反復回数: 各モード10回 × 3レベル = 計31テストケース
+  - アルゴリズム: abs（抽象指示）
+- **主な成果**:
+  - `scripts/run_experiments.py`に`--mode`引数サポートを追加
+  - Two-Steps ModeのJSON解析バグ修正（マークダウンコードブロック対応）
+  - pending項目の手動検証による精度向上
+- **結果サマリー**:
+  - **Simple Mode**: 正解率 68.1%, Precision 0.723, Recall 0.922
+    - 強み: 高Recall、低欠落率（5.8%）
+    - 課題: 高過剰抽出率（22.8%）
+  - **Two-Steps Mode**: 正解率 56.6%, Precision 0.836, Recall 0.637
+    - 強み: 高Precision、極低過剰抽出率（0.5%）
+    - 課題: 高欠落率（32.3%）、カテゴリ判定の精度課題
+- **結論**: 現時点ではSimple Modeが総合的に優位。Two-Steps Modeはカテゴリ判定の精度向上により改善の余地あり
+- **結果レポート**: `reports/two_steps_vs_simple_comparison_report.html`
+- **実験ログ**:
+  - Simple Mode: `test_logs/comparison_simple/`
+  - Two-Steps Mode: `test_logs/comparison_two_steps/`
+
 ---
 
 **新しい実験を追加する際**: このセクションに日付、目的、コマンドファイル、結果レポートへのリンクを追加してください。

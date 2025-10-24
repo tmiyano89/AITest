@@ -35,7 +35,6 @@ let package = Package(
             path: "Sources/AITest",
             resources: [
                 .process("Prompts"),
-                .process("Mappings"),
                 .process("CategoryDefinitions")
             ]
         ),

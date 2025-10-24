@@ -1,8 +1,0 @@
-以下の文書から、{infoType}に関する情報を抽出してください。
-
-文書内容:
-{testData}
-
-{generatedStructDescription}
-
-@Generableマクロを使用して{structName}構造体として抽出してください。

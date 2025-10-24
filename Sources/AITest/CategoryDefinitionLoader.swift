@@ -70,6 +70,7 @@ public class CategoryDefinitionLoader {
     }
 
     /// カテゴリ定義ファイルを読み込み
+    /// @ai[2025-10-24 12:30] fatalError追加（必須リソースの欠落を即座に検出）
     public func loadCategoryDefinition() throws -> CategoryDefinition {
         if let cached = categoryDefinition {
             return cached
@@ -93,20 +94,28 @@ public class CategoryDefinitionLoader {
 
         guard let resourceURL = resourceURL else {
             log.error("❌ カテゴリ定義ファイルが見つかりません: \(fileName)")
-            throw ExtractionError.promptTemplateNotFound("CategoryDefinitions/\(fileName)")
+            log.error("❌ Bundle.module.resourceURL: \(String(describing: Bundle.module.resourceURL))")
+            log.error("❌ Bundle.module.bundlePath: \(Bundle.module.bundlePath)")
+            fatalError("❌ 必須のカテゴリ定義ファイルが見つかりません: \(fileName)\nパス: CategoryDefinitions/\(fileName)\nプロジェクトのビルド設定とリソース配置を確認してください。")
         }
 
-        let data = try Data(contentsOf: resourceURL)
-        let decoder = JSONDecoder()
-        let definition = try decoder.decode(CategoryDefinition.self, from: data)
+        do {
+            let data = try Data(contentsOf: resourceURL)
+            let decoder = JSONDecoder()
+            let definition = try decoder.decode(CategoryDefinition.self, from: data)
 
-        categoryDefinition = definition
-        log.info("✅ カテゴリ定義ファイル読み込み完了")
+            categoryDefinition = definition
+            log.info("✅ カテゴリ定義ファイル読み込み完了")
 
-        return definition
+            return definition
+        } catch {
+            log.error("❌ カテゴリ定義ファイルのデコードに失敗: \(error)")
+            fatalError("❌ カテゴリ定義ファイルのデコードに失敗: \(fileName)\nエラー: \(error)\nファイルの内容とフォーマットを確認してください。")
+        }
     }
 
     /// サブカテゴリ定義ファイルを読み込み
+    /// @ai[2025-10-24 12:30] fatalError追加（必須リソースの欠落を即座に検出）
     public func loadSubCategoryDefinition(subCategoryId: String) throws -> SubCategoryDefinition {
         if let cached = subcategoryDefinitions[subCategoryId] {
             return cached
@@ -130,17 +139,24 @@ public class CategoryDefinitionLoader {
 
         guard let resourceURL = resourceURL else {
             log.error("❌ サブカテゴリ定義ファイルが見つかりません: \(fileName)")
-            throw ExtractionError.promptTemplateNotFound("CategoryDefinitions/subcategories/\(fileName)")
+            log.error("❌ Bundle.module.resourceURL: \(String(describing: Bundle.module.resourceURL))")
+            log.error("❌ Bundle.module.bundlePath: \(Bundle.module.bundlePath)")
+            fatalError("❌ 必須のサブカテゴリ定義ファイルが見つかりません: \(fileName)\nサブカテゴリID: \(subCategoryId)\nパス: CategoryDefinitions/subcategories/\(fileName)\nプロジェクトのビルド設定とリソース配置を確認してください。")
         }
 
-        let data = try Data(contentsOf: resourceURL)
-        let decoder = JSONDecoder()
-        let definition = try decoder.decode(SubCategoryDefinition.self, from: data)
+        do {
+            let data = try Data(contentsOf: resourceURL)
+            let decoder = JSONDecoder()
+            let definition = try decoder.decode(SubCategoryDefinition.self, from: data)
 
-        subcategoryDefinitions[subCategoryId] = definition
-        log.info("✅ サブカテゴリ定義ファイル読み込み完了: \(subCategoryId)")
+            subcategoryDefinitions[subCategoryId] = definition
+            log.info("✅ サブカテゴリ定義ファイル読み込み完了: \(subCategoryId)")
 
-        return definition
+            return definition
+        } catch {
+            log.error("❌ サブカテゴリ定義ファイルのデコードに失敗: \(error)")
+            fatalError("❌ サブカテゴリ定義ファイルのデコードに失敗: \(fileName)\nサブカテゴリID: \(subCategoryId)\nエラー: \(error)\nファイルの内容とフォーマットを確認してください。")
+        }
     }
 
     /// メインカテゴリに属するサブカテゴリIDのリストを取得

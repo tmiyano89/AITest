@@ -107,16 +107,17 @@ class TwoStepsProcessor {
 
     /// メインカテゴリを判定
     /// @ai[2025-10-21 15:30] 2層カテゴリ判定の第1段階
+    /// @ai[2025-10-24 12:15] CategoryDefinitionLoaderに統合
     @MainActor
     private func judgeMainCategory(
         testData: String,
         language: PromptLanguage
     ) async throws -> MainCategoryInfo {
-        // プロンプトテンプレートを読み込み
-        let promptTemplate = try loadMainCategoryPromptTemplate(language: language)
-
-        // プロンプトを完成させる
-        let prompt = promptTemplate.replacingOccurrences(of: "{TEXT}", with: testData)
+        // CategoryDefinitionLoaderを使ってプロンプトを生成
+        let prompt = try categoryLoader.generateMainCategoryJudgmentPrompt(
+            testData: testData,
+            language: language
+        )
 
         // モデル抽出
         guard let fmExtractor = modelExtractor as? FoundationModelsExtractor else {
@@ -129,17 +130,19 @@ class TwoStepsProcessor {
 
     /// サブカテゴリを判定
     /// @ai[2025-10-21 15:30] 2層カテゴリ判定の第2段階
+    /// @ai[2025-10-24 12:15] CategoryDefinitionLoaderに統合
     @MainActor
     private func judgeSubCategory(
         testData: String,
         mainCategory: MainCategory,
         language: PromptLanguage
     ) async throws -> SubCategoryInfo {
-        // メインカテゴリに応じたプロンプトテンプレートを読み込み
-        let promptTemplate = try loadSubCategoryPromptTemplate(mainCategory: mainCategory, language: language)
-
-        // プロンプトを完成させる
-        let prompt = promptTemplate.replacingOccurrences(of: "{TEXT}", with: testData)
+        // CategoryDefinitionLoaderを使ってプロンプトを生成
+        let prompt = try categoryLoader.generateSubCategoryJudgmentPrompt(
+            testData: testData,
+            mainCategoryId: mainCategory.rawValue,
+            language: language
+        )
 
         // モデル抽出
         guard let fmExtractor = modelExtractor as? FoundationModelsExtractor else {
@@ -152,6 +155,7 @@ class TwoStepsProcessor {
 
     /// メインカテゴリを判定（JSON方式）
     /// @ai[2025-10-23 19:30] JSON方式のメインカテゴリ判定
+    /// @ai[2025-10-24 08:50] マークダウンコードブロック対応追加
     @MainActor
     private func judgeMainCategoryJSON(
         testData: String,
@@ -173,11 +177,16 @@ class TwoStepsProcessor {
         // JSONレスポンスから mainCategory を抽出
         let rawResponse = extractionResult.rawResponse
 
+        // マークダウンコードブロックからJSONを抽出
+        let jsonString = extractJSONFromMarkdown(rawResponse)
+
         // JSONExtractorでパース
-        guard let jsonData = rawResponse.data(using: .utf8),
+        guard let jsonData = jsonString.data(using: .utf8),
               let json = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any],
               let mainCategory = json["mainCategory"] as? String else {
             log.error("❌ メインカテゴリのJSON解析に失敗")
+            log.error("📝 レスポンス: \(rawResponse)")
+            log.error("📝 抽出されたJSON: \(jsonString)")
             throw ExtractionError.invalidJSONFormat(aiResponse: rawResponse)
         }
 
@@ -186,6 +195,7 @@ class TwoStepsProcessor {
 
     /// サブカテゴリを判定（JSON方式）
     /// @ai[2025-10-23 19:30] JSON方式のサブカテゴリ判定
+    /// @ai[2025-10-24 08:50] マークダウンコードブロック対応追加
     @MainActor
     private func judgeSubCategoryJSON(
         testData: String,
@@ -209,11 +219,16 @@ class TwoStepsProcessor {
         // JSONレスポンスから subCategory を抽出
         let rawResponse = extractionResult.rawResponse
 
+        // マークダウンコードブロックからJSONを抽出
+        let jsonString = extractJSONFromMarkdown(rawResponse)
+
         // JSONExtractorでパース
-        guard let jsonData = rawResponse.data(using: .utf8),
+        guard let jsonData = jsonString.data(using: .utf8),
               let json = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any],
               let subCategory = json["subCategory"] as? String else {
             log.error("❌ サブカテゴリのJSON解析に失敗")
+            log.error("📝 レスポンス: \(rawResponse)")
+            log.error("📝 抽出されたJSON: \(jsonString)")
             throw ExtractionError.invalidJSONFormat(aiResponse: rawResponse)
         }
 
@@ -455,53 +470,32 @@ class TwoStepsProcessor {
 
     // MARK: - Private Methods
 
-    /// メインカテゴリ判定用プロンプトテンプレートを読み込み
-    /// @ai[2025-10-21 15:30] 2層カテゴリ判定用
-    private func loadMainCategoryPromptTemplate(language: PromptLanguage) throws -> String {
-        let baseName = "step1a_main_category_\(language.rawValue)"
-        let fileName = "\(baseName).txt"
-        let filePath = "Prompts/\(fileName)"
 
-        // Try with subdirectory first
-        var resourceURL = Bundle.module.url(forResource: fileName, withExtension: nil, subdirectory: "Prompts")
-
-        // If not found, try without subdirectory
-        if resourceURL == nil {
-            resourceURL = Bundle.module.url(forResource: fileName, withExtension: nil)
+    /// マークダウンコードブロックからJSONを抽出
+    /// @ai[2025-10-24 08:50] JSON抽出ヘルパーメソッド
+    /// 目的: ```json ... ``` 形式のマークダウンコードブロックからJSONを抽出
+    /// 背景: AIが説明文とJSONを両方返すため、JSONのみを抽出する必要がある
+    /// 意図: JSON解析前の前処理
+    private func extractJSONFromMarkdown(_ text: String) -> String {
+        // パターン1: ```json ... ``` で囲まれたJSON
+        let codeBlockPattern = #"```json\s*([\s\S]*?)\s*```"#
+        if let regex = try? NSRegularExpression(pattern: codeBlockPattern, options: []) {
+            let range = NSRange(text.startIndex..<text.endIndex, in: text)
+            if let match = regex.firstMatch(in: text, options: [], range: range) {
+                if let jsonRange = Range(match.range(at: 1), in: text) {
+                    return String(text[jsonRange]).trimmingCharacters(in: .whitespacesAndNewlines)
+                }
+            }
         }
 
-        guard let resourceURL = resourceURL else {
-            log.error("❌ メインカテゴリプロンプトテンプレートが見つかりません: \(fileName)")
-            throw ExtractionError.promptTemplateNotFound(filePath)
+        // パターン2: 最初の{から最後の}まで
+        if let firstBrace = text.firstIndex(of: "{"),
+           let lastBrace = text.lastIndex(of: "}") {
+            let endIndex = lastBrace
+            return String(text[firstBrace...endIndex]).trimmingCharacters(in: .whitespacesAndNewlines)
         }
 
-        let template = try String(contentsOf: resourceURL, encoding: .utf8)
-        log.debug("✅ メインカテゴリプロンプトテンプレート読み込み成功: \(fileName)")
-        return template
-    }
-
-    /// サブカテゴリ判定用プロンプトテンプレートを読み込み
-    /// @ai[2025-10-21 15:30] 2層カテゴリ判定用
-    private func loadSubCategoryPromptTemplate(mainCategory: MainCategory, language: PromptLanguage) throws -> String {
-        let baseName = "step1b_\(mainCategory.rawValue)_\(language.rawValue)"
-        let fileName = "\(baseName).txt"
-        let filePath = "Prompts/\(fileName)"
-
-        // Try with subdirectory first
-        var resourceURL = Bundle.module.url(forResource: fileName, withExtension: nil, subdirectory: "Prompts")
-
-        // If not found, try without subdirectory
-        if resourceURL == nil {
-            resourceURL = Bundle.module.url(forResource: fileName, withExtension: nil)
-        }
-
-        guard let resourceURL = resourceURL else {
-            log.error("❌ サブカテゴリプロンプトテンプレートが見つかりません: \(fileName)")
-            throw ExtractionError.promptTemplateNotFound(filePath)
-        }
-
-        let template = try String(contentsOf: resourceURL, encoding: .utf8)
-        log.debug("✅ サブカテゴリプロンプトテンプレート読み込み成功: \(fileName)")
-        return template
+        // パターン3: 全体をそのまま返す
+        return text.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }

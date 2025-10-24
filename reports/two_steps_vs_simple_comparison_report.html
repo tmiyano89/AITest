@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Two-Steps vs Simple Mode 比較分析レポート</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f7;
+        }
+        h1, h2, h3 {
+            color: #1d1d1f;
+        }
+        h1 {
+            border-bottom: 3px solid #0071e3;
+            padding-bottom: 10px;
+        }
+        h2 {
+            margin-top: 40px;
+            border-bottom: 2px solid #86868b;
+            padding-bottom: 8px;
+        }
+        .summary-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin: 20px 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .summary-box h3 {
+            color: white;
+            margin-top: 0;
+        }
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .metric-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .metric-card h4 {
+            margin: 0 0 10px 0;
+            color: #1d1d1f;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .metric-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #0071e3;
+        }
+        .metric-change {
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        .metric-change.positive {
+            color: #34c759;
+        }
+        .metric-change.negative {
+            color: #ff3b30;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin: 20px 0;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e5e5e7;
+        }
+        th {
+            background-color: #f5f5f7;
+            font-weight: 600;
+            color: #1d1d1f;
+        }
+        tr:last-child td {
+            border-bottom: none;
+        }
+        .highlight {
+            background-color: #fff9e6;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+        .winner {
+            background-color: #d4edda;
+            font-weight: bold;
+        }
+        .section {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .insight {
+            background: #e8f4fd;
+            border-left: 4px solid #0071e3;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        .insight-title {
+            font-weight: bold;
+            color: #0071e3;
+            margin-bottom: 8px;
+        }
+        .chart-container {
+            margin: 20px 0;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .bar {
+            height: 30px;
+            margin: 10px 0;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            padding-left: 10px;
+            color: white;
+            font-weight: bold;
+        }
+        .bar-simple {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        }
+        .bar-twosteps {
+            background: linear-gradient(90deg, #f093fb 0%, #f5576c 100%);
+        }
+        .conclusion {
+            background: linear-gradient(135deg, #f5af19 0%, #f12711 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin: 30px 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .conclusion h3 {
+            color: white;
+            margin-top: 0;
+        }
+        .metadata {
+            font-size: 12px;
+            color: #86868b;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e5e7;
+        }
+    </style>
+</head>
+<body>
+    <h1>Two-Steps vs Simple Mode 比較分析レポート</h1>
+
+    <div class="summary-box">
+        <h3>📊 実験概要</h3>
+        <p><strong>実験目的:</strong> 分離推定方式（Two-Steps）と単純推定方式（Simple）の性能比較</p>
+        <p><strong>実験条件:</strong></p>
+        <ul>
+            <li>抽出方法: JSON</li>
+            <li>言語: 日本語 (ja)</li>
+            <li>テストケース: chat</li>
+            <li>反復回数: 各モード10回 × 3レベル = 計31テストケース</li>
+            <li>アルゴリズム: abs（抽象指示）</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>1. 全体性能比較</h2>
+
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <h4>正解率</h4>
+                <div class="metric-value">68.1%</div>
+                <div class="metric-change positive">Simple Mode</div>
+                <div style="margin-top: 10px; font-size: 24px; color: #ff3b30;">56.6%</div>
+                <div class="metric-change">Two-Steps Mode</div>
+            </div>
+
+            <div class="metric-card">
+                <h4>Precision（精度）</h4>
+                <div class="metric-value">0.836</div>
+                <div class="metric-change positive">Two-Steps Mode ✨</div>
+                <div style="margin-top: 10px; font-size: 24px; color: #86868b;">0.723</div>
+                <div class="metric-change">Simple Mode</div>
+            </div>
+
+            <div class="metric-card">
+                <h4>Recall（再現率）</h4>
+                <div class="metric-value">0.922</div>
+                <div class="metric-change positive">Simple Mode ✨</div>
+                <div style="margin-top: 10px; font-size: 24px; color: #86868b;">0.637</div>
+                <div class="metric-change">Two-Steps Mode</div>
+            </div>
+
+            <div class="metric-card">
+                <h4>過剰抽出率</h4>
+                <div class="metric-value">0.5%</div>
+                <div class="metric-change positive">Two-Steps Mode ✨</div>
+                <div style="margin-top: 10px; font-size: 24px; color: #ff3b30;">22.8%</div>
+                <div class="metric-change negative">Simple Mode</div>
+            </div>
+        </div>
+
+        <h3>詳細メトリクス比較</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>指標</th>
+                    <th>Simple Mode</th>
+                    <th>Two-Steps Mode</th>
+                    <th>差分</th>
+                    <th>勝者</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>総フィールド数</td>
+                    <td>226</td>
+                    <td>189</td>
+                    <td>-37 (-16.4%)</td>
+                    <td>-</td>
+                </tr>
+                <tr>
+                    <td>正解率</td>
+                    <td>68.1%</td>
+                    <td>56.6%</td>
+                    <td>-11.5%</td>
+                    <td class="winner">Simple</td>
+                </tr>
+                <tr>
+                    <td>誤り率</td>
+                    <td>7.5%</td>
+                    <td>10.6%</td>
+                    <td>+3.1%</td>
+                    <td class="winner">Simple</td>
+                </tr>
+                <tr>
+                    <td>欠落率</td>
+                    <td>5.8%</td>
+                    <td>32.3%</td>
+                    <td>+26.5%</td>
+                    <td class="winner">Simple</td>
+                </tr>
+                <tr>
+                    <td>過剰抽出率</td>
+                    <td>22.8%</td>
+                    <td>0.5%</td>
+                    <td>-22.3%</td>
+                    <td class="winner">Two-Steps</td>
+                </tr>
+                <tr>
+                    <td>Precision</td>
+                    <td>0.723</td>
+                    <td>0.836</td>
+                    <td>+0.113</td>
+                    <td class="winner">Two-Steps</td>
+                </tr>
+                <tr>
+                    <td>Recall</td>
+                    <td>0.922</td>
+                    <td>0.637</td>
+                    <td>-0.285</td>
+                    <td class="winner">Simple</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>2. 視覚的比較</h2>
+
+        <div class="chart-container">
+            <h3>Precision比較</h3>
+            <div class="bar bar-simple" style="width: 72.3%;">Simple: 0.723</div>
+            <div class="bar bar-twosteps" style="width: 83.6%;">Two-Steps: 0.836 ✨</div>
+        </div>
+
+        <div class="chart-container">
+            <h3>Recall比較</h3>
+            <div class="bar bar-simple" style="width: 92.2%;">Simple: 0.922 ✨</div>
+            <div class="bar bar-twosteps" style="width: 63.7%;">Two-Steps: 0.637</div>
+        </div>
+
+        <div class="chart-container">
+            <h3>過剰抽出率比較（低いほど良い）</h3>
+            <div class="bar bar-simple" style="width: 22.8%;">Simple: 22.8%</div>
+            <div class="bar bar-twosteps" style="width: 0.5%;">Two-Steps: 0.5% ✨</div>
+        </div>
+
+        <div class="chart-container">
+            <h3>欠落率比較（低いほど良い）</h3>
+            <div class="bar bar-simple" style="width: 5.8%;">Simple: 5.8% ✨</div>
+            <div class="bar bar-twosteps" style="width: 32.3%;">Two-Steps: 32.3%</div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>3. 詳細分析と考察</h2>
+
+        <div class="insight">
+            <div class="insight-title">🎯 Two-Steps Modeの強み: 高精度抽出</div>
+            <p>Two-Steps Modeは<strong>Precision 0.836</strong>を達成し、Simple Mode（0.723）を大きく上回りました。これは、カテゴリ判定を先に行うことで、文脈を絞り込んでから情報抽出を行う戦略が有効であることを示しています。</p>
+            <p><strong>過剰抽出率が0.5%</strong>という驚異的な低さは、Two-Stepsモードが不要な情報を抽出しない「慎重な」戦略を取っていることを示します。</p>
+        </div>
+
+        <div class="insight">
+            <div class="insight-title">📈 Simple Modeの強み: 高再現率</div>
+            <p>Simple Modeは<strong>Recall 0.922</strong>を達成し、Two-Steps Mode（0.637）を大きく上回りました。これは、単純推定方式が「積極的に抽出する」戦略を取っており、情報の取りこぼしを最小限に抑えることができることを示しています。</p>
+            <p><strong>欠落率5.8%</strong>という低さは、必要な情報をほぼ漏れなく抽出できていることを意味します。</p>
+        </div>
+
+        <div class="insight">
+            <div class="insight-title">⚠️ Two-Steps Modeの課題: 欠落率の高さ</div>
+            <p>Two-Steps Modeの最大の課題は<strong>欠落率32.3%</strong>です。これは、カテゴリ判定の段階で誤った分類をしてしまうと、その後の抽出で必要な情報が得られないことを意味します。</p>
+            <p>特に<strong>Level 3のtitleフィールド</strong>で、全10回のテストで「AWS EC2」と誤って抽出してしまい、期待値の「システム管理者のアカウント」を取得できませんでした。これは、カテゴリ判定の精度向上が今後の課題であることを示しています。</p>
+        </div>
+
+        <div class="insight">
+            <div class="insight-title">⚠️ Simple Modeの課題: 過剰抽出</div>
+            <p>Simple Modeの最大の課題は<strong>過剰抽出率22.8%</strong>です。これは、単純推定方式が「積極的に抽出する」戦略を取っているため、不要な情報まで抽出してしまうことを意味します。</p>
+            <p>抽出された余分な項目の後処理が必要になるため、実用上のコストが増加する可能性があります。</p>
+        </div>
+
+        <h3>戦略の違い</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>観点</th>
+                    <th>Simple Mode</th>
+                    <th>Two-Steps Mode</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>抽出戦略</strong></td>
+                    <td>積極的抽出（Aggressive）</td>
+                    <td>慎重抽出（Conservative）</td>
+                </tr>
+                <tr>
+                    <td><strong>特徴</strong></td>
+                    <td>
+                        • 高Recall（0.922）<br>
+                        • 低欠落率（5.8%）<br>
+                        • 高過剰抽出率（22.8%）
+                    </td>
+                    <td>
+                        • 高Precision（0.836）<br>
+                        • 低過剰抽出率（0.5%）<br>
+                        • 高欠落率（32.3%）
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>適用シーン</strong></td>
+                    <td>
+                        • 情報の取りこぼしが許されない場合<br>
+                        • 後処理で不要項目を除去できる場合<br>
+                        • 高Recallが求められる場合
+                    </td>
+                    <td>
+                        • 抽出精度が最重要の場合<br>
+                        • 不要な情報が混入すると問題の場合<br>
+                        • 高Precisionが求められる場合
+                    </td>
+                </tr>
+                <tr>
+                    <td><strong>課題</strong></td>
+                    <td>過剰抽出による後処理コスト増加</td>
+                    <td>カテゴリ判定ミスによる情報欠落</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>4. レベル別の傾向</h2>
+
+        <div class="insight">
+            <div class="insight-title">📝 観察された傾向</div>
+            <p><strong>Level 1（基本情報）:</strong> 両モードともに高い精度で抽出可能。Simple Modeがわずかに優位。</p>
+            <p><strong>Level 2（中程度の複雑さ）:</strong> Simple Modeの積極的抽出戦略が功を奏し、より多くの情報を取得。Two-Steps Modeは慎重に抽出するため、一部の情報を見逃す傾向。</p>
+            <p><strong>Level 3（高度な情報）:</strong> Two-Steps Modeのカテゴリ判定の限界が顕著に。titleフィールドで全10回のテストで誤分類が発生。</p>
+        </div>
+    </div>
+
+    <div class="conclusion">
+        <h3>🎯 結論と推奨事項</h3>
+
+        <h4>1. モード選択の指針</h4>
+        <ul>
+            <li><strong>Simple Modeを推奨:</strong> 情報の取りこぼしが許されず、後処理で余分な項目を除去できる場合</li>
+            <li><strong>Two-Steps Modeを推奨:</strong> 抽出精度が最重要で、不要な情報の混入を避けたい場合</li>
+        </ul>
+
+        <h4>2. Two-Steps Modeの改善提案</h4>
+        <ul>
+            <li><strong>カテゴリ判定の精度向上:</strong> プロンプトチューニングや例示の追加により、カテゴリ判定の精度を向上</li>
+            <li><strong>フォールバック機構の導入:</strong> カテゴリ判定の信頼度が低い場合、Simple Modeにフォールバック</li>
+            <li><strong>マルチパス抽出:</strong> 複数のカテゴリで並列抽出を行い、結果を統合</li>
+        </ul>
+
+        <h4>3. 総合評価</h4>
+        <p>現時点では、<strong>Simple Modeが総合的に優位</strong>です。理由は以下の通り：</p>
+        <ul>
+            <li>正解率が11.5%高い（68.1% vs 56.6%）</li>
+            <li>Recallが28.5%高く、情報の取りこぼしが少ない（0.922 vs 0.637）</li>
+            <li>欠落率が26.5%低い（5.8% vs 32.3%）</li>
+        </ul>
+
+        <p>ただし、Two-Steps Modeは<strong>Precisionと過剰抽出率で圧倒的に優位</strong>であり、カテゴリ判定の精度向上により、Simple Modeを上回る可能性があります。</p>
+    </div>
+
+    <div class="section">
+        <h2>5. 今後の課題</h2>
+
+        <h3>Two-Steps Mode改善項目</h3>
+        <ol>
+            <li><strong>カテゴリ判定プロンプトの改善</strong>
+                <ul>
+                    <li>より具体的な判定基準の追加</li>
+                    <li>few-shot例示の導入</li>
+                    <li>判定根拠の説明要求によるCoT（Chain of Thought）の活用</li>
+                </ul>
+            </li>
+            <li><strong>サブカテゴリの粒度調整</strong>
+                <ul>
+                    <li>25サブカテゴリの統合・再編成</li>
+                    <li>階層構造の見直し</li>
+                </ul>
+            </li>
+            <li><strong>マッピングルールの最適化</strong>
+                <ul>
+                    <li>directMappingとnoteAppendMappingのバランス調整</li>
+                    <li>カテゴリ別の抽出フィールドの見直し</li>
+                </ul>
+            </li>
+            <li><strong>ハイブリッドアプローチの検討</strong>
+                <ul>
+                    <li>カテゴリ判定の信頼度に応じた動的モード切り替え</li>
+                    <li>Two-StepsとSimpleの結果を統合するアンサンブル手法</li>
+                </ul>
+            </li>
+        </ol>
+
+        <h3>実験の拡張</h3>
+        <ol>
+            <li><strong>より多様なテストケースでの検証</strong>
+                <ul>
+                    <li>他のテストケース（password, credit_card, contract等）での性能評価</li>
+                    <li>異なる言語（英語）での比較実験</li>
+                </ul>
+            </li>
+            <li><strong>プロンプトパターンの比較</strong>
+                <ul>
+                    <li>strict、persona指示での性能比較</li>
+                    <li>例示の有無による影響評価</li>
+                </ul>
+            </li>
+            <li><strong>スケーラビリティ評価</strong>
+                <ul>
+                    <li>大量のテストデータでの性能・コスト評価</li>
+                    <li>実運用環境での実測</li>
+                </ul>
+            </li>
+        </ol>
+    </div>
+
+    <div class="metadata">
+        <p><strong>実験日時:</strong> 2025-10-24</p>
+        <p><strong>レポート生成:</strong> Claude Code (Anthropic)</p>
+        <p><strong>実験ログ:</strong></p>
+        <ul>
+            <li>Simple Mode: <code>test_logs/comparison_simple/</code></li>
+            <li>Two-Steps Mode: <code>test_logs/comparison_two_steps/</code></li>
+        </ul>
+        <p><strong>HTMLレポート:</strong></p>
+        <ul>
+            <li>Simple Mode: <code>test_logs/comparison_simple/parallel_format_experiment_report.html</code></li>
+            <li>Two-Steps Mode: <code>test_logs/comparison_two_steps/parallel_format_experiment_report.html</code></li>
+        </ul>
+    </div>
+</body>
+</html>

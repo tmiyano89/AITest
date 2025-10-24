@@ -15,15 +15,16 @@ import argparse
 
 class ExperimentConfig:
     """実験設定クラス"""
-    def __init__(self, pattern: str, language: str = "ja", runs: int = 1):
+    def __init__(self, pattern: str, language: str = "ja", runs: int = 1, mode: str = "simple"):
         self.pattern = pattern
         self.language = language
         self.runs = runs
-    
+        self.mode = mode
+
     def get_experiment_name(self) -> str:
         """実験名を生成"""
-        return f"{self.pattern}_{self.language}"
-    
+        return f"{self.pattern}_{self.language}_{self.mode}"
+
     def get_method(self) -> str:
         """抽出方法を取得"""
         if "_json" in self.pattern:
@@ -34,13 +35,14 @@ class ExperimentConfig:
             return "yaml"
         else:
             return "generable"  # デフォルト
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """辞書形式に変換（JSONシリアライゼーション用）"""
         return {
             'pattern': self.pattern,
             'language': self.language,
             'runs': self.runs,
+            'mode': self.mode,
             'experiment_name': self.get_experiment_name(),
             'method': self.get_method()
         }
@@ -56,20 +58,21 @@ class ExperimentRunner:
     def run_single_experiment(self, config: ExperimentConfig) -> Optional[Dict[str, Any]]:
         """単一の実験設定をまとめて実行"""
         print(f"🔬 実験実行中: {config.get_experiment_name()} ({config.runs}回実行)")
-        
+
         # 実験実行コマンド（新しい引数形式）
         # パターン名は {testcase}_{algo}_{method} の形式
         pattern_parts = config.pattern.split('_')
         testcase = pattern_parts[0]  # chat
         algo = pattern_parts[1]      # abs, strict, etc.
         method = pattern_parts[2]    # generable, json, yaml
-        
+
         # ログファイル用のディレクトリを指定（全パターン共通）
         log_dir = str(self.base_output_dir)
-        
+
         cmd = [
-            "swift", "run", "AITestApp", 
+            "swift", "run", "AITestApp",
             "--method", method,
+            "--mode", config.mode,
             "--testcase", testcase,
             "--algos", algo,
             "--language", config.language,
@@ -294,10 +297,12 @@ def main():
     parser = argparse.ArgumentParser(description='拡張可能な実験実行スクリプト（新しい引数方式）')
     parser.add_argument('--method', default='generable', choices=['json', 'generable', 'yaml'],
                        help='抽出方法 (json/generable/yaml, デフォルト: generable)')
+    parser.add_argument('--mode', default='simple', choices=['simple', 'two-steps'],
+                       help='抽出モード (simple/two-steps, デフォルト: simple)')
     parser.add_argument('--testcases', nargs='+', default=['chat'],
                        choices=['chat', 'creditcard', 'contract', 'password', 'voice'],
                        help='テストケース (chat/creditcard/contract/password/voice, デフォルト: chat)')
-    parser.add_argument('--algos', nargs='+', 
+    parser.add_argument('--algos', nargs='+',
                        default=['abs', 'strict', 'persona', 'abs-ex', 'strict-ex', 'persona-ex'],
                        choices=['abs', 'strict', 'persona', 'abs-ex', 'strict-ex', 'persona-ex'],
                        help='アルゴリズム (abs/strict/persona/abs-ex/strict-ex/persona-ex, デフォルト: すべて)')
@@ -306,22 +311,23 @@ def main():
                        help='レベル (1/2/3, デフォルト: 1,2,3)')
     parser.add_argument('--language', default='ja', choices=['ja', 'en'],
                        help='言語 (ja/en, デフォルト: ja)')
-    parser.add_argument('--runs', type=int, default=1, 
+    parser.add_argument('--runs', type=int, default=1,
                        help='各パターンの実行回数 (デフォルト: 1)')
-    parser.add_argument('--output-dir', 
+    parser.add_argument('--output-dir',
                        help='出力ディレクトリ (指定しない場合は自動生成)')
-    
+
     args = parser.parse_args()
-    
+
     # 出力ディレクトリを決定
     if args.output_dir:
         base_output_dir = args.output_dir
     else:
         timestamp = datetime.now().strftime("%Y%m%d%H%M")
-        base_output_dir = f"test_logs/{timestamp}_multi_experiments"
-    
+        base_output_dir = f"test_logs/{timestamp}_{args.method}_{args.language}_{args.mode}"
+
     print("🚀 拡張可能な実験実行を開始します（新しい引数方式）...")
     print(f"🔧 抽出方法: {args.method}")
+    print(f"🔄 抽出モード: {args.mode}")
     print(f"📋 テストケース: {', '.join(args.testcases)}")
     print(f"🧠 アルゴリズム: {', '.join(args.algos)}")
     print(f"📊 レベル: {', '.join(map(str, args.levels))}")
@@ -329,7 +335,7 @@ def main():
     print(f"🔄 実行回数: {args.runs}回/パターン")
     print(f"📁 出力先: {base_output_dir}")
     print()
-    
+
     # 実験設定を作成（すべての組み合わせを生成）
     configs = []
     for testcase in args.testcases:
@@ -337,7 +343,7 @@ def main():
             for level in args.levels:
                 # パターン名を生成: {testcase}_{algo}_{method}
                 pattern = f"{testcase}_{algo}_{args.method}"
-                config = ExperimentConfig(pattern=pattern, language=args.language, runs=args.runs)
+                config = ExperimentConfig(pattern=pattern, language=args.language, runs=args.runs, mode=args.mode)
                 configs.append(config)
     
     # 実験実行
