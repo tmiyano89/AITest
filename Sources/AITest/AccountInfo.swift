@@ -17,7 +17,7 @@ public struct AccountInfo: Codable, Identifiable, Sendable {
     public var title: String?
     
     /// メールアドレス、ユーザー名、ログインID
-    @Guide(description: "ログイン用のメールアドレスまたはユーザー名(例: 'admin', 'johndoe@example.com')")
+    @Guide(description: "ログイン用のユーザーIDやメールアドレス(例: 'admin', 'johndoe@example.com')")
     public var userID: String?
     
     /// パスワード文字列
@@ -27,7 +27,11 @@ public struct AccountInfo: Codable, Identifiable, Sendable {
     /// ログインページURL、サービスURL
     @Guide(description: "ログインページのURL(例: 'https://www.example.com/login')")
     public var url: String?
-    
+
+    /// アカウントやカードの識別番号
+    @Guide(description: "契約番号やカード番号、アカウントIDなどの識別番号(例: 4090-3284-3284-3283)")
+    public var number: String?
+
     /// 備考、メモ、追加情報
     @Guide(description: "サービスに関する補足情報(例: 'Firewall allows port 8080\nufw allow 8080/tcp\n契約期限は2025年12月31日まで')[必須]")
     public var note: String?

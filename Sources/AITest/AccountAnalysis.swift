@@ -67,6 +67,54 @@ public struct AIResponseAnalysis: Codable, Sendable {
     }
 }
 
+/// テストデータファイルの解析結果
+@available(iOS 26.0, macOS 26.0, *)
+public struct TestDataFile {
+    public let expectedFields: [String]
+    public let cleanContent: String
+}
+
+/// テストデータファイルを解析して期待フィールドとクリーンなコンテンツを取得
+/// - 先頭の複数のコメント行（//で始まる行）をサポート
+/// - expectedFields:が必須、なければfatalError
+@available(iOS 26.0, macOS 26.0, *)
+public func parseTestDataFile(at path: String) throws -> TestDataFile {
+    let content = try String(contentsOfFile: path, encoding: .utf8)
+    let lines = content.split(separator: "\n", omittingEmptySubsequences: false)
+
+    var expectedFields: [String] = []
+    var firstNonCommentLineIndex = 0
+
+    // 先頭のコメント行を全て解析
+    for (index, line) in lines.enumerated() {
+        let trimmedLine = line.trimmingCharacters(in: .whitespaces)
+
+        if trimmedLine.hasPrefix("//") {
+            // expectedFields:を探す
+            if trimmedLine.hasPrefix("//expectedFields:") {
+                let fieldsString = trimmedLine.replacingOccurrences(of: "//expectedFields:", with: "").trimmingCharacters(in: .whitespaces)
+                expectedFields = fieldsString.split(separator: ",").map { String($0.trimmingCharacters(in: .whitespaces)) }
+            }
+            // 他のコメント行は無視
+        } else {
+            // コメントでない行が見つかったら終了
+            firstNonCommentLineIndex = index
+            break
+        }
+    }
+
+    // expectedFieldsが見つからない場合はfatalError
+    guard !expectedFields.isEmpty else {
+        fatalError("❌ テストデータファイル '\(path)' に //expectedFields: コメントが見つかりません。先頭に '//expectedFields: field1,field2,...' の形式で追加してください。")
+    }
+
+    // クリーンなコンテンツ（コメント行を除く）
+    let cleanLines = Array(lines[firstNonCommentLineIndex...])
+    let cleanContent = cleanLines.joined(separator: "\n")
+
+    return TestDataFile(expectedFields: expectedFields, cleanContent: cleanContent)
+}
+
 /// テストケース名を解析してパターンとレベルを取得
 public func parseTestCaseName(_ name: String) -> (pattern: String, level: Int) {
     let components = name.split(separator: " ")
@@ -87,73 +135,33 @@ public func parseTestCaseName(_ name: String) -> (pattern: String, level: Int) {
     return ("Chat", 1)
 }
 
-/// 期待されるフィールドを取得
+/// 期待されるフィールドを取得（テストデータファイルから動的に読み込み）
+@available(iOS 26.0, macOS 26.0, *)
 public func getExpectedFields(for pattern: String, level: Int) -> [String] {
     // 有効なパターンとレベルの確認
     let validPatterns = ["Chat", "Contract", "CreditCard", "VoiceRecognition", "PasswordManager"]
     guard validPatterns.contains(pattern) && (1...3).contains(level) else {
         return []
     }
-    
-    // パターンとレベルに応じた期待フィールドを定義
-    switch pattern {
-    case "Chat":
-        switch level {
-        case 1:
-            return ["title", "userID", "password", "note"]
-        case 2:
-            return ["title", "userID", "password", "url", "note", "port"]
-        case 3:
-            return ["title", "userID", "password", "url", "note", "host", "port", "authKey"]
-        default:
-            return []
-        }
-    case "Contract":
-        switch level {
-        case 1:
-            return ["title", "userID", "password", "url", "note"]
-        case 2:
-            return ["title", "userID", "password", "url", "note", "host", "port"]
-        case 3:
-            return ["title", "userID", "password", "url", "note", "host", "port", "authKey"]
-        default:
-            return []
-        }
-    case "CreditCard":
-        switch level {
-        case 1:
-            return ["title", "userID", "password", "url", "note"]
-        case 2:
-            return ["title", "userID", "password", "url", "note", "host", "port"]
-        case 3:
-            return ["title", "userID", "password", "url", "note", "host", "port", "authKey"]
-        default:
-            return []
-        }
-    case "VoiceRecognition":
-        switch level {
-        case 1:
-            return ["title", "userID", "password", "url", "note"]
-        case 2:
-            return ["title", "userID", "password", "url", "note", "host", "port"]
-        case 3:
-            return ["title", "userID", "password", "url", "note", "host", "port", "authKey"]
-        default:
-            return []
-        }
-    case "PasswordManager":
-        switch level {
-        case 1:
-            return ["title", "userID", "password", "url", "note"]
-        case 2:
-            return ["title", "userID", "password", "url", "note", "host", "port"]
-        case 3:
-            return ["title", "userID", "password", "url", "note", "host", "port", "authKey"]
-        default:
-            return []
-        }
-    default:
-        return []
+
+    // レベルに応じたサフィックスを取得
+    let levelSuffix: String
+    switch level {
+    case 1: levelSuffix = "Basic"
+    case 2: levelSuffix = "General"
+    case 3: levelSuffix = "Complex"
+    default: levelSuffix = "Basic"
+    }
+
+    // テストデータファイルのパスを構築
+    let testDataPath = "Tests/TestData/\(pattern)/Level\(level)_\(levelSuffix).txt"
+
+    // テストデータファイルから期待フィールドを読み込む
+    do {
+        let testDataFile = try parseTestDataFile(at: testDataPath)
+        return testDataFile.expectedFields
+    } catch {
+        fatalError("❌ テストデータファイル '\(testDataPath)' の読み込みに失敗しました。エラー: \(error)")
     }
 }
 
@@ -165,6 +173,7 @@ public func getFieldValue(_ accountInfo: AccountInfo, fieldName: String) -> Stri
     case "userID": return accountInfo.userID
     case "password": return accountInfo.password
     case "url": return accountInfo.url
+    case "number": return accountInfo.number
     case "note": return accountInfo.note
     case "host": return accountInfo.host
     case "port": return accountInfo.port?.description

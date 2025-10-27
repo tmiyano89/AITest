@@ -1,3 +1,4 @@
+//expectedFields: title,userID,password,url,note,host,port
 えー お疲れ様 昨日話してた新しいプロジェクトのサーバー設定が完了したよ
 
 AWS EC2インスタンスを立ち上げたから ログイン用のアカウントは devops@company.com / MySecret2024! です コンソールのURLは https://console.aws.amazon.com/ec2/ からアクセスできるよ

@@ -1,3 +1,4 @@
+//expectedFields: title,userID,password,url,note,host,port,authKey
 えー お疲れ様 昨日の会議で話してた新しいプロジェクトのインフラ構築について 進捗を報告するね
 
 まず AWS EC2インスタンスのセットアップが完了したよ t3.mediumのインスタンスを立ち上げて アクセス情報を設定した

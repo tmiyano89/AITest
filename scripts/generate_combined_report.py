@@ -282,11 +282,13 @@ def compute_grouped_item_scores(all_results):
             # algo別×レベル別集計
             if exp_patt:
                 # experiment_patternからalgoを抽出 (例: abs_json -> abs)
+                # サポートされているアルゴリズムのみを対象とする（yaml, twostepsは廃止）
+                supported_algos = ['abs', 'strict', 'persona', 'abs-ex', 'strict-ex', 'persona-ex']
                 algo_parts = exp_patt.split('_')
                 if len(algo_parts) >= 1:
                     algo = algo_parts[0]  # abs, strict, persona, abs-ex, strict-ex, persona-ex
-                    # twostepsは現在サポートしていないので除外
-                    if algo not in ['twosteps']:
+                    # サポートされているアルゴリズムのみを処理
+                    if algo in supported_algos:
                         algo_level_key = f"{algo}_level{level}"
                         by_algo_level.setdefault(algo_level_key, {}); ensure_group(by_algo_level[algo_level_key])
                         g = by_algo_level[algo_level_key]; g['expected_items']+=expected; g['correct_items']+=correct; g['wrong_items']+=wrong; g['missing_items']+=missing; g['pending_items']+=pending; g['unexpected_items']+=unexpected; g['tests']+=1
@@ -600,8 +602,15 @@ def generate_html_report(all_results, output_path, rates=None, timing_stats=None
 
     # 追加: 項目数ベースの軸別比較（method / language / pattern）
     def render_group_table(title, data):
+        # 不要なキーを除外（experiment, detailed等のノイズを削除）
+        excluded_keys = ['experiment', 'detailed', 'debug', 'test']
+
         rows = ""
         for key, v in data.items():
+            # 除外キーのチェック
+            if key in excluded_keys:
+                continue
+
             rows += f"""
                 <tr>
                     <td>{key}</td>
@@ -641,9 +650,16 @@ def generate_html_report(all_results, output_path, rates=None, timing_stats=None
         """分析・考察セクションを生成"""
         if not data:
             return ""
-        
+
+        # 不要なキーを除外（experiment, detailed等のノイズを削除）
+        excluded_keys = ['experiment', 'detailed', 'debug', 'test']
+        filtered_data = {k: v for k, v in data.items() if k not in excluded_keys}
+
+        if not filtered_data:
+            return ""
+
         # データを正規化スコアでソート
-        sorted_data = sorted(data.items(), key=lambda x: x[1]['normalized_score'], reverse=True)
+        sorted_data = sorted(filtered_data.items(), key=lambda x: x[1]['normalized_score'], reverse=True)
         
         # 最良・最悪のパフォーマンスを特定
         best = sorted_data[0]
@@ -661,8 +677,8 @@ def generate_html_report(all_results, output_path, rates=None, timing_stats=None
                 <p><strong>分析:</strong></p>
                 <ul>
                     <li>正規化スコアの差: {best[1]['normalized_score'] - worst[1]['normalized_score']:.3f}</li>
-                    <li>最も正解率が高い方法: {max(data.items(), key=lambda x: x[1]['correct_items'])[0]}</li>
-                    <li>最も過剰抽出が少ない方法: {min(data.items(), key=lambda x: x[1]['unexpected_items'])[0]}</li>
+                    <li>最も正解率が高い方法: {max(filtered_data.items(), key=lambda x: x[1]['correct_items'])[0]}</li>
+                    <li>最も過剰抽出が少ない方法: {min(filtered_data.items(), key=lambda x: x[1]['unexpected_items'])[0]}</li>
                 </ul>
             </div>
             """
@@ -675,8 +691,8 @@ def generate_html_report(all_results, output_path, rates=None, timing_stats=None
                 <p><strong>分析:</strong></p>
                 <ul>
                     <li>言語間の正規化スコア差: {best[1]['normalized_score'] - worst[1]['normalized_score']:.3f}</li>
-                    <li>日本語の特徴: 正解項目数 {data.get('ja', {}).get('correct_items', 0)}, 過剰項目数 {data.get('ja', {}).get('unexpected_items', 0)}</li>
-                    <li>英語の特徴: 正解項目数 {data.get('en', {}).get('correct_items', 0)}, 過剰項目数 {data.get('en', {}).get('unexpected_items', 0)}</li>
+                    <li>日本語の特徴: 正解項目数 {filtered_data.get('ja', {}).get('correct_items', 0)}, 過剰項目数 {filtered_data.get('ja', {}).get('unexpected_items', 0)}</li>
+                    <li>英語の特徴: 正解項目数 {filtered_data.get('en', {}).get('correct_items', 0)}, 過剰項目数 {filtered_data.get('en', {}).get('unexpected_items', 0)}</li>
                 </ul>
             </div>
             """
@@ -689,8 +705,8 @@ def generate_html_report(all_results, output_path, rates=None, timing_stats=None
                 <p><strong>分析:</strong></p>
                 <ul>
                     <li>パターン間の正規化スコア差: {best[1]['normalized_score'] - worst[1]['normalized_score']:.3f}</li>
-                    <li>最も複雑なパターン: {max(data.items(), key=lambda x: x[1]['expected_items'])[0]} (期待項目数: {max(data.items(), key=lambda x: x[1]['expected_items'])[1]['expected_items']})</li>
-                    <li>最もシンプルなパターン: {min(data.items(), key=lambda x: x[1]['expected_items'])[0]} (期待項目数: {min(data.items(), key=lambda x: x[1]['expected_items'])[1]['expected_items']})</li>
+                    <li>最も複雑なパターン: {max(filtered_data.items(), key=lambda x: x[1]['expected_items'])[0]} (期待項目数: {max(filtered_data.items(), key=lambda x: x[1]['expected_items'])[1]['expected_items']})</li>
+                    <li>最もシンプルなパターン: {min(filtered_data.items(), key=lambda x: x[1]['expected_items'])[0]} (期待項目数: {min(filtered_data.items(), key=lambda x: x[1]['expected_items'])[1]['expected_items']})</li>
                 </ul>
             </div>
             """
@@ -703,19 +719,19 @@ def generate_html_report(all_results, output_path, rates=None, timing_stats=None
                 <p><strong>分析:</strong></p>
                 <ul>
                     <li>レベル間の正規化スコア差: {best[1]['normalized_score'] - worst[1]['normalized_score']:.3f}</li>
-                    <li>最も複雑なレベル: {max(data.items(), key=lambda x: x[1]['expected_items'])[0]} (期待項目数: {max(data.items(), key=lambda x: x[1]['expected_items'])[1]['expected_items']})</li>
-                    <li>最もシンプルなレベル: {min(data.items(), key=lambda x: x[1]['expected_items'])[0]} (期待項目数: {min(data.items(), key=lambda x: x[1]['expected_items'])[1]['expected_items']})</li>
+                    <li>最も複雑なレベル: {max(filtered_data.items(), key=lambda x: x[1]['expected_items'])[0]} (期待項目数: {max(filtered_data.items(), key=lambda x: x[1]['expected_items'])[1]['expected_items']})</li>
+                    <li>最もシンプルなレベル: {min(filtered_data.items(), key=lambda x: x[1]['expected_items'])[0]} (期待項目数: {min(filtered_data.items(), key=lambda x: x[1]['expected_items'])[1]['expected_items']})</li>
                 </ul>
             </div>
             """
         elif analysis_type == "algo_level":
             # algo別×レベル別の分析 - レベルごとのランキング表示
             level_rankings = {}
-            
+
             # サポートされているアルゴリズムのみを対象とする
             supported_algos = ['abs', 'strict', 'persona', 'abs-ex', 'strict-ex', 'persona-ex']
-            
-            for key, stats in data.items():
+
+            for key, stats in filtered_data.items():
                 if '_level' in key:
                     algo, level = key.split('_level')
                     # サポートされているアルゴリズムのみを処理
@@ -793,6 +809,9 @@ def generate_html_report(all_results, output_path, rates=None, timing_stats=None
     
     def generate_summary_section(grouped_scores, timing_stats):
         """レポートのまとめセクションを生成"""
+        # 不要なキーを除外（experiment, detailed等のノイズを削除）
+        excluded_keys = ['experiment', 'detailed', 'debug', 'test']
+
         # 全体統計を計算
         total_expected = sum(g['expected_items'] for g in grouped_scores['by_experiment_pattern'].values())
         total_correct = sum(g['correct_items'] for g in grouped_scores['by_experiment_pattern'].values())
@@ -801,16 +820,21 @@ def generate_html_report(all_results, output_path, rates=None, timing_stats=None
         total_pending = sum(g['pending_items'] for g in grouped_scores['by_experiment_pattern'].values())
         total_unexpected = sum(g['unexpected_items'] for g in grouped_scores['by_experiment_pattern'].values())
         overall_score = (total_correct - total_wrong - total_unexpected) / (total_expected or 1)
-        
+
+        # 各軸のデータをフィルタリング
+        filtered_by_method = {k: v for k, v in grouped_scores['by_method'].items() if k not in excluded_keys}
+        filtered_by_language = {k: v for k, v in grouped_scores['by_language'].items() if k not in excluded_keys}
+        filtered_by_pattern = {k: v for k, v in grouped_scores['by_pattern'].items() if k not in excluded_keys}
+
         # 各軸の最良・最悪を特定
-        method_best = max(grouped_scores['by_method'].items(), key=lambda x: x[1]['normalized_score']) if grouped_scores['by_method'] else ("N/A", {"normalized_score": 0})
-        method_worst = min(grouped_scores['by_method'].items(), key=lambda x: x[1]['normalized_score']) if grouped_scores['by_method'] else ("N/A", {"normalized_score": 0})
-        
-        language_best = max(grouped_scores['by_language'].items(), key=lambda x: x[1]['normalized_score']) if grouped_scores['by_language'] else ("N/A", {"normalized_score": 0})
-        language_worst = min(grouped_scores['by_language'].items(), key=lambda x: x[1]['normalized_score']) if grouped_scores['by_language'] else ("N/A", {"normalized_score": 0})
-        
-        pattern_best = max(grouped_scores['by_pattern'].items(), key=lambda x: x[1]['normalized_score']) if grouped_scores['by_pattern'] else ("N/A", {"normalized_score": 0})
-        pattern_worst = min(grouped_scores['by_pattern'].items(), key=lambda x: x[1]['normalized_score']) if grouped_scores['by_pattern'] else ("N/A", {"normalized_score": 0})
+        method_best = max(filtered_by_method.items(), key=lambda x: x[1]['normalized_score']) if filtered_by_method else ("N/A", {"normalized_score": 0})
+        method_worst = min(filtered_by_method.items(), key=lambda x: x[1]['normalized_score']) if filtered_by_method else ("N/A", {"normalized_score": 0})
+
+        language_best = max(filtered_by_language.items(), key=lambda x: x[1]['normalized_score']) if filtered_by_language else ("N/A", {"normalized_score": 0})
+        language_worst = min(filtered_by_language.items(), key=lambda x: x[1]['normalized_score']) if filtered_by_language else ("N/A", {"normalized_score": 0})
+
+        pattern_best = max(filtered_by_pattern.items(), key=lambda x: x[1]['normalized_score']) if filtered_by_pattern else ("N/A", {"normalized_score": 0})
+        pattern_worst = min(filtered_by_pattern.items(), key=lambda x: x[1]['normalized_score']) if filtered_by_pattern else ("N/A", {"normalized_score": 0})
         
         return f"""
     <div class="section">
@@ -886,21 +910,21 @@ def generate_html_report(all_results, output_path, rates=None, timing_stats=None
     </div>
         """
 
-    html_content += render_group_table("抽出方法別（yaml / generable / json）", grouped_scores['by_method'])
+    html_content += render_group_table("抽出方法別（generable / json）", grouped_scores['by_method'])
     html_content += add_analysis_section("抽出方法別分析", grouped_scores['by_method'], "method")
-    
+
     html_content += render_group_table("言語別（en / ja）", grouped_scores['by_language'])
     html_content += add_analysis_section("言語別分析", grouped_scores['by_language'], "language")
-    
-    html_content += render_group_table("パターン別（Contract / Chat / CreditCard / PasswordManager / VoiceRecognition）", grouped_scores['by_pattern'])
+
+    html_content += render_group_table("パターン別", grouped_scores['by_pattern'])
     html_content += add_analysis_section("パターン別分析", grouped_scores['by_pattern'], "pattern")
-    
+
     # レベル別分析を追加
     html_content += render_group_table("レベル別（Level 1 / Level 2 / Level 3）", grouped_scores['by_level'])
     html_content += add_analysis_section("レベル別分析", grouped_scores['by_level'], "level")
-    
+
     # algo別×レベル別分析を追加
-    html_content += render_group_table("Algo別×レベル別（abs / strict / persona / twosteps / abs-ex / strict-ex / persona-ex × Level 1/2/3）", grouped_scores['by_algo_level'])
+    html_content += render_group_table("Algo別×レベル別（abs / strict / persona / abs-ex / strict-ex / persona-ex × Level 1/2/3）", grouped_scores['by_algo_level'])
     html_content += add_analysis_section("Algo別×レベル別分析", grouped_scores['by_algo_level'], "algo_level")
     
     # 率ベースのパターン別精度表は削除（項目数ベース＋正規化スコアに統一）
@@ -1619,7 +1643,20 @@ def main():
     
     # 各ログファイルを解析
     all_results = []
+    # スキップすべきファイル名のリスト
+    skip_files = {'experiment_results.json', 'detailed_metrics.json', 'parallel_format_experiment_report.html'}
+
     for i, log_file in enumerate(log_files, 1):
+        # エラーファイルをスキップ（_error.jsonで終わるファイル）
+        if log_file.name.endswith('_error.json'):
+            print(f"⚠️  スキップ: {log_file.name} (エラーファイル)")
+            continue
+
+        # 集計ファイルをスキップ
+        if log_file.name in skip_files:
+            print(f"⚠️  スキップ: {log_file.name} (集計ファイル)")
+            continue
+
         progress = (i / len(log_files)) * 100
         print(f"🔍 解析中: {log_file.name} ({progress:.1f}%)")
         result = parse_log_file(str(log_file))

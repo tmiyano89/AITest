@@ -1,3 +1,4 @@
+//expectedFields: title,userID,password,url,note,host,port
 第3条 システムアクセス情報及びセキュリティ要件
 
 3.1 アクセス権限の付与

@@ -1,3 +1,4 @@
+//expectedFields: title,userID,note
 MASTERCARD
 5321 4411 3290 2189
 03/26

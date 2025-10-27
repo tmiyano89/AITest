@@ -1,3 +1,4 @@
+//expectedFields: title,userID,password,note
 えー 新しいサーバーのアカウント情報を送るね
 
 AWS EC2にログインするには

@@ -1,2 +1,3 @@
+//expectedFields: title,userID,password,url,note
 name,username,password,url
 GitHub,john.doe,GitHubPass2024!,https://github.com

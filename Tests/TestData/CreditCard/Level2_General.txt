@@ -1,3 +1,4 @@
+//expectedFields: title,userID,note
 JCB
 5115 4321 8329 2382
 01/26

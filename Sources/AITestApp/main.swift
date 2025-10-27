@@ -1251,11 +1251,90 @@ func generateStructuredLog(testCase: (name: String, text: String), accountInfo: 
 }
 
 /// エラー時の構造化ログを生成
+/// @ai[2025-10-24 12:00] エラー詳細のデバッグ出力を追加
+/// 目的: エラー原因の分析を容易にする
+/// 背景: _error.jsonが作成される原因を調査できるようにする
+/// 意図: エラーの型、詳細、コンテキスト情報を出力
 @available(iOS 26.0, macOS 26.0, *)
 func generateErrorStructuredLog(testCase: (name: String, text: String), error: Error, experiment: (method: ExtractionMethod, language: PromptLanguage, testcase: String, algo: String, mode: ExtractionMode, levels: [Int]), pattern: ExperimentPattern, iteration: Int, runNumber: Int, testDir: String, requestContent: String?) async {
     let (testPattern, level) = parseTestCaseName(testCase.name)
     let expectedFields = getExpectedFields(for: testPattern, level: level)
-    
+
+    // エラー詳細情報のデバッグ出力
+    print("\n" + String(repeating: "!", count: 80))
+    print("🐛 ERROR DIAGNOSTICS - 詳細エラー情報")
+    print(String(repeating: "!", count: 80))
+    print("📌 実験情報:")
+    print("   - パターン: \(testPattern)")
+    print("   - レベル: \(level)")
+    print("   - 実行番号: \(runNumber)")
+    print("   - 抽出方法: \(experiment.method.rawValue)")
+    print("   - 言語: \(experiment.language.rawValue)")
+    print("   - モード: \(experiment.mode)")
+    print("   - テストケース: \(testCase.name)")
+    print("\n📌 エラー情報:")
+    print("   - エラー型: \(type(of: error))")
+    print("   - エラーメッセージ: \(error.localizedDescription)")
+
+    // ExtractionError の場合は詳細情報を出力
+    if let extractionError = error as? ExtractionError {
+        print("   - ExtractionErrorの種類:")
+        switch extractionError {
+        case .invalidInput:
+            print("     → invalidInput: 無効な入力データ（Two-Stepsでサブカテゴリ判定失敗の可能性）")
+        case .noAccountInfoFound:
+            print("     → noAccountInfoFound: アカウント情報が見つからない")
+        case .languageModelUnavailable:
+            print("     → languageModelUnavailable: 言語モデルが利用できない")
+        case .appleIntelligenceDisabled:
+            print("     → appleIntelligenceDisabled: Apple Intelligenceが無効")
+        case .deviceNotEligible:
+            print("     → deviceNotEligible: デバイスが対応していない")
+        case .modelNotReady:
+            print("     → modelNotReady: モデルをダウンロード中")
+        case .aifmNotSupported:
+            print("     → aifmNotSupported: FoundationModelsがサポートされていない")
+        case .invalidJSONFormat(let response):
+            print("     → invalidJSONFormat: 無効なJSON形式")
+            if let response = response {
+                print("     → AIレスポンス（最初の200文字）: \(String(response.prefix(200)))")
+            }
+        case .externalLLMError(let response):
+            print("     → externalLLMError: 外部LLMエラー")
+            print("     → AIレスポンス（最初の200文字）: \(String(response.prefix(200)))")
+        case .testDataNotFound(let message):
+            print("     → testDataNotFound: \(message)")
+        case .invalidImageData:
+            print("     → invalidImageData: 無効な画像データ")
+        case .promptTemplateNotFound(let templateName):
+            print("     → promptTemplateNotFound: プロンプトテンプレートが見つからない (\(templateName))")
+        case .mappingRuleNotFound(let ruleName):
+            print("     → mappingRuleNotFound: マッピングルールが見つからない (\(ruleName))")
+        case .invalidYAMLFormat:
+            print("     → invalidYAMLFormat: 無効なYAML形式")
+        case .methodNotSupported(let method):
+            print("     → methodNotSupported: サポートされていない抽出方法 (\(method))")
+        case .invalidPattern(let pattern):
+            print("     → invalidPattern: 無効なパターン (\(pattern))")
+        }
+
+        // AIレスポンスがある場合は出力
+        if let aiResponse = extractionError.aiResponse {
+            print("\n   - AIレスポンス全文:")
+            print("     \(aiResponse)")
+        }
+    } else {
+        print("   - その他のエラー: \(error)")
+    }
+
+    print("\n📌 期待フィールド:")
+    for field in expectedFields {
+        print("   - \(field)")
+    }
+
+    print(String(repeating: "!", count: 80))
+    print("\n")
+
     var structuredLog: [String: Any] = [
         "pattern": testPattern,
         "level": level,
@@ -1265,10 +1344,11 @@ func generateErrorStructuredLog(testCase: (name: String, text: String), error: E
         "experiment_pattern": pattern.rawValue,
         "request_content": requestContent ?? NSNull(),
         "error": error.localizedDescription,
+        "error_type": String(describing: type(of: error)),
         "expected_fields": [],
         "unexpected_fields": []
     ]
-    
+
     // 外部LLMエラーの場合はAIレスポンスを含める
     if let extractionError = error as? ExtractionError,
        let aiResponse = extractionError.aiResponse {
@@ -1336,70 +1416,40 @@ func parseTestCaseName(_ name: String) -> (pattern: String, level: Int) {
     return (pattern: pattern, level: 1)
 }
 
-/// パターンとレベルに基づいて期待フィールドを取得
+/// パターンとレベルに基づいて期待フィールドを取得（テストデータファイルから動的に読み込み）
+@available(iOS 26.0, macOS 26.0, *)
 func getExpectedFields(for pattern: String, level: Int) -> [String] {
     // 有効なパターンとレベルの確認
     let validLevels = [1, 2, 3]
-    
+
     guard VALID_PATTERNS.contains(pattern) else {
         assertionFailure("無効なパターンです: \(pattern)。有効なパターン: \(VALID_PATTERNS)")
         return []
     }
-    
+
     guard validLevels.contains(level) else {
         assertionFailure("無効なレベルです: \(level)。有効なレベル: \(validLevels)")
         return []
     }
-    
-    switch pattern {
-    case "Chat":
-        switch level {
-        case 1: return ["title", "userID", "password", "note"]
-        case 2: return ["title", "userID", "password", "url", "note", "port"]
-        case 3: return ["title", "userID", "password", "url", "note", "host", "port", "authKey"]
-        default: 
-            assertionFailure("Chatパターンの無効なレベルです: \(level)")
-            return ["title", "userID", "password", "note"]
-        }
-    case "Contract":
-        switch level {
-        case 1: return ["title", "userID", "password", "note"]
-        case 2: return ["title", "userID", "password", "url", "note"]
-        case 3: return ["title", "userID", "password", "url", "note", "host", "port" , "authKey"]
-        default: 
-            assertionFailure("Contractパターンの無効なレベルです: \(level)")
-            return ["title", "userID", "password", "note"]
-        }
-    case "CreditCard":
-        switch level {
-        case 1: return ["title", "userID", "note"]
-        case 2: return ["title", "userID", "note"]
-        case 3: return ["title", "userID", "note"]
-        default: 
-            assertionFailure("CreditCardパターンの無効なレベルです: \(level)")
-            return ["title", "userID", "note"]
-        }
-    case "VoiceRecognition":
-        switch level {
-        case 1: return ["title", "userID", "password", "note"]
-        case 2: return ["title", "userID", "password", "note", "url", "port"]
-        case 3: return ["title", "userID", "password", "note", "url", "host", "port", "authKey"]
-        default: 
-            assertionFailure("VoiceRecognitionパターンの無効なレベルです: \(level)")
-            return ["title", "userID", "password", "note"]
-        }
-    case "PasswordManager":
-        switch level {
-        case 1: return ["title", "userID", "password", "note", "url"]
-        case 2: return ["title", "userID", "password", "note", "url"]
-        case 3: return ["title", "userID", "password", "note", "url", "host", "port", "authKey"]
-        default: 
-            assertionFailure("PasswordManagerパターンの無効なレベルです: \(level)")
-            return ["title", "userID", "password", "note", "url"]
-        }
-    default:
-        assertionFailure("未定義のパターンです: \(pattern)")
-        return ["title", "userID", "password", "note"]
+
+    // レベルに応じたサフィックスを取得
+    let levelSuffix: String
+    switch level {
+    case 1: levelSuffix = "Basic"
+    case 2: levelSuffix = "General"
+    case 3: levelSuffix = "Complex"
+    default: levelSuffix = "Basic"
+    }
+
+    // テストデータファイルのパスを構築
+    let testDataPath = "Tests/TestData/\(pattern)/Level\(level)_\(levelSuffix).txt"
+
+    // テストデータファイルから期待フィールドを読み込む
+    do {
+        let testDataFile = try parseTestDataFile(at: testDataPath)
+        return testDataFile.expectedFields
+    } catch {
+        fatalError("❌ テストデータファイル '\(testDataPath)' の読み込みに失敗しました。エラー: \(error)")
     }
 }
 
@@ -1411,6 +1461,7 @@ func getFieldValue(_ accountInfo: AccountInfo, fieldName: String) -> String? {
     case "userID": return accountInfo.userID
     case "password": return accountInfo.password
     case "url": return accountInfo.url
+    case "number": return accountInfo.number
     case "note": return accountInfo.note
     case "host": return accountInfo.host
     case "port": return accountInfo.port?.description
@@ -1647,12 +1698,13 @@ func runResponseCollection() async {
         print("\n📋 \(level.uppercased()) のレスポンス収集開始")
         print(String(repeating: "-", count: 40))
         
-        // テストデータの読み込み
-        guard let testData = try? String(contentsOfFile: testDataPath, encoding: .utf8) else {
+        // テストデータの読み込み（expectedFieldsコメントを除外）
+        guard let testDataFile = try? parseTestDataFile(at: testDataPath) else {
             print("❌ テストデータの読み込み失敗: \(testDataPath)")
             continue
         }
-        
+        let testData = testDataFile.cleanContent
+
         print("📝 テストデータ: \(testDataPath)")
         print("📄 入力テキスト: \(testData.prefix(100))...")
         

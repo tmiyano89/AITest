@@ -1,3 +1,4 @@
+//expectedFields: title,userID,password,note
 第3条 システムアクセス情報
 
 社内システムへのアクセス権限を付与する。

@@ -87,17 +87,19 @@ public class CommonExtractionProcessor {
     /// 意図: テストデータ読み込みの一元化
     public func loadTestData(testcase: String, level: Int, language: PromptLanguage) throws -> String {
         log.debug("📂 テストデータ読み込み開始 - testcase: \(testcase), level: \(level), language: \(language.rawValue)")
-        
+
         let testcaseDir = testcase.capitalized
         let levelFile = "Level\(level)_\(level == 1 ? "Basic" : level == 2 ? "General" : "Complex").txt"
         let testDataPath = "Tests/TestData/\(testcaseDir)/\(levelFile)"
-        
-        guard let testData = try? String(contentsOfFile: testDataPath, encoding: .utf8) else {
+
+        // テストデータファイルを解析して、expectedFieldsコメントを除いたクリーンなコンテンツを取得
+        do {
+            let testDataFile = try parseTestDataFile(at: testDataPath)
+            log.debug("✅ テストデータ読み込み完了 - 文字数: \(testDataFile.cleanContent.count), 期待フィールド数: \(testDataFile.expectedFields.count)")
+            return testDataFile.cleanContent
+        } catch {
             throw ExtractionError.testDataNotFound(testDataPath)
         }
-        
-        log.debug("✅ テストデータ読み込み完了 - 文字数: \(testData.count)")
-        return testData
     }
     
     /// プロンプトを完成させる

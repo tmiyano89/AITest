@@ -1,3 +1,4 @@
+//expectedFields: title,userID,note
 VISA
 4532-3234-5678-9112
 11/25
