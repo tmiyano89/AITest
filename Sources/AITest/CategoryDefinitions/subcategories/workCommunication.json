@@ -1,0 +1,54 @@
+{
+  "id": "workCommunication",
+  "mainCategoryId": "work",
+  "name": {
+    "ja": "ビジネスコミュニケーション",
+    "en": "ビジネスコミュニケーション"
+  },
+  "description": {
+    "ja": "ビジネスコミュニケーションに関する情報",
+    "en": "Information related to ビジネスコミュニケーション"
+  },
+  "examples": {
+    "ja": [],
+    "en": []
+  },
+  "mapping": {
+    "ja": [
+      {
+        "name": "title",
+        "required": true,
+        "description": "タイトル・サービス名"
+      },
+      {
+        "name": "userID",
+        "description": "ログインID・ユーザーID"
+      },
+      {
+        "name": "password",
+        "description": "パスワード"
+      },
+      {
+        "name": "url",
+        "description": "サービスURL"
+      },
+      {
+        "name": "note",
+        "required": true,
+        "description": "備考・メモ・追加情報"
+      },
+      {
+        "name": "meetingID",
+        "mappingKey": "note:append",
+        "format": "ミーティングID: %@",
+        "description": "ミーティングID・ルームID"
+      },
+      {
+        "name": "roomURL",
+        "mappingKey": "note:append",
+        "format": "会議室URL: %@",
+        "description": "会議室URL"
+      }
+    ]
+  }
+}

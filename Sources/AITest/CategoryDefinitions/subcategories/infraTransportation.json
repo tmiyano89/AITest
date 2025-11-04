@@ -1,0 +1,48 @@
+{
+  "id": "infraTransportation",
+  "mainCategoryId": "infrastructure",
+  "name": {
+    "ja": "交通・移動",
+    "en": "交通・移動"
+  },
+  "description": {
+    "ja": "交通・移動に関する情報",
+    "en": "Information related to 交通・移動"
+  },
+  "examples": {
+    "ja": [],
+    "en": []
+  },
+  "mapping": {
+    "ja": [
+      {
+        "name": "title",
+        "required": true,
+        "description": "タイトル・サービス名"
+      },
+      {
+        "name": "note",
+        "required": true,
+        "description": "備考・メモ・追加情報"
+      },
+      {
+        "name": "cardNumber",
+        "mappingKey": "note:append",
+        "format": "カード番号: %@",
+        "description": "カード番号"
+      },
+      {
+        "name": "balance",
+        "mappingKey": "note:append",
+        "format": "残高: %@",
+        "description": "残高・ポイント"
+      },
+      {
+        "name": "autoCharge",
+        "mappingKey": "note:append",
+        "format": "オートチャージ: %@",
+        "description": "オートチャージ設定"
+      }
+    ]
+  }
+}

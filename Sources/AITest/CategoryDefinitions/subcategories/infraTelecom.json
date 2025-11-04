@@ -1,0 +1,48 @@
+{
+  "id": "infraTelecom",
+  "mainCategoryId": "infrastructure",
+  "name": {
+    "ja": "携帯・通信",
+    "en": "携帯・通信"
+  },
+  "description": {
+    "ja": "携帯・通信に関する情報",
+    "en": "Information related to 携帯・通信"
+  },
+  "examples": {
+    "ja": [],
+    "en": []
+  },
+  "mapping": {
+    "ja": [
+      {
+        "name": "title",
+        "required": true,
+        "description": "タイトル・サービス名"
+      },
+      {
+        "name": "note",
+        "required": true,
+        "description": "備考・メモ・追加情報"
+      },
+      {
+        "name": "carrierName",
+        "mappingKey": "note:append",
+        "format": "キャリア名: %@",
+        "description": "キャリア名・プロバイダ名"
+      },
+      {
+        "name": "contractNumber",
+        "mappingKey": "note:append",
+        "format": "契約番号: %@",
+        "description": "契約番号・お客様番号"
+      },
+      {
+        "name": "simNumber",
+        "mappingKey": "note:append",
+        "format": "SIM番号: %@",
+        "description": "SIM番号・ICCID"
+      }
+    ]
+  }
+}

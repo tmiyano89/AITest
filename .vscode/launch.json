@@ -1,0 +1,40 @@
+{
+    "configurations": [
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:AITest}",
+            "name": "Debug AITest",
+            "program": "${workspaceFolder:AITest}/.build/debug/AITest",
+            "preLaunchTask": "swift: Build Debug AITest"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:AITest}",
+            "name": "Release AITest",
+            "program": "${workspaceFolder:AITest}/.build/release/AITest",
+            "preLaunchTask": "swift: Build Release AITest"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:AITest}",
+            "name": "Debug AITestApp",
+            "program": "${workspaceFolder:AITest}/.build/debug/AITestApp",
+            "preLaunchTask": "swift: Build Debug AITestApp"
+        },
+        {
+            "type": "swift",
+            "request": "launch",
+            "args": [],
+            "cwd": "${workspaceFolder:AITest}",
+            "name": "Release AITestApp",
+            "program": "${workspaceFolder:AITest}/.build/release/AITestApp",
+            "preLaunchTask": "swift: Build Release AITestApp"
+        }
+    ]
+}

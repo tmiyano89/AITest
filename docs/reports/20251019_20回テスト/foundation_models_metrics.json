@@ -1,0 +1,476 @@
+{
+  "metrics": {
+    "by_experiment_pattern": {
+      "abs_gen": {
+        "expected_items": 360,
+        "correct_items": 328,
+        "wrong_items": 12,
+        "missing_items": 20,
+        "unexpected_items": 22,
+        "tests": 60,
+        "normalized_score": 0.8166666666666667
+      },
+      "persona_gen": {
+        "expected_items": 360,
+        "correct_items": 333,
+        "wrong_items": 7,
+        "missing_items": 20,
+        "unexpected_items": 27,
+        "tests": 60,
+        "normalized_score": 0.8305555555555556
+      },
+      "persona-ex_gen": {
+        "expected_items": 360,
+        "correct_items": 326,
+        "wrong_items": 9,
+        "missing_items": 25,
+        "unexpected_items": 26,
+        "tests": 60,
+        "normalized_score": 0.8083333333333333
+      },
+      "strict_gen": {
+        "expected_items": 360,
+        "correct_items": 328,
+        "wrong_items": 11,
+        "missing_items": 21,
+        "unexpected_items": 26,
+        "tests": 60,
+        "normalized_score": 0.8083333333333333
+      },
+      "abs-ex_gen": {
+        "expected_items": 360,
+        "correct_items": 331,
+        "wrong_items": 15,
+        "missing_items": 14,
+        "unexpected_items": 26,
+        "tests": 60,
+        "normalized_score": 0.8055555555555556
+      },
+      "strict-ex_gen": {
+        "expected_items": 360,
+        "correct_items": 331,
+        "wrong_items": 12,
+        "missing_items": 17,
+        "unexpected_items": 25,
+        "tests": 60,
+        "normalized_score": 0.8166666666666667
+      }
+    },
+    "by_method": {
+      "generable": {
+        "expected_items": 2160,
+        "correct_items": 1977,
+        "wrong_items": 66,
+        "missing_items": 117,
+        "unexpected_items": 152,
+        "tests": 360,
+        "normalized_score": 0.8143518518518519
+      },
+      "experiment": {
+        "expected_items": 0,
+        "correct_items": 0,
+        "wrong_items": 0,
+        "missing_items": 0,
+        "unexpected_items": 0,
+        "tests": 1,
+        "normalized_score": 0.0
+      },
+      "detailed": {
+        "expected_items": 0,
+        "correct_items": 0,
+        "wrong_items": 0,
+        "missing_items": 0,
+        "unexpected_items": 0,
+        "tests": 1,
+        "normalized_score": 0.0
+      }
+    },
+    "by_language": {
+      "ja": {
+        "expected_items": 2160,
+        "correct_items": 1977,
+        "wrong_items": 66,
+        "missing_items": 117,
+        "unexpected_items": 152,
+        "tests": 360,
+        "normalized_score": 0.8143518518518519
+      },
+      "results": {
+        "expected_items": 0,
+        "correct_items": 0,
+        "wrong_items": 0,
+        "missing_items": 0,
+        "unexpected_items": 0,
+        "tests": 1,
+        "normalized_score": 0.0
+      },
+      "metrics": {
+        "expected_items": 0,
+        "correct_items": 0,
+        "wrong_items": 0,
+        "missing_items": 0,
+        "unexpected_items": 0,
+        "tests": 1,
+        "normalized_score": 0.0
+      }
+    },
+    "by_pattern": {
+      "Chat": {
+        "expected_items": 2160,
+        "correct_items": 1977,
+        "wrong_items": 66,
+        "missing_items": 117,
+        "unexpected_items": 152,
+        "tests": 360,
+        "normalized_score": 0.8143518518518519
+      }
+    },
+    "overall": {
+      "correct": 1977,
+      "wrong": 66,
+      "missing": 117,
+      "unexpected": 152,
+      "pending": 0
+    }
+  },
+  "rates": {
+    "overall": {
+      "correct_rate": 0.8551038062283737,
+      "wrong_rate": 0.028546712802768166,
+      "missing_rate": 0.05060553633217993,
+      "unexpected_rate": 0.07037037037037037,
+      "precision": 0.9006833712984055,
+      "recall": 0.9441260744985673
+    }
+  },
+  "grouped_scores": {
+    "by_method": {
+      "generable": {
+        "expected_items": 2160,
+        "correct_items": 1977,
+        "wrong_items": 66,
+        "missing_items": 117,
+        "unexpected_items": 152,
+        "tests": 360,
+        "normalized_score": 0.8143518518518519
+      },
+      "experiment": {
+        "expected_items": 0,
+        "correct_items": 0,
+        "wrong_items": 0,
+        "missing_items": 0,
+        "unexpected_items": 0,
+        "tests": 1,
+        "normalized_score": 0.0
+      },
+      "detailed": {
+        "expected_items": 0,
+        "correct_items": 0,
+        "wrong_items": 0,
+        "missing_items": 0,
+        "unexpected_items": 0,
+        "tests": 1,
+        "normalized_score": 0.0
+      }
+    },
+    "by_language": {
+      "ja": {
+        "expected_items": 2160,
+        "correct_items": 1977,
+        "wrong_items": 66,
+        "missing_items": 117,
+        "unexpected_items": 152,
+        "tests": 360,
+        "normalized_score": 0.8143518518518519
+      },
+      "results": {
+        "expected_items": 0,
+        "correct_items": 0,
+        "wrong_items": 0,
+        "missing_items": 0,
+        "unexpected_items": 0,
+        "tests": 1,
+        "normalized_score": 0.0
+      },
+      "metrics": {
+        "expected_items": 0,
+        "correct_items": 0,
+        "wrong_items": 0,
+        "missing_items": 0,
+        "unexpected_items": 0,
+        "tests": 1,
+        "normalized_score": 0.0
+      }
+    },
+    "by_pattern": {
+      "Chat": {
+        "expected_items": 2160,
+        "correct_items": 1977,
+        "wrong_items": 66,
+        "missing_items": 117,
+        "unexpected_items": 152,
+        "tests": 360,
+        "normalized_score": 0.8143518518518519
+      }
+    },
+    "by_experiment_pattern": {
+      "abs_gen": {
+        "expected_items": 360,
+        "correct_items": 328,
+        "wrong_items": 12,
+        "missing_items": 20,
+        "unexpected_items": 22,
+        "tests": 60,
+        "normalized_score": 0.8166666666666667
+      },
+      "persona_gen": {
+        "expected_items": 360,
+        "correct_items": 333,
+        "wrong_items": 7,
+        "missing_items": 20,
+        "unexpected_items": 27,
+        "tests": 60,
+        "normalized_score": 0.8305555555555556
+      },
+      "persona-ex_gen": {
+        "expected_items": 360,
+        "correct_items": 326,
+        "wrong_items": 9,
+        "missing_items": 25,
+        "unexpected_items": 26,
+        "tests": 60,
+        "normalized_score": 0.8083333333333333
+      },
+      "strict_gen": {
+        "expected_items": 360,
+        "correct_items": 328,
+        "wrong_items": 11,
+        "missing_items": 21,
+        "unexpected_items": 26,
+        "tests": 60,
+        "normalized_score": 0.8083333333333333
+      },
+      "abs-ex_gen": {
+        "expected_items": 360,
+        "correct_items": 331,
+        "wrong_items": 15,
+        "missing_items": 14,
+        "unexpected_items": 26,
+        "tests": 60,
+        "normalized_score": 0.8055555555555556
+      },
+      "strict-ex_gen": {
+        "expected_items": 360,
+        "correct_items": 331,
+        "wrong_items": 12,
+        "missing_items": 17,
+        "unexpected_items": 25,
+        "tests": 60,
+        "normalized_score": 0.8166666666666667
+      }
+    },
+    "by_level": {
+      "3": {
+        "expected_items": 960,
+        "correct_items": 869,
+        "wrong_items": 66,
+        "missing_items": 25,
+        "unexpected_items": 0,
+        "tests": 120,
+        "normalized_score": 0.8364583333333333
+      },
+      "1": {
+        "expected_items": 480,
+        "correct_items": 480,
+        "wrong_items": 0,
+        "missing_items": 0,
+        "unexpected_items": 117,
+        "tests": 120,
+        "normalized_score": 0.75625
+      },
+      "2": {
+        "expected_items": 720,
+        "correct_items": 628,
+        "wrong_items": 0,
+        "missing_items": 92,
+        "unexpected_items": 35,
+        "tests": 120,
+        "normalized_score": 0.8236111111111111
+      },
+      "0": {
+        "expected_items": 0,
+        "correct_items": 0,
+        "wrong_items": 0,
+        "missing_items": 0,
+        "unexpected_items": 0,
+        "tests": 2,
+        "normalized_score": 0.0
+      }
+    },
+    "by_algo_level": {
+      "abs_level3": {
+        "expected_items": 160,
+        "correct_items": 145,
+        "wrong_items": 12,
+        "missing_items": 3,
+        "unexpected_items": 0,
+        "tests": 20,
+        "normalized_score": 0.83125
+      },
+      "persona_level1": {
+        "expected_items": 80,
+        "correct_items": 80,
+        "wrong_items": 0,
+        "missing_items": 0,
+        "unexpected_items": 21,
+        "tests": 20,
+        "normalized_score": 0.7375
+      },
+      "persona-ex_level2": {
+        "expected_items": 120,
+        "correct_items": 101,
+        "wrong_items": 0,
+        "missing_items": 19,
+        "unexpected_items": 4,
+        "tests": 20,
+        "normalized_score": 0.8083333333333333
+      },
+      "strict_level1": {
+        "expected_items": 80,
+        "correct_items": 80,
+        "wrong_items": 0,
+        "missing_items": 0,
+        "unexpected_items": 23,
+        "tests": 20,
+        "normalized_score": 0.7125
+      },
+      "abs_level2": {
+        "expected_items": 120,
+        "correct_items": 103,
+        "wrong_items": 0,
+        "missing_items": 17,
+        "unexpected_items": 4,
+        "tests": 20,
+        "normalized_score": 0.825
+      },
+      "abs-ex_level2": {
+        "expected_items": 120,
+        "correct_items": 111,
+        "wrong_items": 0,
+        "missing_items": 9,
+        "unexpected_items": 10,
+        "tests": 20,
+        "normalized_score": 0.8416666666666667
+      },
+      "strict-ex_level2": {
+        "expected_items": 120,
+        "correct_items": 106,
+        "wrong_items": 0,
+        "missing_items": 14,
+        "unexpected_items": 8,
+        "tests": 20,
+        "normalized_score": 0.8166666666666667
+      },
+      "persona-ex_level3": {
+        "expected_items": 160,
+        "correct_items": 145,
+        "wrong_items": 9,
+        "missing_items": 6,
+        "unexpected_items": 0,
+        "tests": 20,
+        "normalized_score": 0.85
+      },
+      "persona_level3": {
+        "expected_items": 160,
+        "correct_items": 148,
+        "wrong_items": 7,
+        "missing_items": 5,
+        "unexpected_items": 0,
+        "tests": 20,
+        "normalized_score": 0.88125
+      },
+      "abs-ex_level1": {
+        "expected_items": 80,
+        "correct_items": 80,
+        "wrong_items": 0,
+        "missing_items": 0,
+        "unexpected_items": 16,
+        "tests": 20,
+        "normalized_score": 0.8
+      },
+      "abs_level1": {
+        "expected_items": 80,
+        "correct_items": 80,
+        "wrong_items": 0,
+        "missing_items": 0,
+        "unexpected_items": 18,
+        "tests": 20,
+        "normalized_score": 0.775
+      },
+      "strict_level2": {
+        "expected_items": 120,
+        "correct_items": 102,
+        "wrong_items": 0,
+        "missing_items": 18,
+        "unexpected_items": 3,
+        "tests": 20,
+        "normalized_score": 0.825
+      },
+      "persona-ex_level1": {
+        "expected_items": 80,
+        "correct_items": 80,
+        "wrong_items": 0,
+        "missing_items": 0,
+        "unexpected_items": 22,
+        "tests": 20,
+        "normalized_score": 0.725
+      },
+      "strict-ex_level3": {
+        "expected_items": 160,
+        "correct_items": 145,
+        "wrong_items": 12,
+        "missing_items": 3,
+        "unexpected_items": 0,
+        "tests": 20,
+        "normalized_score": 0.83125
+      },
+      "strict_level3": {
+        "expected_items": 160,
+        "correct_items": 146,
+        "wrong_items": 11,
+        "missing_items": 3,
+        "unexpected_items": 0,
+        "tests": 20,
+        "normalized_score": 0.84375
+      },
+      "persona_level2": {
+        "expected_items": 120,
+        "correct_items": 105,
+        "wrong_items": 0,
+        "missing_items": 15,
+        "unexpected_items": 6,
+        "tests": 20,
+        "normalized_score": 0.825
+      },
+      "abs-ex_level3": {
+        "expected_items": 160,
+        "correct_items": 140,
+        "wrong_items": 15,
+        "missing_items": 5,
+        "unexpected_items": 0,
+        "tests": 20,
+        "normalized_score": 0.78125
+      },
+      "strict-ex_level1": {
+        "expected_items": 80,
+        "correct_items": 80,
+        "wrong_items": 0,
+        "missing_items": 0,
+        "unexpected_items": 17,
+        "tests": 20,
+        "normalized_score": 0.7875
+      }
+    }
+  },
+  "timestamp": "2025-10-19T21:25:12.202984"
+}

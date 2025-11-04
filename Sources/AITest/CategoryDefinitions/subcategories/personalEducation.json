@@ -1,0 +1,54 @@
+{
+  "id": "personalEducation",
+  "mainCategoryId": "personal",
+  "name": {
+    "ja": "学校・習い事",
+    "en": "学校・習い事"
+  },
+  "description": {
+    "ja": "学校・習い事に関する情報",
+    "en": "Information related to 学校・習い事"
+  },
+  "examples": {
+    "ja": [],
+    "en": []
+  },
+  "mapping": {
+    "ja": [
+      {
+        "name": "title",
+        "required": true,
+        "description": "タイトル・サービス名"
+      },
+      {
+        "name": "note",
+        "required": true,
+        "description": "備考・メモ・追加情報"
+      },
+      {
+        "name": "schoolName",
+        "mappingKey": "note:append",
+        "format": "学校名: %@",
+        "description": "学校名・スクール名"
+      },
+      {
+        "name": "studentID",
+        "mappingKey": "note:append",
+        "format": "学籍番号: %@",
+        "description": "学籍番号・生徒ID"
+      },
+      {
+        "name": "tuitionInfo",
+        "mappingKey": "note:append",
+        "format": "学費情報: %@",
+        "description": "学費・授業料情報"
+      },
+      {
+        "name": "scholarshipInfo",
+        "mappingKey": "note:append",
+        "format": "奨学金情報: %@",
+        "description": "奨学金・支援制度情報"
+      }
+    ]
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "id": "digitalShopping",
+  "mainCategoryId": "digital",
+  "name": {
+    "ja": "EC・ショッピング",
+    "en": "EC・ショッピング"
+  },
+  "description": {
+    "ja": "EC・ショッピングに関する情報",
+    "en": "Information related to EC・ショッピング"
+  },
+  "examples": {
+    "ja": [],
+    "en": []
+  },
+  "mapping": {
+    "ja": [
+      {
+        "name": "title",
+        "required": true,
+        "description": "タイトル・サービス名"
+      },
+      {
+        "name": "userID",
+        "description": "ログインID・ユーザーID"
+      },
+      {
+        "name": "password",
+        "description": "パスワード"
+      },
+      {
+        "name": "url",
+        "description": "サービスURL"
+      },
+      {
+        "name": "note",
+        "required": true,
+        "description": "備考・メモ・追加情報"
+      },
+      {
+        "name": "siteName",
+        "mappingKey": "note:append",
+        "format": "サイト名: %@",
+        "description": "サイト名"
+      },
+      {
+        "name": "membershipLevel",
+        "mappingKey": "note:append",
+        "format": "会員ランク: %@",
+        "description": "会員ランク・レベル"
+      },
+      {
+        "name": "points",
+        "mappingKey": "note:append",
+        "format": "ポイント: %@",
+        "description": "ポイント残高"
+      }
+    ]
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "id": "personalOther",
+  "mainCategoryId": "personal",
+  "name": {
+    "ja": "その他個人",
+    "en": "その他個人"
+  },
+  "description": {
+    "ja": "その他個人に関する情報",
+    "en": "Information related to その他個人"
+  },
+  "examples": {
+    "ja": [],
+    "en": []
+  },
+  "mapping": {
+    "ja": [
+      {
+        "name": "title",
+        "required": true,
+        "description": "タイトル・サービス名"
+      },
+      {
+        "name": "note",
+        "required": true,
+        "description": "備考・メモ・追加情報"
+      }
+    ]
+  }
+}

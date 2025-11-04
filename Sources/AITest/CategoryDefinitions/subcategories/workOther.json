@@ -1,0 +1,38 @@
+{
+  "id": "workOther",
+  "mainCategoryId": "work",
+  "name": {
+    "ja": "その他業務",
+    "en": "その他業務"
+  },
+  "description": {
+    "ja": "その他業務に関する情報",
+    "en": "Information related to その他業務"
+  },
+  "examples": {
+    "ja": [],
+    "en": []
+  },
+  "mapping": {
+    "ja": [
+      {
+        "name": "title",
+        "required": true,
+        "description": "タイトル・サービス名"
+      },
+      {
+        "name": "userID",
+        "description": "ログインID・ユーザーID"
+      },
+      {
+        "name": "password",
+        "description": "パスワード"
+      },
+      {
+        "name": "note",
+        "required": true,
+        "description": "備考・メモ・追加情報"
+      }
+    ]
+  }
+}

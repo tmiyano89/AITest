@@ -115,7 +115,7 @@ public class UnifiedExtractor {
         )
 
         // 推定2: アカウント情報抽出
-        let (accountInfo, step2Time) = try await twoStepsProcessor.extractAccountInfoBySteps(
+        let (accountInfo, step2Time, aiResponse) = try await twoStepsProcessor.extractAccountInfoBySteps(
             testData: testData,
             contentInfo: contentInfo,
             language: language,
@@ -160,8 +160,8 @@ public class UnifiedExtractor {
         let metricsData = try encoder.encode(twoStepsMetrics)
         let metricsJSON = String(data: metricsData, encoding: .utf8) ?? "{}"
 
-        // 2ステップ方式の場合はContentInfoも返す
-        return (accountInfo, baseMetrics, metricsJSON, nil, contentInfo)
+        // 2ステップ方式の場合はContentInfoも返す（requestContentにAIレスポンスを含める）
+        return (accountInfo, baseMetrics, metricsJSON, aiResponse, contentInfo)
     }
 }
 

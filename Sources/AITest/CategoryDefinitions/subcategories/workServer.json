@@ -1,0 +1,66 @@
+{
+  "id": "workServer",
+  "mainCategoryId": "work",
+  "name": {
+    "ja": "サーバー・VPS",
+    "en": "Server・VPS"
+  },
+  "description": {
+    "ja": "サーバー・VPS・クラウドサービスに関する情報",
+    "en": "Information related to servers, VPS, and cloud services"
+  },
+  "examples": {
+    "ja": [],
+    "en": []
+  },
+  "mapping": {
+    "ja": [
+      {
+        "name": "serviceName",
+        "mappingKey": "title",
+        "required": true,
+        "description": "サービス名"
+      },
+      {
+        "name": "loginID",
+        "mappingKey": "userID",
+        "description": "ログイン用のID・ユーザー名"
+      },
+      {
+        "name": "loginPassword",
+        "mappingKey": "password",
+        "description": "ログインパスワード"
+      },
+      {
+        "name": "loginURL",
+        "mappingKey": "url",
+        "description": "ログインURL"
+      },
+      {
+        "name": "accountName",
+        "mappingKey": "number",
+        "description": "アカウントを識別するための番号やエリアス"
+      },
+      {
+        "name": "hostOrIPAddress",
+        "mappingKey": "host",
+        "description": "ホスト名・IPアドレス"
+      },
+      {
+        "name": "portNumber",
+        "mappingKey": "port",
+        "description": "ポート番号"
+      },
+      {
+        "name": "sshAuthKey",
+        "mappingKey": "authKey",
+        "description": "SSH鍵情報"
+      },
+      {
+        "name": "note",
+        "required": true,
+        "description": "備考・メモ・追加情報"
+      }
+    ]
+  }
+}

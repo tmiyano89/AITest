@@ -222,13 +222,30 @@ public class JSONExtractor {
             log.debug("❌ JSON文字列のデータ変換失敗")
             return nil
         }
-        
+
         do {
             let accountInfo = try JSONDecoder().decode(AccountInfo.self, from: data)
             log.debug("✅ JSONデコード成功")
+            log.debug("📊 デコード結果: title=\(accountInfo.title ?? "nil"), userID=\(accountInfo.userID ?? "nil"), password=\(accountInfo.password ?? "nil"), url=\(accountInfo.url ?? "nil"), number=\(accountInfo.number ?? "nil")")
             return accountInfo
+        } catch let DecodingError.keyNotFound(key, context) {
+            log.error("❌ JSONデコードエラー: キー '\(key.stringValue)' が見つかりません")
+            log.error("   コンテキスト: \(context.debugDescription)")
+            log.error("   JSON文字列: \(jsonString)")
+            return nil
+        } catch let DecodingError.typeMismatch(type, context) {
+            log.error("❌ JSONデコードエラー: 型の不一致 (期待: \(type))")
+            log.error("   コンテキスト: \(context.debugDescription)")
+            log.error("   JSON文字列: \(jsonString)")
+            return nil
+        } catch let DecodingError.valueNotFound(type, context) {
+            log.error("❌ JSONデコードエラー: 値が見つかりません (型: \(type))")
+            log.error("   コンテキスト: \(context.debugDescription)")
+            log.error("   JSON文字列: \(jsonString)")
+            return nil
         } catch {
-            log.debug("❌ JSONデコードエラー: \(error)")
+            log.error("❌ JSONデコードエラー: \(error)")
+            log.error("   JSON文字列: \(jsonString)")
             return nil
         }
     }

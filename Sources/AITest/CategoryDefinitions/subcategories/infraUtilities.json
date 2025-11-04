@@ -1,0 +1,48 @@
+{
+  "id": "infraUtilities",
+  "mainCategoryId": "infrastructure",
+  "name": {
+    "ja": "公共料金",
+    "en": "公共料金"
+  },
+  "description": {
+    "ja": "公共料金に関する情報",
+    "en": "Information related to 公共料金"
+  },
+  "examples": {
+    "ja": [],
+    "en": []
+  },
+  "mapping": {
+    "ja": [
+      {
+        "name": "title",
+        "required": true,
+        "description": "タイトル・サービス名"
+      },
+      {
+        "name": "note",
+        "required": true,
+        "description": "備考・メモ・追加情報"
+      },
+      {
+        "name": "utilityType",
+        "mappingKey": "note:append",
+        "format": "公共料金種別: %@",
+        "description": "公共料金種別"
+      },
+      {
+        "name": "customerNumber",
+        "mappingKey": "note:append",
+        "format": "需要家番号: %@",
+        "description": "需要家番号"
+      },
+      {
+        "name": "contractAddress",
+        "mappingKey": "note:append",
+        "format": "契約住所: %@",
+        "description": "契約住所"
+      }
+    ]
+  }
+}

@@ -1,0 +1,328 @@
+{
+  "metrics": {
+    "by_experiment": {
+      "yaml_en_chat": {
+        "method": "yaml_en",
+        "language": "chat",
+        "correct": 13,
+        "wrong": 0,
+        "missing": 0,
+        "unexpected": 5,
+        "pending": 6
+      },
+      "yaml_ja_chat": {
+        "method": "yaml_ja",
+        "language": "chat",
+        "correct": 13,
+        "wrong": 0,
+        "missing": 0,
+        "unexpected": 5,
+        "pending": 6
+      },
+      "generable_ja_chat": {
+        "method": "generable_ja",
+        "language": "chat",
+        "correct": 11,
+        "wrong": 0,
+        "missing": 2,
+        "unexpected": 4,
+        "pending": 6
+      },
+      "json_ja_chat": {
+        "method": "json_ja",
+        "language": "chat",
+        "correct": 7,
+        "wrong": 0,
+        "missing": 0,
+        "unexpected": 5,
+        "pending": 4
+      },
+      "json_en_chat": {
+        "method": "json_en",
+        "language": "chat",
+        "correct": 13,
+        "wrong": 0,
+        "missing": 0,
+        "unexpected": 5,
+        "pending": 6
+      },
+      "generable_en_chat": {
+        "method": "generable_en",
+        "language": "chat",
+        "correct": 11,
+        "wrong": 0,
+        "missing": 4,
+        "unexpected": 2,
+        "pending": 4
+      },
+      "test_202510030614": {
+        "method": "test",
+        "language": "202510030614",
+        "correct": 68,
+        "wrong": 0,
+        "missing": 14,
+        "unexpected": 26,
+        "pending": 32
+      }
+    },
+    "by_pattern": {
+      "chat": {
+        "correct": 136,
+        "wrong": 0,
+        "missing": 20,
+        "unexpected": 52,
+        "pending": 64
+      }
+    },
+    "by_field": {
+      "title": {
+        "correct": 0,
+        "wrong": 0,
+        "missing": 3,
+        "unexpected": 0,
+        "pending": 32
+      },
+      "userID": {
+        "correct": 34,
+        "wrong": 0,
+        "missing": 1,
+        "unexpected": 0,
+        "pending": 0
+      },
+      "password": {
+        "correct": 34,
+        "wrong": 0,
+        "missing": 1,
+        "unexpected": 0,
+        "pending": 0
+      },
+      "note": {
+        "correct": 0,
+        "wrong": 0,
+        "missing": 3,
+        "unexpected": 0,
+        "pending": 32
+      },
+      "url": {
+        "correct": 22,
+        "wrong": 0,
+        "missing": 1,
+        "unexpected": 8,
+        "pending": 0
+      },
+      "host": {
+        "correct": 18,
+        "wrong": 0,
+        "missing": 5,
+        "unexpected": 10,
+        "pending": 0
+      },
+      "port": {
+        "correct": 18,
+        "wrong": 0,
+        "missing": 5,
+        "unexpected": 10,
+        "pending": 0
+      },
+      "authKey": {
+        "correct": 10,
+        "wrong": 0,
+        "missing": 1,
+        "unexpected": 24,
+        "pending": 0
+      }
+    },
+    "by_level": {
+      "1": {
+        "correct": 24,
+        "wrong": 0,
+        "missing": 0,
+        "unexpected": 40,
+        "pending": 24
+      },
+      "2": {
+        "correct": 52,
+        "wrong": 0,
+        "missing": 8,
+        "unexpected": 12,
+        "pending": 24
+      },
+      "3": {
+        "correct": 60,
+        "wrong": 0,
+        "missing": 12,
+        "unexpected": 0,
+        "pending": 16
+      }
+    },
+    "overall": {
+      "correct": 136,
+      "wrong": 0,
+      "missing": 20,
+      "unexpected": 52,
+      "pending": 64
+    }
+  },
+  "rates": {
+    "overall": {
+      "correct_rate": 0.5,
+      "wrong_rate": 0.0,
+      "missing_rate": 0.07352941176470588,
+      "unexpected_rate": 0.19117647058823528,
+      "pending_rate": 0.23529411764705882,
+      "precision": 0.723404255319149,
+      "recall": 0.8717948717948718
+    },
+    "by_experiment": {
+      "yaml_en_chat": {
+        "correct_rate": 0.5416666666666666,
+        "wrong_rate": 0.0,
+        "missing_rate": 0.0,
+        "unexpected_rate": 0.20833333333333334,
+        "pending_rate": 0.25,
+        "precision": 0.7222222222222222,
+        "recall": 1.0
+      },
+      "yaml_ja_chat": {
+        "correct_rate": 0.5416666666666666,
+        "wrong_rate": 0.0,
+        "missing_rate": 0.0,
+        "unexpected_rate": 0.20833333333333334,
+        "pending_rate": 0.25,
+        "precision": 0.7222222222222222,
+        "recall": 1.0
+      },
+      "generable_ja_chat": {
+        "correct_rate": 0.4782608695652174,
+        "wrong_rate": 0.0,
+        "missing_rate": 0.08695652173913043,
+        "unexpected_rate": 0.17391304347826086,
+        "pending_rate": 0.2608695652173913,
+        "precision": 0.7333333333333333,
+        "recall": 0.8461538461538461
+      },
+      "json_ja_chat": {
+        "correct_rate": 0.4375,
+        "wrong_rate": 0.0,
+        "missing_rate": 0.0,
+        "unexpected_rate": 0.3125,
+        "pending_rate": 0.25,
+        "precision": 0.5833333333333334,
+        "recall": 1.0
+      },
+      "json_en_chat": {
+        "correct_rate": 0.5416666666666666,
+        "wrong_rate": 0.0,
+        "missing_rate": 0.0,
+        "unexpected_rate": 0.20833333333333334,
+        "pending_rate": 0.25,
+        "precision": 0.7222222222222222,
+        "recall": 1.0
+      },
+      "generable_en_chat": {
+        "correct_rate": 0.5238095238095238,
+        "wrong_rate": 0.0,
+        "missing_rate": 0.19047619047619047,
+        "unexpected_rate": 0.09523809523809523,
+        "pending_rate": 0.19047619047619047,
+        "precision": 0.8461538461538461,
+        "recall": 0.7333333333333333
+      },
+      "test_202510030614": {
+        "correct_rate": 0.4857142857142857,
+        "wrong_rate": 0.0,
+        "missing_rate": 0.1,
+        "unexpected_rate": 0.18571428571428572,
+        "pending_rate": 0.22857142857142856,
+        "precision": 0.723404255319149,
+        "recall": 0.8292682926829268
+      }
+    },
+    "by_pattern": {
+      "chat": {
+        "correct_rate": 0.5,
+        "wrong_rate": 0.0,
+        "missing_rate": 0.07352941176470588,
+        "unexpected_rate": 0.19117647058823528,
+        "pending_rate": 0.23529411764705882,
+        "precision": 0.723404255319149,
+        "recall": 0.8717948717948718
+      }
+    },
+    "by_field": {
+      "title": {
+        "correct_rate": 0.0,
+        "wrong_rate": 0.0,
+        "missing_rate": 0.08571428571428572,
+        "unexpected_rate": 0.0,
+        "pending_rate": 0.9142857142857143,
+        "precision": 0,
+        "recall": 0.0
+      },
+      "userID": {
+        "correct_rate": 0.9714285714285714,
+        "wrong_rate": 0.0,
+        "missing_rate": 0.02857142857142857,
+        "unexpected_rate": 0.0,
+        "pending_rate": 0.0,
+        "precision": 1.0,
+        "recall": 0.9714285714285714
+      },
+      "password": {
+        "correct_rate": 0.9714285714285714,
+        "wrong_rate": 0.0,
+        "missing_rate": 0.02857142857142857,
+        "unexpected_rate": 0.0,
+        "pending_rate": 0.0,
+        "precision": 1.0,
+        "recall": 0.9714285714285714
+      },
+      "note": {
+        "correct_rate": 0.0,
+        "wrong_rate": 0.0,
+        "missing_rate": 0.08571428571428572,
+        "unexpected_rate": 0.0,
+        "pending_rate": 0.9142857142857143,
+        "precision": 0,
+        "recall": 0.0
+      },
+      "url": {
+        "correct_rate": 0.7096774193548387,
+        "wrong_rate": 0.0,
+        "missing_rate": 0.03225806451612903,
+        "unexpected_rate": 0.25806451612903225,
+        "pending_rate": 0.0,
+        "precision": 0.7333333333333333,
+        "recall": 0.9565217391304348
+      },
+      "host": {
+        "correct_rate": 0.5454545454545454,
+        "wrong_rate": 0.0,
+        "missing_rate": 0.15151515151515152,
+        "unexpected_rate": 0.30303030303030304,
+        "pending_rate": 0.0,
+        "precision": 0.6428571428571429,
+        "recall": 0.782608695652174
+      },
+      "port": {
+        "correct_rate": 0.5454545454545454,
+        "wrong_rate": 0.0,
+        "missing_rate": 0.15151515151515152,
+        "unexpected_rate": 0.30303030303030304,
+        "pending_rate": 0.0,
+        "precision": 0.6428571428571429,
+        "recall": 0.782608695652174
+      },
+      "authKey": {
+        "correct_rate": 0.2857142857142857,
+        "wrong_rate": 0.0,
+        "missing_rate": 0.02857142857142857,
+        "unexpected_rate": 0.6857142857142857,
+        "pending_rate": 0.0,
+        "precision": 0.29411764705882354,
+        "recall": 0.9090909090909091
+      }
+    }
+  },
+  "timestamp": "2025-10-03T06:15:50.710252"
+}

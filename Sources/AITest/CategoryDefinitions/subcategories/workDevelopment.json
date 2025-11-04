@@ -1,0 +1,51 @@
+{
+  "id": "workDevelopment",
+  "mainCategoryId": "work",
+  "name": {
+    "ja": "開発ツール",
+    "en": "開発ツール"
+  },
+  "description": {
+    "ja": "開発ツールに関する情報",
+    "en": "Information related to 開発ツール"
+  },
+  "examples": {
+    "ja": [],
+    "en": []
+  },
+  "mapping": {
+    "ja": [
+      {
+        "name": "title",
+        "required": true,
+        "description": "タイトル・サービス名"
+      },
+      {
+        "name": "username",
+        "mappingKey": "userID",
+        "description": "ユーザー名"
+      },
+      {
+        "name": "apiKey",
+        "mappingKey": "password",
+        "description": "APIキー"
+      },
+      {
+        "name": "repositoryURL",
+        "mappingKey": "url",
+        "description": "リポジトリURL"
+      },
+      {
+        "name": "note",
+        "required": true,
+        "description": "備考・メモ・追加情報"
+      },
+      {
+        "name": "accessToken",
+        "mappingKey": "note:append",
+        "format": "アクセストークン: %@",
+        "description": "アクセストークン・パーソナルアクセストークン"
+      }
+    ]
+  }
+}

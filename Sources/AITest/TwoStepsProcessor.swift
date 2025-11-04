@@ -239,6 +239,7 @@ class TwoStepsProcessor {
     /// @ai[2025-10-21 13:40] 推定2フローの実装
     /// @ai[2025-10-21 16:30] サブカテゴリベースのアプローチに変更
     /// @ai[2025-10-21 18:30] extractAndConvertメソッドを使用するように更新
+    /// @ai[2025-10-27 18:30] AIレスポンスを戻り値に追加
     /// 目的: サブカテゴリに特化した構造体で情報を抽出し、AccountInfoに変換
     /// 背景: hasXXXフラグベースから、サブカテゴリ専用構造体ベースへ
     /// 意図: より精密で実用的な情報抽出を実現
@@ -248,7 +249,7 @@ class TwoStepsProcessor {
         contentInfo: ContentInfo,
         language: PromptLanguage,
         method: ExtractionMethod
-    ) async throws -> (AccountInfo, TimeInterval) {
+    ) async throws -> (AccountInfo, TimeInterval, String) {
         log.info("📊 推定2開始: サブカテゴリベースのアカウント情報抽出")
         let startTime = CFAbsoluteTimeGetCurrent()
 
@@ -260,7 +261,7 @@ class TwoStepsProcessor {
         log.info("🔍 サブカテゴリ: \(subCategory.rawValue)")
 
         // サブカテゴリに応じた専用構造体で抽出し、AccountInfoに変換（統合処理）
-        let accountInfo = try await extractAndConvertBySubCategory(
+        let (accountInfo, aiResponse) = try await extractAndConvertBySubCategory(
             subCategory: subCategory,
             testData: testData,
             language: language,
@@ -270,7 +271,7 @@ class TwoStepsProcessor {
         let step2Time = CFAbsoluteTimeGetCurrent() - startTime
         log.info("📊 推定2完了 - 処理時間: \(String(format: "%.3f", step2Time))秒, title: \(accountInfo.title ?? "nil")")
 
-        return (accountInfo, step2Time)
+        return (accountInfo, step2Time, aiResponse)
     }
 
     /// サブカテゴリに応じた抽出と変換（統合処理）
@@ -278,6 +279,7 @@ class TwoStepsProcessor {
     /// @ai[2025-10-21 17:00] 実際の抽出メソッド呼び出しに更新
     /// @ai[2025-10-21 18:30] extractAndConvertメソッドを使用するように更新
     /// @ai[2025-10-23 19:30] JSON対応追加
+    /// @ai[2025-10-27 18:30] AIレスポンスを戻り値に追加
     /// 目的: 25種類のサブカテゴリに対応した抽出とAccountInfo変換を一度に実行
     /// 背景: @Generableマクロを活用した型安全な抽出 + SubCategoryConverterによる変換
     /// 意図: サブカテゴリごとに最適化された構造体で情報を抽出し、直接AccountInfoを取得（generable/json両方対応）
@@ -287,14 +289,15 @@ class TwoStepsProcessor {
         testData: String,
         language: PromptLanguage,
         method: ExtractionMethod
-    ) async throws -> AccountInfo {
+    ) async throws -> (AccountInfo, String) {
         switch method {
         case .generable:
-            return try await extractAndConvertBySubCategoryGenerable(
+            let accountInfo = try await extractAndConvertBySubCategoryGenerable(
                 subCategory: subCategory,
                 testData: testData,
                 language: language
             )
+            return (accountInfo, "Generable method (no raw response)")
         case .json:
             return try await extractAndConvertBySubCategoryJSON(
                 subCategory: subCategory,
@@ -396,18 +399,23 @@ class TwoStepsProcessor {
 
     /// サブカテゴリ抽出（JSON方式）
     /// @ai[2025-10-23 19:30] JSON方式のサブカテゴリ抽出
+    /// @ai[2025-10-27 14:30] デバッグログ追加
+    /// @ai[2025-10-27 18:30] AIレスポンスを戻り値に追加
     @MainActor
     private func extractAndConvertBySubCategoryJSON(
         subCategory: SubCategory,
         testData: String,
         language: PromptLanguage
-    ) async throws -> AccountInfo {
+    ) async throws -> (AccountInfo, String) {
         // CategoryDefinitionLoaderからプロンプトを取得
         let prompt = try categoryLoader.generateExtractionPrompt(
             testData: testData,
             subCategoryId: subCategory.rawValue,
             language: language
         )
+
+        log.info("📝 Step 2 プロンプト生成完了")
+        log.debug("🔍 プロンプト先頭500文字: \(String(prompt.prefix(500)))")
 
         // ModelExtractorで推論実行（JSON形式）
         let extractionResult = try await modelExtractor.extract(
@@ -418,25 +426,31 @@ class TwoStepsProcessor {
 
         // JSONレスポンスをパース
         let rawResponse = extractionResult.rawResponse
-        let (accountInfoFromJSON, _) = jsonExtractor.extractFromJSONText(rawResponse)
+        log.info("🤖 AI生レスポンス受信 (長さ: \(rawResponse.count)文字)")
+        log.debug("📄 AIレスポンス全文:\n\(rawResponse)")
 
-        guard let accountInfo = accountInfoFromJSON else {
-            log.error("❌ AccountInfoのJSON解析に失敗")
+        // マークダウンコードブロックからJSONを抽出
+        let jsonString = extractJSONFromMarkdown(rawResponse)
+        log.debug("📝 抽出されたJSON文字列: \(jsonString)")
+
+        // JSONを辞書に直接パース（AccountInfo構造体にデコードせず）
+        guard let jsonData = jsonString.data(using: .utf8),
+              let json = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any] else {
+            log.error("❌ JSON解析に失敗")
+            log.error("📄 失敗時のレスポンス:\n\(rawResponse)")
             throw ExtractionError.invalidJSONFormat(aiResponse: rawResponse)
         }
 
+        log.info("🔍 JSON解析成功 - フィールド数: \(json.count)")
+        log.info("🔄 マッピング前のJSON: \(json)")
+
         // マッピングルールを適用してAccountInfoを再構築
         let converter = SubCategoryConverter()
-
-        // JSON形式のデータを辞書に変換
-        let encoder = JSONEncoder()
-        let jsonData = try encoder.encode(accountInfo)
-        let json = try JSONSerialization.jsonObject(with: jsonData) as? [String: Any] ?? [:]
-
-        // マッピングルールを適用
         let mappedAccountInfo = converter.convert(from: json, subCategory: subCategory)
 
-        return mappedAccountInfo
+        log.info("✅ マッピング完了: title=\(mappedAccountInfo.title ?? "nil"), userID=\(mappedAccountInfo.userID ?? "nil"), password=\(mappedAccountInfo.password ?? "nil")")
+
+        return (mappedAccountInfo, rawResponse)
     }
 
     /// シンプルなプロンプトを生成

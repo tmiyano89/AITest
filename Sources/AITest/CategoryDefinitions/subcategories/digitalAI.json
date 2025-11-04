@@ -1,0 +1,69 @@
+{
+  "id": "digitalAI",
+  "mainCategoryId": "digital",
+  "name": {
+    "ja": "AIサービス",
+    "en": "AIサービス"
+  },
+  "description": {
+    "ja": "AIサービスに関する情報",
+    "en": "Information related to AIサービス"
+  },
+  "examples": {
+    "ja": [],
+    "en": []
+  },
+  "mapping": {
+    "ja": [
+      {
+        "name": "title",
+        "required": true,
+        "description": "タイトル・サービス名(必須)"
+      },
+      {
+        "name": "note",
+        "required": true,
+        "description": "備考・メモ・追加情報"
+      },
+      {
+        "name": "serviceName",
+        "description": "サービス名",
+        "mappingKey": "note:append",
+        "format": "サービス名: %@"
+      },
+      {
+        "name": "apiKey",
+        "description": "APIキー",
+        "mappingKey": "note:append",
+        "format": "APIキー: %@"
+      },
+      {
+        "name": "apiEndpoint",
+        "description": "APIエンドポイント",
+        "mappingKey": "note:append",
+        "format": "APIエンドポイント: %@"
+      },
+      {
+        "name": "planName",
+        "description": "プラン名",
+        "mappingKey": "note:append",
+        "format": "プラン名: %@"
+      },
+      {
+        "name": "monthlyFee",
+        "description": "月額料金",
+        "type": "integer",
+        "mappingKey": "note:append",
+        "format": "月額料金: %@"
+      },
+      {
+        "name": "userID",
+        "description": "ログインID・ユーザーID"
+      },
+      {
+        "name": "password",
+        "description": "パスワード"
+      }
+    ]
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "id": "financialCreditCard",
+  "mainCategoryId": "financial",
+  "name": {
+    "ja": "クレジットカード",
+    "en": "クレジットカード"
+  },
+  "description": {
+    "ja": "クレジットカードに関する情報",
+    "en": "Information related to クレジットカード"
+  },
+  "examples": {
+    "ja": [],
+    "en": []
+  },
+  "mapping": {
+    "ja": [
+      {
+        "name": "title",
+        "required": true,
+        "description": "タイトル・サービス名"
+      },
+      {
+        "name": "note",
+        "required": true,
+        "description": "備考・メモ・追加情報"
+      },
+      {
+        "name": "cardNumber",
+        "mappingKey": "note:append",
+        "format": "カード番号: %@",
+        "description": "カード番号"
+      },
+      {
+        "name": "cardholderName",
+        "mappingKey": "note:append",
+        "format": "名義人: %@",
+        "description": "カード名義人"
+      },
+      {
+        "name": "expiryDate",
+        "mappingKey": "note:append",
+        "format": "有効期限: %@",
+        "description": "有効期限"
+      },
+      {
+        "name": "cvv",
+        "mappingKey": "note:append",
+        "format": "セキュリティコード: %@",
+        "description": "セキュリティコード・CVV"
+      },
+      {
+        "name": "cardCompany",
+        "mappingKey": "note:append",
+        "format": "カード会社: %@",
+        "description": "カード会社名"
+      },
+      {
+        "name": "cardType",
+        "mappingKey": "note:append",
+        "format": "カード種別: %@",
+        "description": "カード種別"
+      }
+    ]
+  }
+}

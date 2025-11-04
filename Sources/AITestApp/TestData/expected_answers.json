@@ -1,0 +1,165 @@
+{
+  "Chat": {
+    "Level1_Basic": {
+      "title": "{要AI検証}",
+      "userID": "admin",
+      "password": "SecurePass18329",
+      "url": "",
+      "note": "{要AI検証}",
+      "host": "",
+      "port": "",
+      "number": "",
+      "authKey": ""
+    },
+    "Level2_General": {
+      "title": "{要AI検証}",
+      "userID": "hayashi.syouhei",
+      "password": "{要AI検証}",
+      "url": "https://123456789012.signin.aws.amazon.com/console",
+      "note": "{要AI検証}",
+      "host": "",
+      "port": "",
+      "number": "123456789012",
+      "authKey": ""
+    },
+    "Level3_Complex": {
+      "title": "{要AI検証}",
+      "userID": "devuser",
+      "password": "SuperSecure2024#",
+      "url": "https://console.indigo.com/vps/",
+      "note": "{要AI検証}",
+      "host": "197.78.64.33",
+      "port": "22",
+      "number": "",
+      "authKey": "-----BEGIN OPENSSH PRIVATE KEY-----\nb3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW\nQyNTUxOQAAACBeDVZ/4nTYNriXFlJwOUmxrCkYsIk6HQL42Px7ks+kWAAAAKAvzcWbL83F\nmwAAAAtzc2gtZWQyNTUxOQAAACBeDVZ/4nTYNriXFlJwOUmxrCkYsIk6HQL42Px7ks+kWA\nAAAEDt8x87SFZuqjPdP04h48YVOEXX0+Rd84DFqFj814rTFl4NVn/idNg2uJcWUnA5SbGs\nKRiwiTodAvjY/HuSz6RYAAAAFnJhbmRkdXNlckBzbHN2MjVncHUtMDIBAgMEBQYH\n-----END OPENSSH PRIVATE KEY-----"
+    }
+  },
+  "Contract": {
+    "Level1_Basic": {
+      "title": "{要AI検証}",
+      "userID": "employee_2024",
+      "password": "CorpAccess#789",
+      "url": "",
+      "note": "{要AI検証}",
+      "host": "",
+      "port": "",
+      "authKey": ""
+    },
+    "Level2_General": {
+      "title": "{要AI検証}",
+      "userID": "manager@company.co.jp",
+      "password": "SecureLogin2024!",
+      "url": "https://system.company.com/login",
+      "note": "{要AI検証}",
+      "host": "system.company.com",
+      "port": "443",
+      "authKey": ""
+    },
+    "Level3_Complex": {
+      "title": "{要AI検証}",
+      "userID": "user001",
+      "password": "CompanyPass2024!@#",
+      "url": "https://system.company.com/login",
+      "note": "{要AI検証}",
+      "host": "192.168.1.100",
+      "port": "443",
+      "authKey": ""
+    }
+  },
+  "CreditCard": {
+    "Level1_Basic": { 
+      "title": "{要AI検証}",
+      "userID": "YAMADA TAROSUKE",
+      "password": "",
+      "url": "",
+      "note": "{要AI検証}",
+      "host": "",
+      "port": "",
+      "authKey": ""
+    },
+    "Level2_General": {
+      "title": "{要AI検証}",
+      "userID": "SAKAI MASASHI",
+      "password": "",
+      "url": "",
+      "note": "{要AI検証}",
+      "host": "",
+      "port": "",
+      "authKey": ""
+    },
+    "Level3_Complex": {
+      "title": "{要AI検証}",
+      "userID": "KEISUKE INOUE",
+      "password": "",
+      "url": "",
+      "note": "",
+      "host": "",
+      "port": "",
+      "authKey": ""
+    }
+  },
+  "VoiceRecognition": {
+    "Level1_Basic": {
+      "title": "{要AI検証}",
+      "userID": "admin",
+      "password": "SecurePass18329",
+      "url": "",
+      "note": "{要AI検証}",
+      "host": "",
+      "port": "",
+      "authKey": ""
+    },
+    "Level2_General": {
+      "title": "{要AI検証}",
+      "userID": "devops@company.com",
+      "password": "MySecret2024!",
+      "url": "https://console.aws.amazon.com/ec2/",
+      "note": "{要AI検証}",
+      "host": "aws-instance-12345678",
+      "port": "22",
+      "authKey": ""
+    },
+    "Level3_Complex": {
+      "title": "{要AI検証}",
+      "userID": "root",
+      "password": "SuperSecure2024#",
+      "url": "https://console.aws.amazon.com/ec2/",
+      "note": "{要AI検証}",
+      "host": "ec2-54-123-45-67.compute-1.amazonaws.com",
+      "port": "22",
+      "authKey": "BEGIN OPENSSH PRIVATE KEY\nb3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABFwAAAAdzc2gtcnNhAAAAAwEAAQAAAQEA1234567890abcdef\nEND OPENSSH PRIVATE KEY"
+    }
+  },
+  "PasswordManager": {
+    "Level1_Basic": {
+      "title": "{要AI検証}",
+      "userID": "john.doe",
+      "password": "GitHubPass2024!",
+      "url": "https://github.com",
+      "note": "{要AI検証}",
+      "host": "",
+      "port": "",
+      "authKey": ""
+    },
+    "Level2_General": {
+      "title": "{要AI検証}",
+      "userID": "admin@company.com",
+      "password": "AWSPass2024!",
+      "url": "https://console.aws.amazon.com",
+      "note": "{要AI検証}",
+      "host": "",
+      "port": "",
+      "authKey": ""
+    },
+    "Level3_Complex": {
+      "title": "{要AI検証}",
+      "userID": "dbadmin",
+      "password": "DBPass2024!",
+      "url": "https://db.company.com",
+      "note": "{要AI検証}",
+      "host": "db.company.com",
+      "port": "5432",
+      "authKey": ""
+    }
+  }
+}

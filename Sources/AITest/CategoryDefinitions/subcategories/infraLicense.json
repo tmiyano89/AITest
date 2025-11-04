@@ -1,0 +1,54 @@
+{
+  "id": "infraLicense",
+  "mainCategoryId": "infrastructure",
+  "name": {
+    "ja": "免許・資格",
+    "en": "免許・資格"
+  },
+  "description": {
+    "ja": "免許・資格に関する情報",
+    "en": "Information related to 免許・資格"
+  },
+  "examples": {
+    "ja": [],
+    "en": []
+  },
+  "mapping": {
+    "ja": [
+      {
+        "name": "title",
+        "required": true,
+        "description": "タイトル・サービス名"
+      },
+      {
+        "name": "note",
+        "required": true,
+        "description": "備考・メモ・追加情報"
+      },
+      {
+        "name": "licenseType",
+        "mappingKey": "note:append",
+        "format": "免許・資格種別: %@",
+        "description": "免許・資格種別"
+      },
+      {
+        "name": "licenseNumber",
+        "mappingKey": "note:append",
+        "format": "免許・資格番号: %@",
+        "description": "免許・資格番号"
+      },
+      {
+        "name": "issueDate",
+        "mappingKey": "note:append",
+        "format": "発行日: %@",
+        "description": "発行日"
+      },
+      {
+        "name": "issuingAuthority",
+        "mappingKey": "note:append",
+        "format": "発行機関: %@",
+        "description": "発行機関"
+      }
+    ]
+  }
+}

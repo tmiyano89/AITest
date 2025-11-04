@@ -1,0 +1,56 @@
+{
+  "id": "digitalApps",
+  "mainCategoryId": "digital",
+  "name": {
+    "ja": "アプリ・ゲーム",
+    "en": "アプリ・ゲーム"
+  },
+  "description": {
+    "ja": "アプリ・ゲームに関する情報",
+    "en": "Information related to アプリ・ゲーム"
+  },
+  "examples": {
+    "ja": [],
+    "en": []
+  },
+  "mapping": {
+    "ja": [
+      {
+        "name": "title",
+        "required": true,
+        "description": "タイトル・サービス名"
+      },
+      {
+        "name": "userID",
+        "description": "ログインID・ユーザーID"
+      },
+      {
+        "name": "password",
+        "description": "パスワード"
+      },
+      {
+        "name": "note",
+        "required": true,
+        "description": "備考・メモ・追加情報"
+      },
+      {
+        "name": "appName",
+        "mappingKey": "note:append",
+        "format": "アプリ名: %@",
+        "description": "アプリ名・ゲーム名"
+      },
+      {
+        "name": "subscriptionType",
+        "mappingKey": "note:append",
+        "format": "サブスクリプション種別: %@",
+        "description": "サブスクリプション種別"
+      },
+      {
+        "name": "deviceInfo",
+        "mappingKey": "note:append",
+        "format": "デバイス情報: %@",
+        "description": "デバイス情報"
+      }
+    ]
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "id": "personalContacts",
+  "mainCategoryId": "personal",
+  "name": {
+    "ja": "連絡先・知人",
+    "en": "連絡先・知人"
+  },
+  "description": {
+    "ja": "連絡先・知人に関する情報",
+    "en": "Information related to 連絡先・知人"
+  },
+  "examples": {
+    "ja": [],
+    "en": []
+  },
+  "mapping": {
+    "ja": [
+      {
+        "name": "title",
+        "required": true,
+        "description": "タイトル・サービス名"
+      },
+      {
+        "name": "note",
+        "required": true,
+        "description": "備考・メモ・追加情報"
+      },
+      {
+        "name": "name",
+        "mappingKey": "note:append",
+        "format": "氏名: %@",
+        "description": "氏名"
+      },
+      {
+        "name": "phoneNumber",
+        "mappingKey": "note:append",
+        "format": "電話番号: %@",
+        "description": "電話番号"
+      },
+      {
+        "name": "email",
+        "mappingKey": "note:append",
+        "format": "メールアドレス: %@",
+        "description": "メールアドレス"
+      },
+      {
+        "name": "relationship",
+        "mappingKey": "note:append",
+        "format": "続柄: %@",
+        "description": "続柄・関係性"
+      },
+      {
+        "name": "note",
+        "mappingKey": "note:append",
+        "format": "説明: %@",
+        "description": "備考・メモ・追加情報"
+      }
+    ]
+  }
+}

@@ -42,16 +42,21 @@ public struct SubCategoryDefinition: Codable, Sendable {
     public let name: CategoryDefinition.LocalizedString
     public let description: CategoryDefinition.LocalizedString
     public let examples: CategoryDefinition.LocalizedStringArray
-    public let prompts: ExtractionPrompts
     public let mapping: MappingDefinition
 
-    public struct ExtractionPrompts: Codable, Sendable {
-        public let extraction: CategoryDefinition.LocalizedString
+    public struct MappingDefinition: Codable, Sendable {
+        // Array-based mapping definition (localized)
+        public let ja: [MappingField]?
+        public let en: [MappingField]?
     }
 
-    public struct MappingDefinition: Codable, Sendable {
-        public let directMapping: [String: String]
-        public let noteAppendMapping: [String: String]?
+    public struct MappingField: Codable, Sendable {
+        public let name: String
+        public let description: String?
+        public let required: Bool?
+        public let mappingKey: String?
+        public let format: String?
+        public let type: String? // "string" (default) or "integer"
     }
 }
 
@@ -274,14 +279,89 @@ public class CategoryDefinitionLoader {
     ) throws -> String {
         let definition = try loadSubCategoryDefinition(subCategoryId: subCategoryId)
 
-        // プロンプトテンプレートを取得
-        let template = language == .japanese
-            ? definition.prompts.extraction.ja
-            : definition.prompts.extraction.en
+        // If new mapping array exists, build from template dynamically
+        let fields: [SubCategoryDefinition.MappingField]? = {
+            switch language {
+            case .japanese:
+                return definition.mapping.ja
+            case .english:
+                return definition.mapping.en ?? definition.mapping.ja
+            }
+        }()
 
-        // プレースホルダーを置換
-        let prompt = template.replacingOccurrences(of: "{TEXT}", with: testData)
+        if let fields, !fields.isEmpty {
+            // Build JSON schema lines according to mapping fields order
+            let schemaLines: [String] = fields.map { field in
+                let type = (field.type?.lowercased() == "integer") ? "integer" : "string"
+                let isRequired = (field.required ?? false)
+                if isRequired {
+                    return "  \"\(field.name)\": \(type),"
+                } else {
+                    return "  \"\(field.name)\": \(type) | null,"
+                }
+            }
 
-        return prompt
+            // Remove trailing comma on last line for a pretty schema
+            var prettySchema = schemaLines
+            if var last = prettySchema.popLast() {
+                if last.hasSuffix(",") { last.removeLast() }
+                prettySchema.append(last)
+            }
+            let schemaText = "{\n" + prettySchema.joined(separator: "\n") + "\n}"
+
+            // Build template text
+            let subcategoryTitle: String = (language == .japanese) ? definition.name.ja : definition.name.en
+
+            let templateJA = """
+            あなたはプライベート情報管理のアシスタントです。
+
+            添付したドキュメントから\(subcategoryTitle)に関する情報を抽出してください。
+
+            出力は次のスキーマ構造に厳密に一致させ、**純粋なJSONオブジェクトのみ**を出力してください。
+
+            \(schemaText)
+
+            制約条件：
+            1. `title` と `note` には必ず有効な文字列を記入してください。
+            2. 他の項目は、ドキュメントに記載がなければ **null** を入れてください。
+            3. 各キーの順序は上記と同じにしてください。
+            4. 出力は **1個の純粋なJSONオブジェクト** のみ。改行や説明を付け加えないでください。
+            5. JSON構文（括弧、カンマ、クォート）の整合性を守り、**正確な構造体としてパース可能**な状態で返してください。
+
+            === 添付ドキュメントの内容 ===
+
+            {TEXT}
+
+            -------------------
+            """
+
+            let templateEN = """
+            You are an assistant for private information management.
+
+            Extract information about \(subcategoryTitle) from the attached document.
+
+            Output must strictly match the following schema and return a **pure JSON object only**.
+
+            \(schemaText)
+
+            Constraints:
+            1. Provide valid strings for `title` and `note`.
+            2. For other fields, put **null** if not present in the document.
+            3. Keep the keys in the exact same order as above.
+            4. Return **exactly one pure JSON object**. Do not add line breaks or explanations.
+            5. Ensure valid JSON syntax (braces, commas, quotes) so it is precisely parseable.
+
+            === Attached Document ===
+
+            {TEXT}
+
+            -------------------
+            """
+
+            let template = (language == .japanese) ? templateJA : templateEN
+            return template.replacingOccurrences(of: "{TEXT}", with: testData)
+        }
+
+        fatalError("❌ mapping配列が見つからないか空です: subCategoryId=\(subCategoryId)")
     }
 }

@@ -1,0 +1,54 @@
+{
+  "id": "workSaaS",
+  "mainCategoryId": "work",
+  "name": {
+    "ja": "業務SaaS",
+    "en": "業務SaaS"
+  },
+  "description": {
+    "ja": "業務SaaSに関する情報",
+    "en": "Information related to 業務SaaS"
+  },
+  "examples": {
+    "ja": [],
+    "en": []
+  },
+  "mapping": {
+    "ja": [
+      {
+        "name": "title",
+        "required": true,
+        "description": "タイトル・サービス名"
+      },
+      {
+        "name": "userID",
+        "description": "ログインID・ユーザーID"
+      },
+      {
+        "name": "password",
+        "description": "パスワード"
+      },
+      {
+        "name": "url",
+        "description": "サービスURL"
+      },
+      {
+        "name": "note",
+        "required": true,
+        "description": "備考・メモ・追加情報"
+      },
+      {
+        "name": "teamInfo",
+        "mappingKey": "note:append",
+        "format": "チーム情報: %@",
+        "description": "チーム情報・ワークスペース名"
+      },
+      {
+        "name": "apiKey",
+        "mappingKey": "note:append",
+        "format": "APIキー: %@",
+        "description": "APIキー"
+      }
+    ]
+  }
+}

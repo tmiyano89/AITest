@@ -1,0 +1,54 @@
+{
+  "id": "financialBanking",
+  "mainCategoryId": "financial",
+  "name": {
+    "ja": "銀行・証券",
+    "en": "銀行・証券"
+  },
+  "description": {
+    "ja": "銀行・証券に関する情報",
+    "en": "Information related to 銀行・証券"
+  },
+  "examples": {
+    "ja": [],
+    "en": []
+  },
+  "mapping": {
+    "ja": [
+      {
+        "name": "title",
+        "required": true,
+        "description": "タイトル・サービス名"
+      },
+      {
+        "name": "note",
+        "required": true,
+        "description": "備考・メモ・追加情報"
+      },
+      {
+        "name": "bankName",
+        "mappingKey": "note:append",
+        "format": "銀行名: %@",
+        "description": "銀行名・証券会社名"
+      },
+      {
+        "name": "branchName",
+        "mappingKey": "note:append",
+        "format": "支店名: %@",
+        "description": "支店名"
+      },
+      {
+        "name": "accountNumber",
+        "mappingKey": "note:append",
+        "format": "口座番号: %@",
+        "description": "口座番号"
+      },
+      {
+        "name": "accountType",
+        "mappingKey": "note:append",
+        "format": "口座種別: %@",
+        "description": "口座種別"
+      }
+    ]
+  }
+}

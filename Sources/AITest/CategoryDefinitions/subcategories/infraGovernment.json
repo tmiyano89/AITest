@@ -1,0 +1,54 @@
+{
+  "id": "infraGovernment",
+  "mainCategoryId": "infrastructure",
+  "name": {
+    "ja": "行政サービス",
+    "en": "行政サービス"
+  },
+  "description": {
+    "ja": "行政サービスに関する情報",
+    "en": "Information related to 行政サービス"
+  },
+  "examples": {
+    "ja": [],
+    "en": []
+  },
+  "mapping": {
+    "ja": [
+      {
+        "name": "title",
+        "required": true,
+        "description": "タイトル・サービス名"
+      },
+      {
+        "name": "userID",
+        "description": "ログインID・ユーザーID"
+      },
+      {
+        "name": "password",
+        "description": "パスワード"
+      },
+      {
+        "name": "url",
+        "description": "サービスURL"
+      },
+      {
+        "name": "note",
+        "required": true,
+        "description": "備考・メモ・追加情報"
+      },
+      {
+        "name": "mynumberCardInfo",
+        "mappingKey": "note:append",
+        "format": "マイナンバーカード情報: %@",
+        "description": "マイナンバーカード情報"
+      },
+      {
+        "name": "procedureInfo",
+        "mappingKey": "note:append",
+        "format": "手続き情報: %@",
+        "description": "手続き情報・申請内容"
+      }
+    ]
+  }
+}

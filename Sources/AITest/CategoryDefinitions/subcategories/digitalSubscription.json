@@ -1,0 +1,60 @@
+{
+  "id": "digitalSubscription",
+  "mainCategoryId": "digital",
+  "name": {
+    "ja": "サブスク",
+    "en": "サブスク"
+  },
+  "description": {
+    "ja": "サブスクに関する情報",
+    "en": "Information related to サブスク"
+  },
+  "examples": {
+    "ja": [],
+    "en": []
+  },
+  "mapping": {
+    "ja": [
+      {
+        "name": "title",
+        "required": true,
+        "description": "タイトル・サービス名"
+      },
+      {
+        "name": "userID",
+        "description": "ログインID・ユーザーID"
+      },
+      {
+        "name": "password",
+        "description": "パスワード"
+      },
+      {
+        "name": "url",
+        "description": "サービスURL"
+      },
+      {
+        "name": "note",
+        "required": true,
+        "description": "備考・メモ・追加情報"
+      },
+      {
+        "name": "planName",
+        "mappingKey": "note:append",
+        "format": "プラン名: %@",
+        "description": "プラン名"
+      },
+      {
+        "name": "monthlyFee",
+        "mappingKey": "note:append",
+        "format": "月額料金: %@",
+        "description": "月額料金"
+      },
+      {
+        "name": "renewalDate",
+        "mappingKey": "note:append",
+        "format": "更新日: %@",
+        "description": "更新日"
+      }
+    ]
+  }
+}

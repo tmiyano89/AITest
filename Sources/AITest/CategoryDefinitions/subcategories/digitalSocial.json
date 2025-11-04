@@ -1,0 +1,56 @@
+{
+  "id": "digitalSocial",
+  "mainCategoryId": "digital",
+  "name": {
+    "ja": "SNS",
+    "en": "SNS"
+  },
+  "description": {
+    "ja": "SNSに関する情報",
+    "en": "Information related to SNS"
+  },
+  "examples": {
+    "ja": [],
+    "en": []
+  },
+  "mapping": {
+    "ja": [
+      {
+        "name": "title",
+        "required": true,
+        "description": "タイトル・サービス名"
+      },
+      {
+        "name": "username",
+        "mappingKey": "userID",
+        "description": "ユーザー名"
+      },
+      {
+        "name": "password",
+        "description": "パスワード"
+      },
+      {
+        "name": "profileURL",
+        "mappingKey": "url",
+        "description": "プロフィールURL"
+      },
+      {
+        "name": "note",
+        "required": true,
+        "description": "備考・メモ・追加情報"
+      },
+      {
+        "name": "platformName",
+        "mappingKey": "note:append",
+        "format": "サイト名: %@",
+        "description": "プラットフォーム名"
+      },
+      {
+        "name": "email",
+        "mappingKey": "note:append",
+        "format": "メールアドレス: %@",
+        "description": "メールアドレス"
+      }
+    ]
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "id": "financialInsurance",
+  "mainCategoryId": "financial",
+  "name": {
+    "ja": "保険・年金",
+    "en": "保険・年金"
+  },
+  "description": {
+    "ja": "保険・年金に関する情報",
+    "en": "Information related to 保険・年金"
+  },
+  "examples": {
+    "ja": [],
+    "en": []
+  },
+  "mapping": {
+    "ja": [
+      {
+        "name": "title",
+        "required": true,
+        "description": "タイトル・サービス名"
+      },
+      {
+        "name": "note",
+        "required": true,
+        "description": "備考・メモ・追加情報"
+      },
+      {
+        "name": "insuranceCompany",
+        "mappingKey": "note:append",
+        "format": "保険会社: %@",
+        "description": "保険会社名"
+      },
+      {
+        "name": "policyNumber",
+        "mappingKey": "note:append",
+        "format": "証券番号: %@",
+        "description": "証券番号・契約番号"
+      },
+      {
+        "name": "policyType",
+        "mappingKey": "note:append",
+        "format": "保険種別: %@",
+        "description": "保険種別"
+      },
+      {
+        "name": "premium",
+        "mappingKey": "note:append",
+        "format": "保険料: %@",
+        "description": "保険料"
+      },
+      {
+        "name": "beneficiary",
+        "mappingKey": "note:append",
+        "format": "受取人: %@",
+        "description": "受取人"
+      }
+    ]
+  }
+}

@@ -14,35 +14,7 @@ public class SubCategoryConverter {
 
     public init() {}
 
-    /// Generable構造体をAccountInfoに変換（Anyオブジェクト版）
-    /// @ai[2025-10-21 19:00] 後方互換性のため残す
-    /// @ai[2025-10-23 10:00] デバッグログ追加
-    /// 目的: 既存のAnyオブジェクトベースの呼び出しに対応
-    /// 背景: FoundationModelsExtractorのextractAndConvertで使用
-    /// 意図: 内部でJSONに変換してから新しいconvertを呼び出す
-    public func convert(_ subcategoryStruct: Any) -> AccountInfo {
-        // Anyオブジェクトの型名からサブカテゴリを推測
-        let typeName = String(describing: type(of: subcategoryStruct))
-        log.debug("🔄 変換開始(Any版) - 型名: \(typeName)")
-
-        guard let subCategory = inferSubCategory(from: typeName) else {
-            log.error("❌ サブカテゴリを推測できません: \(typeName)")
-            return AccountInfo()
-        }
-
-        log.debug("✅ サブカテゴリ推測成功: \(subCategory.rawValue)")
-
-        // CodableオブジェクトをJSONに変換
-        guard let json = convertToJSON(subcategoryStruct) else {
-            log.error("❌ JSON変換に失敗しました")
-            return AccountInfo()
-        }
-
-        log.debug("✅ JSON変換成功")
-
-        // JSON形式のconvertを呼び出す
-        return convert(from: json, subCategory: subCategory)
-    }
+    // 旧AnyベースAPIは削除（新mappingのみ対応）
 
     /// JSON形式からAccountInfoに変換（マッピングルールベース）
     /// @ai[2025-10-21 19:00] 新しい統一変換ロジック
@@ -58,73 +30,69 @@ public class SubCategoryConverter {
         var accountInfo = AccountInfo()
 
         do {
-            // サブカテゴリ定義からマッピング情報を読み込み
+            // サブカテゴリ定義から新mapping配列を読み込み
             let definition = try categoryLoader.loadSubCategoryDefinition(subCategoryId: subCategory.rawValue)
-            let mapping = definition.mapping
-            log.debug("✅ マッピング情報読み込み完了")
-            log.debug("📋 directMapping: \(mapping.directMapping)")
-            if let noteAppend = mapping.noteAppendMapping {
-                log.debug("📋 noteAppendMapping: \(noteAppend)")
-            }
+            let fields = definition.mapping.ja ?? definition.mapping.en ?? []
+            log.debug("✅ 新mapping配列読み込み完了: \(fields.count)項目")
 
-            // 直接マッピングを適用
-            for (sourceField, targetField) in mapping.directMapping {
-                guard let value = json[sourceField] else {
-                    log.debug("⚠️ フィールド '\(sourceField)' が見つかりません")
+            // noteに追記するためのバッファ
+            var appendedNotes: [String] = []
+
+            for field in fields {
+                let jsonKey = field.name
+                guard let rawValue = json[jsonKey] else { continue }
+
+                let key = (field.mappingKey?.isEmpty == false) ? field.mappingKey! : jsonKey
+
+                // note:append の場合はformatに従って追記
+                if key == "note:append" {
+                    if let s = stringify(rawValue), !s.isEmpty {
+                        if let fmt = field.format, !fmt.isEmpty {
+                            appendedNotes.append(String(format: fmt.replacingOccurrences(of: "%@", with: "%@"), s))
+                        } else if let label = field.description, !label.isEmpty {
+                            appendedNotes.append("\(label): \(s)")
+                        } else {
+                            appendedNotes.append(s)
+                        }
+                    }
                     continue
                 }
 
-                log.debug("✅ マッピング適用: \(sourceField) -> \(targetField), 値: \(value)")
-
-                switch targetField {
+                switch key {
                 case "title":
-                    accountInfo.title = stringify(value)
+                    accountInfo.title = stringify(rawValue)
                 case "userID":
-                    accountInfo.userID = stringify(value)
+                    accountInfo.userID = stringify(rawValue)
                 case "password":
-                    accountInfo.password = stringify(value)
+                    accountInfo.password = stringify(rawValue)
                 case "host":
-                    accountInfo.host = stringify(value)
+                    accountInfo.host = stringify(rawValue)
                 case "port":
-                    if let intValue = value as? Int {
+                    if let intValue = rawValue as? Int {
                         accountInfo.port = intValue
-                    } else if let stringValue = value as? String, let intValue = Int(stringValue) {
+                    } else if let stringValue = rawValue as? String, let intValue = Int(stringValue) {
                         accountInfo.port = intValue
                     }
                 case "url":
-                    accountInfo.url = stringify(value)
+                    accountInfo.url = stringify(rawValue)
                 case "note":
-                    accountInfo.note = stringify(value)
+                    accountInfo.note = stringify(rawValue)
                 default:
-                    log.debug("⚠️ 未知のターゲットフィールド: \(targetField)")
+                    // AccountInfoに直接マップしないフィールドは無視
+                    break
                 }
             }
 
-            // noteに追加するフィールドを処理
-            if let noteAppendMapping = mapping.noteAppendMapping {
-                var additionalNotes: [String] = []
-
-                for (sourceField, label) in noteAppendMapping {
-                    guard let value = json[sourceField],
-                          let stringValue = stringify(value),
-                          !stringValue.isEmpty else { continue }
-
-                    additionalNotes.append("\(label): \(stringValue)")
-                }
-
-                // 既存のnoteに追加
-                if !additionalNotes.isEmpty {
-                    let combinedNotes = additionalNotes.joined(separator: "\n")
-                    if let existingNote = accountInfo.note, !existingNote.isEmpty {
-                        accountInfo.note = "\(existingNote)\n\n【詳細情報】\n\(combinedNotes)"
-                    } else {
-                        accountInfo.note = combinedNotes
-                    }
+            if !appendedNotes.isEmpty {
+                let extra = appendedNotes.joined(separator: "\n")
+                if let existing = accountInfo.note, !existing.isEmpty {
+                    accountInfo.note = "\(existing)\n\n\(extra)"
+                } else {
+                    accountInfo.note = extra
                 }
             }
 
             log.debug("✅ 変換完了 - subCategory: \(subCategory.rawValue), title: \(accountInfo.title ?? "nil")")
-
         } catch {
             log.error("❌ サブカテゴリ定義読み込みエラー: \(error.localizedDescription)")
         }
@@ -134,61 +102,9 @@ public class SubCategoryConverter {
 
     // MARK: - Private Methods
 
-    /// 型名からサブカテゴリを推測
-    private func inferSubCategory(from typeName: String) -> SubCategory? {
-        // 型名とサブカテゴリのマッピング
-        let typeMapping: [String: SubCategory] = [
-            "PersonalHomeInfo": .personalHome,
-            "PersonalEducationInfo": .personalEducation,
-            "PersonalHealthInfo": .personalHealth,
-            "PersonalContactsInfo": .personalContacts,
-            "PersonalOtherInfo": .personalOther,
+    // 型名推測ロジックは削除（Generable互換廃止）
 
-            "FinancialBankingInfo": .financialBanking,
-            "FinancialCreditCardInfo": .financialCreditCard,
-            "FinancialPaymentInfo": .financialPayment,
-            "FinancialInsuranceInfo": .financialInsurance,
-            "FinancialCryptoInfo": .financialCrypto,
-
-            "DigitalSubscriptionInfo": .digitalSubscription,
-            "DigitalAIInfo": .digitalAI,
-            "DigitalSocialInfo": .digitalSocial,
-            "DigitalShoppingInfo": .digitalShopping,
-            "DigitalAppsInfo": .digitalApps,
-
-            "WorkServerInfo": .workServer,
-            "WorkSaaSInfo": .workSaaS,
-            "WorkDevelopmentInfo": .workDevelopment,
-            "WorkCommunicationInfo": .workCommunication,
-            "WorkOtherInfo": .workOther,
-
-            "InfraTelecomInfo": .infraTelecom,
-            "InfraUtilitiesInfo": .infraUtilities,
-            "InfraGovernmentInfo": .infraGovernment,
-            "InfraLicenseInfo": .infraLicense,
-            "InfraTransportationInfo": .infraTransportation
-        ]
-
-        return typeMapping[typeName]
-    }
-
-    /// CodableオブジェクトをJSON Dictionaryに変換
-    private func convertToJSON(_ object: Any) -> [String: Any]? {
-        guard let encodable = object as? Encodable else {
-            log.error("❌ オブジェクトがEncodableではありません")
-            return nil
-        }
-
-        do {
-            let encoder = JSONEncoder()
-            let data = try encoder.encode(encodable)
-            let json = try JSONSerialization.jsonObject(with: data, options: [])
-            return json as? [String: Any]
-        } catch {
-            log.error("❌ JSON変換エラー: \(error.localizedDescription)")
-            return nil
-        }
-    }
+    // Any→JSON変換は削除
 
     /// 値を文字列に変換
     private func stringify(_ value: Any) -> String? {
@@ -205,3 +121,4 @@ public class SubCategoryConverter {
         }
     }
 }
+

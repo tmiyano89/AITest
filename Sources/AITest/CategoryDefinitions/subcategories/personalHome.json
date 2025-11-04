@@ -1,0 +1,60 @@
+{
+  "id": "personalHome",
+  "mainCategoryId": "personal",
+  "name": {
+    "ja": "自宅・公共料金",
+    "en": "自宅・公共料金"
+  },
+  "description": {
+    "ja": "自宅・公共料金に関する情報",
+    "en": "Information related to 自宅・公共料金"
+  },
+  "examples": {
+    "ja": [],
+    "en": []
+  },
+  "mapping": {
+    "ja": [
+      {
+        "name": "title",
+        "required": true,
+        "description": "タイトル・サービス名"
+      },
+      {
+        "name": "note",
+        "required": true,
+        "description": "備考・メモ・追加情報"
+      },
+      {
+        "name": "address",
+        "mappingKey": "note:append",
+        "format": "住所: %@",
+        "description": "住所"
+      },
+      {
+        "name": "electricityAccount",
+        "mappingKey": "note:append",
+        "format": "電気契約番号: %@",
+        "description": "電気契約の顧客番号・お客様番号"
+      },
+      {
+        "name": "gasAccount",
+        "mappingKey": "note:append",
+        "format": "ガス契約番号: %@",
+        "description": "ガス契約の顧客番号・お客様番号"
+      },
+      {
+        "name": "waterAccount",
+        "mappingKey": "note:append",
+        "format": "水道契約番号: %@",
+        "description": "水道契約の顧客番号・お客様番号"
+      },
+      {
+        "name": "internetProvider",
+        "mappingKey": "note:append",
+        "format": "インターネットプロバイダ: %@",
+        "description": "インターネットプロバイダ名・契約番号"
+      }
+    ]
+  }
+}

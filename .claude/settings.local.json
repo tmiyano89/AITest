@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(tree:*)",
+      "Bash(swift build:*)",
+      "Bash(swift run:*)",
+      "Bash(swift package clean:*)",
+      "Bash(cat:*)",
+      "Bash(chmod:*)",
+      "Bash(python3:*)",
+      "Bash(swift:*)",
+      "Bash(xargs:*)",
+      "Bash(for f in test_logs/comparison_two_steps/chat_abs_json_ja_level3_run*.json)",
+      "Bash(do [ -f \"$f\" ])",
+      "Bash(! echo \"$f\")",
+      "Bash(done)",
+      "Bash(for file in test_logs/comparison_two_steps/chat_abs_json_ja_level3_run{1..10}.json)",
+      "Bash(do)",
+      "Bash(jq:*)",
+      "Bash(for file in Tests/TestData/*/Level2_General.txt)",
+      "Bash(do echo \"=== $file ===\")",
+      "Bash(head:*)",
+      "Bash(for file in Tests/TestData/*/Level3_Complex.txt)",
+      "Bash(tee:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

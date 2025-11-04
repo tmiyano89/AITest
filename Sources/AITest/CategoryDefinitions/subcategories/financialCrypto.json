@@ -1,0 +1,60 @@
+{
+  "id": "financialCrypto",
+  "mainCategoryId": "financial",
+  "name": {
+    "ja": "仮想通貨",
+    "en": "仮想通貨"
+  },
+  "description": {
+    "ja": "仮想通貨に関する情報",
+    "en": "Information related to 仮想通貨"
+  },
+  "examples": {
+    "ja": [],
+    "en": []
+  },
+  "mapping": {
+    "ja": [
+      {
+        "name": "title",
+        "required": true,
+        "description": "タイトル・サービス名"
+      },
+      {
+        "name": "userID",
+        "description": "ログインID・ユーザーID"
+      },
+      {
+        "name": "password",
+        "description": "パスワード"
+      },
+      {
+        "name": "url",
+        "description": "サービスURL"
+      },
+      {
+        "name": "note",
+        "required": true,
+        "description": "備考・メモ・追加情報"
+      },
+      {
+        "name": "exchangeName",
+        "mappingKey": "note:append",
+        "format": "取引所名: %@",
+        "description": "取引所名・サービス名"
+      },
+      {
+        "name": "walletAddress",
+        "mappingKey": "note:append",
+        "format": "ウォレットアドレス: %@",
+        "description": "ウォレットアドレス"
+      },
+      {
+        "name": "apiKey",
+        "mappingKey": "note:append",
+        "format": "APIキー: %@",
+        "description": "APIキー"
+      }
+    ]
+  }
+}

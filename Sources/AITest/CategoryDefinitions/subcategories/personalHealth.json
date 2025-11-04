@@ -1,0 +1,54 @@
+{
+  "id": "personalHealth",
+  "mainCategoryId": "personal",
+  "name": {
+    "ja": "病院・医療",
+    "en": "病院・医療"
+  },
+  "description": {
+    "ja": "病院・医療に関する情報",
+    "en": "Information related to 病院・医療"
+  },
+  "examples": {
+    "ja": [],
+    "en": []
+  },
+  "mapping": {
+    "ja": [
+      {
+        "name": "title",
+        "required": true,
+        "description": "タイトル・サービス名"
+      },
+      {
+        "name": "note",
+        "required": true,
+        "description": "備考・メモ・追加情報"
+      },
+      {
+        "name": "hospitalName",
+        "mappingKey": "note:append",
+        "format": "病院名: %@",
+        "description": "病院名・クリニック名"
+      },
+      {
+        "name": "patientID",
+        "mappingKey": "note:append",
+        "format": "患者ID: %@",
+        "description": "患者ID・診察券番号"
+      },
+      {
+        "name": "insuranceNumber",
+        "mappingKey": "note:append",
+        "format": "保険証番号: %@",
+        "description": "保険証番号"
+      },
+      {
+        "name": "doctorName",
+        "mappingKey": "note:append",
+        "format": "担当医師: %@",
+        "description": "担当医師名"
+      }
+    ]
+  }
+}
