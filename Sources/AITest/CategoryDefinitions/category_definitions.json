@@ -15,7 +15,8 @@
       "examples": {
         "ja": ["自宅住所", "習い事", "病院", "友人の連絡先"],
         "en": ["Home address", "Classes", "Hospital", "Friends' contacts"]
-      }
+      },
+      "subcategories": ["personalHome", "personalEducation", "personalHealth", "personalContacts", "personalOther"]
     },
     {
       "id": "financial",
@@ -30,7 +31,8 @@
       "examples": {
         "ja": ["銀行口座", "クレジットカード", "PayPay", "生命保険"],
         "en": ["Bank account", "Credit card", "PayPal", "Life insurance"]
-      }
+      },
+      "subcategories": ["financialBanking", "financialCreditCard", "financialPayment", "financialInsurance", "financialCrypto"]
     },
     {
       "id": "digital",
@@ -45,7 +47,8 @@
       "examples": {
         "ja": ["Netflix", "ChatGPT", "Twitter", "Amazon"],
         "en": ["Netflix", "ChatGPT", "Twitter", "Amazon"]
-      }
+      },
+      "subcategories": ["digitalSubscription", "digitalAI", "digitalSocial", "digitalShopping", "digitalApps"]
     },
     {
       "id": "work",
@@ -60,7 +63,8 @@
       "examples": {
         "ja": ["AWS EC2", "Slack", "GitHub", "Zoom"],
         "en": ["AWS EC2", "Slack", "GitHub", "Zoom"]
-      }
+      },
+      "subcategories": ["workServer", "workSaaS", "workDevelopment", "workCommunication", "workOther"]
     },
     {
       "id": "infrastructure",
@@ -75,7 +79,8 @@
       "examples": {
         "ja": ["docomo", "東京電力", "マイナポータル", "運転免許証"],
         "en": ["Mobile carrier", "Electric utility", "Government portal", "Driver's license"]
-      }
+      },
+      "subcategories": ["infraTelecom", "infraUtilities", "infraGovernment", "infraLicense", "infraTransportation"]
     }
   ],
   "prompts": {

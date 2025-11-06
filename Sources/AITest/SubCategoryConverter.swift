@@ -20,18 +20,19 @@ public class SubCategoryConverter {
     /// @ai[2025-10-21 19:00] 新しい統一変換ロジック
     /// @ai[2025-10-23 10:00] デバッグログ追加（マッピングルール適用状況を詳細表示）
     /// @ai[2025-10-24 12:00] CategoryDefinitionLoaderのマッピング定義を使用
+    /// @ai[2025-11-05 18:00] String型に変更（enum削除）
     /// 目的: JSON形式のデータをマッピングルールに従ってAccountInfoに変換
     /// 背景: JSON形式とGenerable形式の両方に対応
     /// 意図: マッピングルールの外部化により柔軟性と保守性を向上
-    public func convert(from json: [String: Any], subCategory: SubCategory) -> AccountInfo {
-        log.debug("🔄 変換開始 - サブカテゴリ: \(subCategory.rawValue)")
+    public func convert(from json: [String: Any], subCategory: String) -> AccountInfo {
+        log.debug("🔄 変換開始 - サブカテゴリ: \(subCategory)")
         log.debug("📋 入力JSON: \(json)")
 
         var accountInfo = AccountInfo()
 
         do {
             // サブカテゴリ定義から新mapping配列を読み込み
-            let definition = try categoryLoader.loadSubCategoryDefinition(subCategoryId: subCategory.rawValue)
+            let definition = try categoryLoader.loadSubCategoryDefinition(subCategoryId: subCategory)
             let fields = definition.mapping.ja ?? definition.mapping.en ?? []
             log.debug("✅ 新mapping配列読み込み完了: \(fields.count)項目")
 
@@ -92,7 +93,7 @@ public class SubCategoryConverter {
                 }
             }
 
-            log.debug("✅ 変換完了 - subCategory: \(subCategory.rawValue), title: \(accountInfo.title ?? "nil")")
+            log.debug("✅ 変換完了 - subCategory: \(subCategory), title: \(accountInfo.title ?? "nil")")
         } catch {
             log.error("❌ サブカテゴリ定義読み込みエラー: \(error.localizedDescription)")
         }

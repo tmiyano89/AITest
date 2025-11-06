@@ -17,6 +17,7 @@ public struct CategoryDefinition: Codable, Sendable {
         public let name: LocalizedString
         public let description: LocalizedString
         public let examples: LocalizedStringArray
+        public let subcategories: [String]
     }
 
     public struct LocalizedString: Codable, Sendable {
@@ -38,7 +39,6 @@ public struct CategoryDefinition: Codable, Sendable {
 @available(iOS 26.0, macOS 26.0, *)
 public struct SubCategoryDefinition: Codable, Sendable {
     public let id: String
-    public let mainCategoryId: String
     public let name: CategoryDefinition.LocalizedString
     public let description: CategoryDefinition.LocalizedString
     public let examples: CategoryDefinition.LocalizedStringArray
@@ -165,26 +165,28 @@ public class CategoryDefinitionLoader {
     }
 
     /// メインカテゴリに属するサブカテゴリIDのリストを取得
+    /// @ai[2025-11-06 18:00] category_definitions.jsonから動的に取得
     public func getSubCategoryIds(forMainCategory mainCategoryId: String) throws -> [String] {
         log.debug("🔍 サブカテゴリIDリストを取得中: \(mainCategoryId)")
 
-        // 全サブカテゴリ定義を読み込み
-        let subcategoryIds = SubCategory.allCases.map { $0.rawValue }
-        var result: [String] = []
+        let definition = try loadCategoryDefinition()
 
-        for subcategoryId in subcategoryIds {
-            do {
-                let def = try loadSubCategoryDefinition(subCategoryId: subcategoryId)
-                if def.mainCategoryId == mainCategoryId {
-                    result.append(subcategoryId)
-                }
-            } catch {
-                log.warning("⚠️ サブカテゴリ定義の読み込みに失敗: \(subcategoryId)")
-            }
+        guard let mainCategory = definition.mainCategories.first(where: { $0.id == mainCategoryId }) else {
+            log.error("❌ メインカテゴリが見つかりません: \(mainCategoryId)")
+            throw ExtractionError.invalidInput
         }
 
-        log.debug("✅ サブカテゴリIDリスト取得完了: \(result.count)件")
-        return result
+        log.debug("✅ サブカテゴリIDリスト取得完了: \(mainCategory.subcategories.count)件")
+        return mainCategory.subcategories
+    }
+
+    /// 全サブカテゴリIDを取得
+    /// @ai[2025-11-06 18:00] category_definitions.jsonから動的に取得（ハードコード削除）
+    private func getAllSubCategoryIds() throws -> [String] {
+        let definition = try loadCategoryDefinition()
+        let allIds = definition.mainCategories.flatMap { $0.subcategories }
+        log.debug("✅ 全サブカテゴリID取得完了: \(allIds.count)件")
+        return allIds
     }
 
     /// メインカテゴリ判定プロンプトを生成

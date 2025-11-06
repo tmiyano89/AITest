@@ -1,6 +1,5 @@
 {
   "id": "financialPayment",
-  "mainCategoryId": "financial",
   "name": {
     "ja": "決済サービス",
     "en": "決済サービス"

@@ -374,4 +374,41 @@ public class JSONExtractor {
         log.error("❌ SubCategoryInfo JSONデコードエラー")
         throw ExtractionError.invalidJSONFormat(aiResponse: jsonString)
     }
+
+    /// @ai[2025-11-05 14:00] 汎用JSON抽出メソッド
+    /// 目的: AI応答から辞書形式でJSONを抽出
+    /// 背景: サブカテゴリ型を抽象化するため、型に依存しない抽出が必要
+    /// 意図: 既存のパターンマッチングを再利用して[String: Any]を返す
+    public func extractJSONString(_ text: String) throws -> [String: Any] {
+        log.debug("🔍 汎用JSON抽出開始")
+
+        // サニタイズ
+        let sanitizedJSON = sanitizeJSONString(text)
+
+        // 複数のパターンで抽出を試行
+        let jsonPatterns = [
+            extractJSONFromCodeBlock(sanitizedJSON),
+            extractJSONAfterAssistantFinal(sanitizedJSON),
+            extractJSONFromBraces(sanitizedJSON),
+            sanitizedJSON.trimmingCharacters(in: .whitespacesAndNewlines)
+        ]
+
+        for (index, jsonCandidate) in jsonPatterns.enumerated() {
+            guard !jsonCandidate.isEmpty else { continue }
+
+            log.debug("📝 パターン\(index + 1)でJSON抽出試行")
+
+            // JSONパース
+            guard let data = jsonCandidate.data(using: .utf8),
+                  let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+                continue
+            }
+
+            log.info("✅ 汎用JSON抽出成功: \(json.keys.count)個のフィールド")
+            return json
+        }
+
+        log.error("❌ 汎用JSON抽出失敗")
+        throw ExtractionError.invalidJSONFormat(aiResponse: text)
+    }
 }

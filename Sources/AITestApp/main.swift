@@ -1191,11 +1191,27 @@ func generateStructuredLog(testCase: (name: String, text: String), accountInfo: 
 
     // 2ステップ方式の場合、メインカテゴリとサブカテゴリの結果を追加
     if experiment.mode == .twoSteps, let contentInfo = contentInfo {
+        // カテゴリ表示名をCategoryDefinitionLoaderから取得
+        let loader = CategoryDefinitionLoader()
+        var mainCategoryDisplay: String
+        var subCategoryDisplay: String
+
+        do {
+            let categoryDef = try loader.loadCategoryDefinition()
+            mainCategoryDisplay = categoryDef.mainCategories.first(where: { $0.id == contentInfo.mainCategory })?.name.ja ?? contentInfo.mainCategory
+
+            let subCategoryDef = try loader.loadSubCategoryDefinition(subCategoryId: contentInfo.subCategory)
+            subCategoryDisplay = subCategoryDef.name.ja
+        } catch {
+            mainCategoryDisplay = contentInfo.mainCategory
+            subCategoryDisplay = contentInfo.subCategory
+        }
+
         structuredLog["two_steps_category"] = [
             "main_category": contentInfo.mainCategory,
-            "main_category_display": contentInfo.mainCategoryEnum.displayName,
+            "main_category_display": mainCategoryDisplay,
             "sub_category": contentInfo.subCategory,
-            "sub_category_display": contentInfo.subCategoryEnum?.displayName ?? "不明"
+            "sub_category_display": subCategoryDisplay
         ]
     }
     

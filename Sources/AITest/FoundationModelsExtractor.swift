@@ -214,66 +214,6 @@ public class FoundationModelsExtractor: ModelExtractor {
 
     // MARK: - Two-Steps Extraction Methods
 
-    /// @ai[2025-10-21 15:20] MainCategoryInfo抽出メソッド（2層カテゴリ判定用）
-    /// @ai[2025-10-22 20:30] @Generable形式に変更（FoundationModels構造化出力使用）
-    /// @ai[2025-10-23 10:00] デバッグログ追加（プロンプトと応答を詳細表示）
-    /// 目的: メインカテゴリ判定のためのMainCategoryInfo抽出
-    /// 背景: 2層カテゴリ判定の第1段階で使用
-    /// 意図: @Generableマクロによる型安全な抽出
-    @MainActor
-    func extractMainCategoryInfo(from text: String, prompt: String) async throws -> MainCategoryInfo {
-        log.debug("🔍 MainCategoryInfo抽出開始（@Generable形式）")
-
-        // プロンプト内容をログ出力（最初の500文字）
-        log.debug("📤 REQUEST PROMPT (Step 1a):\n\(String(prompt.prefix(500)))...")
-
-        // セッション初期化
-        if session == nil {
-            try await initializeSession()
-        }
-
-        guard let session = self.session else {
-            throw ExtractionError.languageModelUnavailable
-        }
-
-        // @Generable形式で抽出
-        let stream = session.streamResponse(to: prompt, generating: MainCategoryInfo.self)
-        for try await _ in stream {}
-        let mainCategoryInfo = try await stream.collect().content
-
-        log.info("📥 RESPONSE (Step 1a): MainCategoryInfo(\(mainCategoryInfo.mainCategory))")
-        log.info("✅ MainCategoryInfo抽出完了: \(mainCategoryInfo.mainCategory)")
-
-        return mainCategoryInfo
-    }
-
-    /// @ai[2025-10-21 15:20] SubCategoryInfo抽出メソッド（2層カテゴリ判定用）
-    /// @ai[2025-10-22 20:30] @Generable形式に変更（FoundationModels構造化出力使用）
-    /// @ai[2025-10-23 10:00] デバッグログ追加（プロンプトと応答を詳細表示）
-    /// 目的: サブカテゴリ判定のためのSubCategoryInfo抽出
-    /// 背景: 2層カテゴリ判定の第2段階で使用
-    /// 意図: @Generableマクロによる型安全な抽出
-    @MainActor
-    func extractSubCategoryInfo(from text: String, prompt: String) async throws -> SubCategoryInfo {
-        log.debug("🔍 SubCategoryInfo抽出開始（@Generable形式）")
-
-        // プロンプト内容をログ出力（最初の500文字）
-        log.debug("📤 REQUEST PROMPT (Step 1b):\n\(String(prompt.prefix(500)))...")
-
-        guard let session = self.session else {
-            throw ExtractionError.languageModelUnavailable
-        }
-
-        // @Generable形式で抽出
-        let stream = session.streamResponse(to: prompt, generating: SubCategoryInfo.self)
-        for try await _ in stream {}
-        let subCategoryInfo = try await stream.collect().content
-
-        log.info("📥 RESPONSE (Step 1b): SubCategoryInfo(\(subCategoryInfo.subCategory))")
-        log.info("✅ SubCategoryInfo抽出完了: \(subCategoryInfo.subCategory)")
-
-        return subCategoryInfo
-    }
 
     // MARK: - SubCategory Extraction Methods
 
@@ -289,58 +229,51 @@ public class FoundationModelsExtractor: ModelExtractor {
         return try await stream.collect().content
     }
 
-    /// @ai[2025-10-21 18:30] Generic extraction and conversion method
-    /// @ai[2025-10-23 10:00] デバッグログ追加（プロンプト、応答、変換結果を詳細表示）
-    /// 目的: サブカテゴリ構造体の抽出とAccountInfo変換を一度に実行
-    /// 背景: 抽出と変換の2ステップを統合し、呼び出し側のコードを簡潔化
-    /// 意図: extractSubCategoryInfo + SubCategoryConverter.convert を統合
+    /// @ai[2025-11-05 14:00] 汎用JSON抽出メソッド
+    /// @ai[2025-11-05 18:00] String型に変更（enum削除）
+    /// 目的: サブカテゴリ定義ファイルから動的にプロンプトを生成してJSON抽出
+    /// 背景: 各サブカテゴリ専用の@Generable型を廃止し、抽象化を実現
+    /// 意図: Single Source of Truthとして定義ファイルのみを管理
     @MainActor
-    func extractAndConvert<T: Generable>(
+    public func extractGenericJSON(
         from text: String,
-        prompt: String,
-        as contentType: T.Type
-    ) async throws -> (content: T, accountInfo: AccountInfo) {
-        log.debug("🔍 Step 2開始 - 型: \(contentType)")
+        subCategory: String,
+        language: PromptLanguage
+    ) async throws -> [String: Any] {
+        log.info("🔍 汎用JSON抽出開始: \(subCategory)")
 
-        // プロンプト内容をログ出力（最初の500文字）
-        log.debug("📤 REQUEST PROMPT (Step 2):\n\(String(prompt.prefix(500)))...")
+        // 1. CategoryDefinitionLoaderでプロンプト生成
+        let loader = CategoryDefinitionLoader()
+        let prompt = try loader.generateExtractionPrompt(
+            testData: text,
+            subCategoryId: subCategory,
+            language: language
+        )
 
-        // 1. サブカテゴリ構造体を抽出
-        let extracted = try await extractSubCategoryInfo(from: text, prompt: prompt, as: contentType)
+        log.debug("📤 動的生成プロンプト (先頭500文字):\n\(String(prompt.prefix(500)))...")
 
-        // 抽出された構造体の内容をログ出力
-        if let encodable = extracted as? Encodable {
-            do {
-                let encoder = JSONEncoder()
-                encoder.outputFormatting = [.prettyPrinted]
-                let jsonData = try encoder.encode(encodable)
-                if let jsonString = String(data: jsonData, encoding: .utf8) {
-                    log.info("📥 RESPONSE (Step 2) - 抽出された構造体:\n\(jsonString)")
-                }
-            } catch {
-                log.debug("⚠️ 構造体のJSON変換に失敗")
-            }
+        // 2. LanguageModelで応答取得
+        guard let session = self.session else {
+            throw ExtractionError.languageModelUnavailable
         }
 
-        // 2. AccountInfoに変換
-        let converter = SubCategoryConverter()
-        let accountInfo = converter.convert(extracted)
+        let stream = session.streamResponse(to: prompt)
+        for try await _ in stream {}  // ストリームを消費
+        let rawResponse = try await stream.collect().content
 
-        // 変換後のAccountInfoをログ出力
-        do {
-            let encoder = JSONEncoder()
-            encoder.outputFormatting = [.prettyPrinted]
-            let jsonData = try encoder.encode(accountInfo)
-            if let jsonString = String(data: jsonData, encoding: .utf8) {
-                log.info("🔄 CONVERTED AccountInfo:\n\(jsonString)")
-            }
-        } catch {
-            log.debug("⚠️ AccountInfoのJSON変換に失敗")
-        }
+        log.debug("📥 AIレスポンス (長さ: \(rawResponse.count)文字):\n\(rawResponse)")
 
-        let titleText = accountInfo.title ?? "nil"
-        log.debug("✅ 抽出と変換完了 - type: \(contentType), title: \(titleText)")
+        // 3. JSON解析
+        let json = try jsonExtractor.extractJSONString(rawResponse)
 
-        return (content: extracted, accountInfo: accountInfo)
+        log.info("✅ 汎用JSON抽出成功: \(json.keys.count)個のフィールド")
+        return json
     }
+
+    /// @ai[2025-11-05 13:00] extractAndConvert メソッドを削除
+    /// 理由: SubCategoryConverterのシグネチャ変更により、二重実装を排除
+    /// 変換ロジックはSubCategoryConverterに集約し、TwoStepsProcessorで統一的に処理
+    /// 参考: docs/tasks/2025-11-05_schema_review/code_fix_proposal.md
+    // extractAndConvert メソッドは削除されました
+    // Generable構造体の抽出にはextractSubCategoryInfoを使用してください
 }
