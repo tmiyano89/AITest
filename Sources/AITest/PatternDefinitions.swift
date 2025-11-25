@@ -2,13 +2,16 @@ import Foundation
 
 /// @ai[2025-01-18 12:05] 抽出方法の定義
 /// 目的: アカウント情報抽出の方法を型安全に管理
-/// 背景: @Generable、JSON、YAMLの3つの方法を統一
+/// 背景: @Generable、JSONの2つの方法を統一
 /// 意図: 各方法の特徴を明確化し、プロンプト生成を最適化
+/// @ai[2025-11-07 04:13] YAMLサポートを削除
+/// 目的: generableとjsonのみをサポートするように簡素化
+/// 背景: YAMLは使用されていないため削除
+/// 意図: コードベースの保守性向上
 @available(iOS 26.0, macOS 26.0, *)
 public enum ExtractionMethod: String, CaseIterable, Codable, Sendable {
     case generable = "generable"
     case json = "json"
-    case yaml = "yaml"
 }
 
 /// @ai[2025-10-21 19:30] 抽出モードの定義

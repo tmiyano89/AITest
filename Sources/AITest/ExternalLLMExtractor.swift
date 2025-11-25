@@ -42,8 +42,6 @@ public class ExternalLLMExtractor: ModelExtractor {
             fatalError("Generable method is not supported for external LLM")
         case .json:
             (accountInfo, rawResponse, requestContent) = try await performJSONExtraction(prompt: prompt)
-        case .yaml:
-            throw ExtractionError.methodNotSupported("YAML method is not supported for external LLM")
         }
         
         let extractionTime = CFAbsoluteTimeGetCurrent() - startTime

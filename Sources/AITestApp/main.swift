@@ -72,9 +72,12 @@ if #available(iOS 26.0, macOS 26.0, *) {
             // 複数のアルゴリズムを処理
             await processExperiment(experiment: experiment, pattern: ExperimentPattern.absEx0S1Gen, timeoutSeconds: timeoutSeconds)
         } else {
-                print("⚠️ 特定のexperimentが指定されていません - デフォルトでyaml_enを実行")
-                // デフォルトでyaml_enを実行
-                let defaultExperiment = (method: ExtractionMethod.yaml, language: PromptLanguage.english, testcase: "chat", algos: ["abs"], mode: ExtractionMode.simple, levels: [1, 2, 3])
+                print("⚠️ 特定のexperimentが指定されていません - デフォルトでgenerable_jaを実行")
+                // @ai[2025-11-07 04:13] デフォルトをgenerable_jaに変更（yamlは削除されたため）
+                // 目的: yaml削除に伴うデフォルト値の更新
+                // 背景: yamlはサポートされなくなったため、generableをデフォルトに設定
+                // 意図: 既存の動作を維持しつつ、サポートされている方法を使用
+                let defaultExperiment = (method: ExtractionMethod.generable, language: PromptLanguage.japanese, testcase: "chat", algos: ["abs"], mode: ExtractionMode.simple, levels: [1, 2, 3])
                 _ = extractTestDirFromArguments()
                 await processExperiment(experiment: defaultExperiment, pattern: ExperimentPattern.defaultPattern, timeoutSeconds: timeoutSeconds)
             }
@@ -384,7 +387,7 @@ func printHelp() {
     print("  swift run AITestApp --method <method> --testcase <testcase> --language <language>")
     print()
     print("引数:")
-    print("  --method <method>     抽出方法 (json, generable, yaml) [デフォルト: generable]")
+    print("  --method <method>     抽出方法 (json, generable) [デフォルト: generable]")
     print("  --testcase <testcase> 指示タイプ (abs, strict, persona, abs-ex, strict-ex, persona-ex) [デフォルト: strict]")
     print("  --language <language> 言語 (ja, en) [デフォルト: ja]")
     print("  --mode <mode>         抽出モード (simple, two-steps) [デフォルト: simple]")
@@ -443,22 +446,10 @@ func extractExperimentFromArguments() -> (method: ExtractionMethod, language: Pr
     let validTestcases = ["chat", "creditcard", "contract", "password", "voice"]
     let validAlgos = ["abs", "strict", "persona", "abs-ex", "strict-ex", "persona-ex"]
     
-    // --method= の形式をチェック
-    for argument in CommandLine.arguments {
-        if argument.hasPrefix("--method=") {
-            let methodString = String(argument.dropFirst("--method=".count))
-            print("   --method= 形式を検出: \(methodString)")
-            
-            if let extractedMethod = ExtractionMethod.allCases.first(where: { $0.rawValue == methodString }) {
-                method = extractedMethod
-                print("✅ methodを抽出: \(method.rawValue)")
-            } else {
-                print("❌ 無効なmethod指定: \(methodString)")
-                print("   有効な値: \(ExtractionMethod.allCases.map { $0.rawValue }.joined(separator: ", "))")
-                return nil
-            }
-        }
-    }
+    // @ai[2025-11-07 04:16] オプション抽出ロジックの統合
+    // 目的: --option=形式を削除し、--option形式のみをサポート
+    // 背景: 冗長なコードを統合して保守性を向上
+    // 意図: コードの重複を排除し、可読性と保守性を向上
     
     // --method の形式をチェック（次の引数を取得）
     for (index, argument) in CommandLine.arguments.enumerated() {
@@ -467,45 +458,11 @@ func extractExperimentFromArguments() -> (method: ExtractionMethod, language: Pr
             print("   --method 形式を検出: \(methodString)")
             
             if let extractedMethod = ExtractionMethod.allCases.first(where: { $0.rawValue == methodString }) {
-            method = extractedMethod
+                method = extractedMethod
                 print("✅ methodを抽出: \(method.rawValue)")
             } else {
                 print("❌ 無効なmethod指定: \(methodString)")
                 print("   有効な値: \(ExtractionMethod.allCases.map { $0.rawValue }.joined(separator: ", "))")
-                return nil
-            }
-        }
-    }
-    
-    // --testcase= の形式をチェック
-    for argument in CommandLine.arguments {
-        if argument.hasPrefix("--testcase=") {
-            let testcaseString = String(argument.dropFirst("--testcase=".count))
-            print("   --testcase= 形式を検出: \(testcaseString)")
-            
-            if validTestcases.contains(testcaseString) {
-                testcase = testcaseString
-                print("✅ testcaseを抽出: \(testcase)")
-            } else {
-                print("❌ 無効なtestcase指定: \(testcaseString)")
-                print("   有効な値: \(validTestcases.joined(separator: ", "))")
-                return nil
-            }
-        }
-    }
-    
-    // --algo= の形式をチェック
-    for argument in CommandLine.arguments {
-        if argument.hasPrefix("--algo=") {
-            let algoString = String(argument.dropFirst("--algo=".count))
-            print("   --algo= 形式を検出: \(algoString)")
-            
-            if validAlgos.contains(algoString) {
-                algos = [algoString]
-                print("✅ algoを抽出: \(algos.joined(separator: ", "))")
-            } else {
-                print("❌ 無効なalgo指定: \(algoString)")
-                print("   有効な値: \(validAlgos.joined(separator: ", "))")
                 return nil
             }
         }
@@ -528,22 +485,6 @@ func extractExperimentFromArguments() -> (method: ExtractionMethod, language: Pr
         }
     }
     
-    // --algos= の形式をチェック
-    if let extractedAlgos = extractAlgosFromArguments() {
-        print("   --algos= 形式を検出: \(extractedAlgos.joined(separator: ", "))")
-        
-        // 有効なアルゴリズムのみをフィルタリング
-        let validExtractedAlgos = extractedAlgos.filter { validAlgos.contains($0) }
-        if !validExtractedAlgos.isEmpty {
-            algos = validExtractedAlgos
-            print("✅ algosを抽出: \(algos.joined(separator: ", "))")
-        } else {
-            print("❌ 有効なalgoが指定されていません")
-            print("   有効な値: \(validAlgos.joined(separator: ", "))")
-            return nil
-        }
-    }
-    
     // --algo の形式をチェック（次の引数を取得）
     for (index, argument) in CommandLine.arguments.enumerated() {
         if argument == "--algo" && index + 1 < CommandLine.arguments.count {
@@ -561,18 +502,26 @@ func extractExperimentFromArguments() -> (method: ExtractionMethod, language: Pr
         }
     }
     
-    // --language= の形式をチェック
-    for argument in CommandLine.arguments {
-        if argument.hasPrefix("--language=") {
-            let languageString = String(argument.dropFirst("--language=".count))
-            print("   --language= 形式を検出: \(languageString)")
+    // --algos の形式をチェック（次の引数を取得）
+    if let index = CommandLine.arguments.firstIndex(of: "--algos") {
+        var extractedAlgos: [String] = []
+        var i = index + 1
+        while i < CommandLine.arguments.count && !CommandLine.arguments[i].hasPrefix("--") {
+            extractedAlgos.append(CommandLine.arguments[i])
+            i += 1
+        }
+        
+        if !extractedAlgos.isEmpty {
+            print("   --algos 形式を検出: \(extractedAlgos.joined(separator: ", "))")
             
-            if let extractedLanguage = PromptLanguage.allCases.first(where: { $0.rawValue == languageString }) {
-                language = extractedLanguage
-                print("✅ languageを抽出: \(language.rawValue)")
+            // 有効なアルゴリズムのみをフィルタリング
+            let validExtractedAlgos = extractedAlgos.filter { validAlgos.contains($0) }
+            if !validExtractedAlgos.isEmpty {
+                algos = validExtractedAlgos
+                print("✅ algosを抽出: \(algos.joined(separator: ", "))")
             } else {
-                print("❌ 無効なlanguage指定: \(languageString)")
-                print("   有効な値: \(PromptLanguage.allCases.map { $0.rawValue }.joined(separator: ", "))")
+                print("❌ 有効なalgoが指定されていません")
+                print("   有効な値: \(validAlgos.joined(separator: ", "))")
                 return nil
             }
         }
@@ -595,23 +544,6 @@ func extractExperimentFromArguments() -> (method: ExtractionMethod, language: Pr
         }
     }
 
-    // --mode= の形式をチェック
-    for argument in CommandLine.arguments {
-        if argument.hasPrefix("--mode=") {
-            let modeString = String(argument.dropFirst("--mode=".count))
-            print("   --mode= 形式を検出: \(modeString)")
-
-            if let extractedMode = ExtractionMode.allCases.first(where: { $0.rawValue == modeString }) {
-                mode = extractedMode
-                print("✅ modeを抽出: \(mode.rawValue)")
-            } else {
-                print("❌ 無効なmode指定: \(modeString)")
-                print("   有効な値: \(ExtractionMode.allCases.map { $0.rawValue }.joined(separator: ", "))")
-                return nil
-            }
-        }
-    }
-
     // --mode の形式をチェック（次の引数を取得）
     for (index, argument) in CommandLine.arguments.enumerated() {
         if argument == "--mode" && index + 1 < CommandLine.arguments.count {
@@ -624,25 +556,6 @@ func extractExperimentFromArguments() -> (method: ExtractionMethod, language: Pr
             } else {
                 print("❌ 無効なmode指定: \(modeString)")
                 print("   有効な値: \(ExtractionMode.allCases.map { $0.rawValue }.joined(separator: ", "))")
-                return nil
-            }
-        }
-    }
-
-    // --levels= の形式をチェック
-    for argument in CommandLine.arguments {
-        if argument.hasPrefix("--levels=") {
-            let levelsString = String(argument.dropFirst("--levels=".count))
-            print("   --levels= 形式を検出: \(levelsString)")
-
-            let levelStrings = levelsString.split(separator: ",").map(String.init)
-            let extractedLevels = levelStrings.compactMap { Int($0.trimmingCharacters(in: .whitespaces)) }
-
-            if !extractedLevels.isEmpty {
-                levels = extractedLevels
-                print("✅ levelsを抽出: \(levels.map(String.init).joined(separator: ", "))")
-            } else {
-                print("❌ 無効なlevels指定: \(levelsString)")
                 return nil
             }
         }
@@ -765,33 +678,6 @@ func extractRunsFromArguments() -> Int? {
                 return runs
             }
         }
-    }
-    
-    return nil
-}
-
-/// コマンドライン引数からアルゴリズムリストを抽出
-func extractAlgosFromArguments() -> [String]? {
-    let arguments = CommandLine.arguments
-    
-    // 形式1: --algos=abs,strict,persona をチェック
-    for argument in arguments {
-        if argument.hasPrefix("--algos=") {
-            let value = String(argument.dropFirst(8))
-            let algos = value.split(separator: ",").map(String.init)
-            return algos
-        }
-    }
-    
-    // 形式2: --algos abs strict persona をチェック
-    if let index = arguments.firstIndex(of: "--algos") {
-        var algos: [String] = []
-        var i = index + 1
-        while i < arguments.count && !arguments[i].hasPrefix("--") {
-            algos.append(arguments[i])
-            i += 1
-        }
-        return algos.isEmpty ? nil : algos
     }
     
     return nil
@@ -954,10 +840,9 @@ func runSpecificExperiment(_ experiment: (method: ExtractionMethod, language: Pr
     timer.checkpoint("ディレクトリ作成完了")
     
     // テストケースの読み込み
-    // パターン名を実際のテストデータディレクトリ名にマッピング
-    let actualPattern = mapPatternToTestDataDirectory(pattern.rawValue)
-    print("🔍 DEBUG: パターンマッピング: \(pattern.rawValue) -> \(actualPattern)")
-    let allTestCases = loadTestCases(pattern: actualPattern)
+    // experiment.testcaseを使用（mapPatternToTestDataDirectoryは廃止）
+    print("🔍 DEBUG: パターンマッピング: \(pattern.rawValue) -> \(experiment.testcase)")
+    let allTestCases = loadTestCases(pattern: experiment.testcase)
 
     // levelsでテストケースをフィルタリング
     let testCases = allTestCases.filter { testCase in
@@ -1326,8 +1211,6 @@ func generateErrorStructuredLog(testCase: (name: String, text: String), error: E
             print("     → promptTemplateNotFound: プロンプトテンプレートが見つからない (\(templateName))")
         case .mappingRuleNotFound(let ruleName):
             print("     → mappingRuleNotFound: マッピングルールが見つからない (\(ruleName))")
-        case .invalidYAMLFormat:
-            print("     → invalidYAMLFormat: 無効なYAML形式")
         case .methodNotSupported(let method):
             print("     → methodNotSupported: サポートされていない抽出方法 (\(method))")
         case .invalidPattern(let pattern):
@@ -1403,13 +1286,27 @@ func generateErrorStructuredLog(testCase: (name: String, text: String), error: E
 
 /// パターン名を正規化（大文字小文字を無視して正しい形式に変換）
 func normalizePatternName(_ pattern: String) -> String {
+    // testcase名からディレクトリ名へのマッピング
+    let testcaseDirMap: [String: String] = [
+        "chat": "Chat",
+        "contract": "Contract",
+        "creditcard": "CreditCard",
+        "password": "PasswordManager",
+        "voice": "VoiceRecognition"
+    ]
+
+    // マッピングテーブルから検索
+    if let mapped = testcaseDirMap[pattern.lowercased()] {
+        return mapped
+    }
+
     // 大文字小文字を無視して比較
     for validPattern in VALID_PATTERNS {
         if pattern.lowercased() == validPattern.lowercased() {
             return validPattern
         }
     }
-    
+
     // マッチしない場合は元の文字列を返す（エラーハンドリングは呼び出し元で行う）
     return pattern
 }

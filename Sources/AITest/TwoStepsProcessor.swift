@@ -137,6 +137,9 @@ class TwoStepsProcessor {
             language: language
         )
 
+#if DEBUG
+        log.info("📝 Step 1b プロンプト: \(prompt)")
+#endif
         // ModelExtractorで推論実行（JSON形式）
         let extractionResult = try await modelExtractor.extract(
             from: testData,
@@ -147,6 +150,9 @@ class TwoStepsProcessor {
         // JSONレスポンスから subCategory を抽出
         let rawResponse = extractionResult.rawResponse
 
+#if DEBUG
+        log.info("📝 Step 1b レスポンス: \(rawResponse)")
+#endif
         // マークダウンコードブロックからJSONを抽出
         let jsonString = extractJSONFromMarkdown(rawResponse)
 

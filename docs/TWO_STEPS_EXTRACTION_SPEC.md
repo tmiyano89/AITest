@@ -3,8 +3,8 @@
 ## ドキュメント情報
 
 - **作成日**: 2025-10-22
-- **最終更新**: 2025-10-22
-- **バージョン**: 1.2
+- **最終更新**: 2025-11-06
+- **バージョン**: 2.0
 - **対象リリース**: iOS 26+, macOS 26+
 
 ---
@@ -44,13 +44,29 @@
 ### 基本方針
 
 ```
-Step 1: カテゴリ判定（2層構造）
+Step 1: カテゴリ判定（2層構造）- JSON方式
   ├─ Step 1a: メインカテゴリ判定（5分類）
   └─ Step 1b: サブカテゴリ判定（各5分類、計25分類）
 
-Step 2: アカウント情報抽出
-  └─ サブカテゴリ別の専用構造体による抽出
+Step 2: アカウント情報抽出 - JSON方式 + 動的プロンプト生成
+  ├─ CategoryDefinitionLoaderによる動的プロンプト生成
+  ├─ FoundationModelsExtractor.extractGenericJSON()による汎用JSON抽出
+  └─ SubCategoryConverterによるマッピングルール適用
 ```
+
+### 重要な設計変更（v2.0）
+
+**@Generableマクロの廃止**:
+- TwoSteps抽出は**JSON方式のみ**サポート
+- @Generable専用構造体（25個）はすべて削除
+- MainCategoryInfo/SubCategoryInfo構造体も削除
+- 直接JSON解析により、型定義なしで動的に抽出
+
+**Single Source of Truth**:
+- カテゴリ定義: `category_definitions.json`
+- サブカテゴリ定義: `subcategories/*.json`（25ファイル）
+- プロンプト: 定義ファイルから動的生成
+- マッピングルール: サブカテゴリ定義ファイル内に統合
 
 ---
 
@@ -67,43 +83,54 @@ Step 2: アカウント情報抽出
                     ▼
 ┌─────────────────────────────────────────────────────────┐
 │                  TwoStepsProcessor                       │
-│             (2ステップ抽出のコア処理)                     │
+│             (2ステップ抽出のコア処理 - JSON方式のみ)      │
 └─────┬────────────────────────────────────────┬──────────┘
       │                                        │
-      │ Step 1                                 │ Step 2
+      │ Step 1: カテゴリ判定                    │ Step 2: 情報抽出
       ▼                                        ▼
 ┌──────────────────┐              ┌────────────────────────┐
 │ analyzeDocument  │              │ extractAccountInfo     │
-│     Type()       │              │     BySteps()          │
+│   TypeJSON()     │              │     BySteps()          │
 └────┬─────────────┘              └────────┬───────────────┘
      │                                     │
-     ├─ Step 1a ────────────┐             │
-     │  メインカテゴリ判定    │             │
-     │  (5分類)             │             │
-     │                      │             │
-     └─ Step 1b ────────────┤             │
-        サブカテゴリ判定     │             │
-        (25分類)            │             │
-                            │             │
-                            ▼             ▼
-                     ┌──────────────────────────┐
-                     │     ContentInfo          │
-                     │  - mainCategory          │
-                     │  - subCategory           │
-                     │  - has* フラグ群          │
-                     └────────┬─────────────────┘
-                              │
-                              ▼
-                     ┌──────────────────────────┐
-                     │  SubCategoryConverter    │
-                     │  (マッピングルール適用)    │
-                     └────────┬─────────────────┘
-                              │
-                              ▼
-                     ┌──────────────────────────┐
-                     │     AccountInfo          │
-                     │  (統一フォーマット)        │
-                     └──────────────────────────┘
+     ├─ Step 1a: 直接JSON解析 ─────┐       │
+     │  メインカテゴリ判定           │       │
+     │  → String                   │       │
+     │                             │       │
+     └─ Step 1b: 直接JSON解析 ─────┤       │
+        サブカテゴリ判定             │       │
+        → String                   │       │
+                                   │       │
+                                   ▼       │
+                            ┌──────────────┴───────────────┐
+                            │     ContentInfo               │
+                            │  - mainCategory: String       │
+                            │  - subCategory: String        │
+                            └────────┬──────────────────────┘
+                                     │
+                  ┌──────────────────┼──────────────────┐
+                  │                  │                  │
+                  ▼                  ▼                  ▼
+      ┌─────────────────┐  ┌─────────────────┐  ┌────────────────┐
+      │ CategoryDef     │  │ FoundationModels│  │ SubCategory    │
+      │   Loader        │  │   Extractor     │  │  Converter     │
+      │ (動的プロンプト) │  │ extractGeneric  │  │ (マッピング    │
+      │                 │  │   JSON()        │  │  ルール適用)    │
+      └────────┬────────┘  └────────┬────────┘  └────────┬───────┘
+               │                    │                    │
+               └────────────────────┴────────────────────┘
+                                    │
+                                    ▼
+                           ┌──────────────────┐
+                           │   [String: Any]  │
+                           │  (汎用JSON辞書)   │
+                           └────────┬─────────┘
+                                    │
+                                    ▼
+                           ┌──────────────────┐
+                           │   AccountInfo    │
+                           │ (統一フォーマット) │
+                           └──────────────────┘
 ```
 
 ### クラス関連図
@@ -115,35 +142,50 @@ Step 2: アカウント情報抽出
 └──────┬──────────────┘
        │ 使用
        ▼
-┌─────────────────────┐
-│ TwoStepsProcessor   │
-│ - analyzeDocument   │
-│   Type()            │
-│ - extractAccount    │
-│   InfoBySteps()     │
-└──────┬──────────────┘
+┌──────────────────────────┐
+│ TwoStepsProcessor        │
+│ - analyzeDocumentType    │
+│   JSON()                 │
+│ - extractAccountInfo     │
+│   BySteps()              │
+└──────┬───────────────────┘
        │ 使用
-       ▼
-┌──────────────────────┐
-│ FoundationModels     │
-│   Extractor          │
-│ - extractMainCategory│
-│   Info()             │
-│ - extractSubCategory │
-│   Info()             │
-│ - extractAndConvert()│
-└──────────────────────┘
-       │ 使用
-       ▼
+       ├──────────────────┐
+       ▼                  ▼
+┌────────────────┐  ┌────────────────────┐
+│ CategoryDef    │  │ FoundationModels   │
+│   Loader       │  │   Extractor        │
+│ - generate     │  │ - extract()        │
+│   MainCategory │  │ - extractGeneric   │
+│   Judgment     │  │   JSON()           │
+│   Prompt()     │  └─────────┬──────────┘
+│ - generate     │            │
+│   SubCategory  │            │ 使用
+│   Judgment     │            ▼
+│   Prompt()     │   ┌────────────────────┐
+│ - generate     │   │   JSONExtractor    │
+│   Extraction   │   │ - extractJSON      │
+│   Prompt()     │   │   String()         │
+└────────┬───────┘   └────────────────────┘
+         │
+         │ 参照
+         ▼
+┌─────────────────────────┐
+│ カテゴリ定義ファイル     │
+│ - category_definitions  │
+│   .json                 │
+│ - subcategories/*.json  │
+│   (25ファイル)           │
+│   └─ mapping構造        │
+└─────────────────────────┘
+         │
+         │ 使用
+         ▼
 ┌──────────────────────┐
 │ SubCategoryConverter │
 │ - convert()          │
-└──────┬───────────────┘
-       │ 使用
-       ▼
-┌──────────────────────┐
-│  MappingRuleLoader   │
-│ - loadRule()         │
+│   (定義ファイル内の   │
+│    mappingを適用)     │
 └──────────────────────┘
 ```
 
@@ -151,16 +193,17 @@ Step 2: アカウント情報抽出
 
 ## 実装仕様
 
-### Step 1a: メインカテゴリ判定
+### Step 1a: メインカテゴリ判定（JSON方式）
 
 #### 処理フロー
 
-1. テストデータを読み込み
-2. メインカテゴリ判定プロンプトテンプレートを読み込み
-   - `step1a_main_category_{language}.txt`
-3. プロンプトにテストデータを埋め込み
-4. FoundationModels APIで推論実行（JSON形式）
-5. `MainCategoryInfo`を抽出
+1. `CategoryDefinitionLoader.generateMainCategoryJudgmentPrompt()`でプロンプトを動的生成
+   - `category_definitions.json`からカテゴリ情報を読み込み
+   - テストデータと組み合わせてプロンプトを構築
+2. `ModelExtractor.extract()`で推論実行（JSON形式）
+3. レスポンスからマークダウンコードブロックを抽出
+4. JSON解析して`mainCategory`フィールドを取得（String型）
+5. `ContentInfo`の構築に使用
 
 #### カテゴリ定義（5分類）
 
@@ -172,35 +215,39 @@ Step 2: アカウント情報抽出
 | 仕事・ビジネス | work | サーバー、SaaS、開発ツール | AWS EC2、Slack |
 | インフラ・公的 | infrastructure | 通信、公共料金、行政、免許 | docomo、マイナポータル |
 
-#### データ構造
+#### 出力形式
 
-```swift
-@Generable(description: "メインカテゴリ判定結果")
-public struct MainCategoryInfo: Codable {
-    @Guide(description: "メインカテゴリ（personal, financial, digital, work, infrastructure のいずれか1つ）")
-    public var mainCategory: String
-
-    public var mainCategoryEnum: MainCategory { get }  // 計算プロパティでenum取得
+**JSON形式** (AIが返す):
+```json
+{
+  "mainCategory": "work"
 }
 ```
+
+**処理結果**: `String` 型（例: `"work"`, `"financial"`, `"personal"`）
 
 #### 実装クラス
 
 - **ファイル**: `TwoStepsProcessor.swift`
-- **メソッド**: `analyzeDocumentType()` → Step 1a部分
-- **内部呼び出し**: `FoundationModelsExtractor.extractMainCategoryInfo()`
+- **メソッド**: `judgeMainCategoryJSON()`
+- **補助クラス**:
+  - `CategoryDefinitionLoader`: プロンプト動的生成
+  - `JSONExtractor`: JSON文字列解析（使用していない - 直接`JSONSerialization`を使用）
 
 ---
 
-### Step 1b: サブカテゴリ判定
+### Step 1b: サブカテゴリ判定（JSON方式）
 
 #### 処理フロー
 
-1. Step 1aで判定されたメインカテゴリに対応するプロンプトを読み込み
-   - `step1b_{mainCategory}_{language}.txt`
-2. プロンプトにテストデータを埋め込み
-3. FoundationModels APIで推論実行（JSON形式）
-4. `SubCategoryInfo`を抽出
+1. `CategoryDefinitionLoader.generateSubCategoryJudgmentPrompt()`でプロンプトを動的生成
+   - Step 1aで判定された`mainCategoryId`を使用
+   - `category_definitions.json`から該当するサブカテゴリ候補を取得
+   - 各サブカテゴリの定義ファイル（`subcategories/{subCategoryId}.json`）から詳細情報を読み込み
+2. `ModelExtractor.extract()`で推論実行（JSON形式）
+3. レスポンスからマークダウンコードブロックを抽出
+4. JSON解析して`subCategory`フィールドを取得（String型）
+5. `ContentInfo`の構築に使用
 
 #### サブカテゴリ定義（25分類）
 
@@ -241,117 +288,161 @@ public struct MainCategoryInfo: Codable {
 - infraLicense: 免許・資格
 - infraTransportation: 交通・移動
 
-#### データ構造
+#### 出力形式
+
+**JSON形式** (AIが返す):
+```json
+{
+  "subCategory": "workServer"
+}
+```
+
+**処理結果**: `String` 型（例: `"workServer"`, `"financialCreditCard"`, `"personalHome"`）
+
+#### ContentInfo構造体（カテゴリ判定結果の集約）
 
 ```swift
-@Generable(description: "サブカテゴリ判定結果")
-public struct SubCategoryInfo: Codable {
-    @Guide(description: "サブカテゴリ（メインカテゴリに応じた5つの選択肢から1つ）")
-    public var subCategory: String
-
-    public var subCategoryEnum: SubCategory? { get }  // 計算プロパティでenum取得
-}
-
-public struct ContentInfo: Codable {
-    public var mainCategory: String
-    public var subCategory: String
-
-    public var mainCategoryEnum: MainCategory { get }
-    public var subCategoryEnum: SubCategory? { get }
+@available(iOS 26.0, macOS 26.0, *)
+public struct ContentInfo: Codable, Equatable, Sendable {
+    public var mainCategory: String  // 例: "work"
+    public var subCategory: String   // 例: "workServer"
 }
 ```
 
 **設計原則**:
-- MainCategoryInfo/SubCategoryInfoは@Generableマクロを使用してFoundationModelsの構造化出力機能を活用
-- confidenceフィールドは削除（AIの自己評価は信頼性が低いため不要）
-- has*フィールドも削除（サブカテゴリごとの専用構造体とマッピングルールから直接AccountInfoを構築するため不要）
-- プロンプトでは出力形式を指定しない（FoundationModelsとGenerableマクロが適切に処理）
+- **JSON方式のみ**: TwoSteps抽出では@Generableマクロを使用しない
+- **型定義不要**: String型で柔軟にカテゴリを管理
+- **動的プロンプト**: カテゴリ定義ファイルから動的生成
+- **Single Source of Truth**: category_definitions.jsonとsubcategories/*.jsonが唯一の情報源
 
 #### 実装クラス
 
 - **ファイル**: `TwoStepsProcessor.swift`
-- **メソッド**: `analyzeDocumentType()` → Step 1b部分
-- **内部呼び出し**: `FoundationModelsExtractor.extractSubCategoryInfo()`
+- **メソッド**: `judgeSubCategoryJSON()`
+- **補助クラス**:
+  - `CategoryDefinitionLoader`: プロンプト動的生成、サブカテゴリ候補取得
 
 ---
 
-### Step 2: アカウント情報抽出
+### Step 2: アカウント情報抽出（JSON方式 + 動的プロンプト生成）
 
 #### 処理フロー
 
-1. Step 1で判定されたサブカテゴリに対応する専用構造体を選択
-2. サブカテゴリ専用プロンプトテンプレートを読み込み
-   - `step2_{language}_generable.txt`（将来的にはサブカテゴリ別に分離予定）
-3. プロンプトにテストデータと構造体定義を埋め込み
-4. FoundationModels APIで推論実行（@Generable形式）
-5. サブカテゴリ専用構造体を抽出（例: `WorkServerInfo`）
-6. `SubCategoryConverter`でマッピングルールを適用
-7. 統一フォーマット `AccountInfo` に変換
+1. `CategoryDefinitionLoader.generateExtractionPrompt()`で動的プロンプト生成
+   - Step 1で判定された`subCategoryId`を使用
+   - サブカテゴリ定義ファイル（`subcategories/{subCategoryId}.json`）から：
+     - フィールド定義（`schema.fields`）
+     - 説明文（`description`）
+     - 例（`examples`）
+   - これらをテンプレートに組み込んでプロンプトを構築
+2. `ModelExtractor.extract()`で推論実行（JSON形式）
+3. AIレスポンスから汎用JSON辞書（`[String: Any]`）を抽出
+4. `SubCategoryConverter.convert()`でマッピングルールを適用
+   - サブカテゴリ定義ファイル内の`mapping`構造を使用
+   - `directMapping`: 直接フィールドにマッピング
+   - `noteAppendMapping`: note フィールドに追加
+5. 統一フォーマット `AccountInfo` に変換
 
-#### サブカテゴリ専用構造体
+#### 動的プロンプト生成のメリット
 
-各サブカテゴリに対応する25個の`@Generable`構造体を定義：
+**v1.x（削除された方式）**:
+- 25個の@Generable構造体を手動定義
+- 25個のマッピングルールJSONファイルを手動管理
+- 構造体とマッピングルールの二重管理
 
-**例: WorkServerInfo**
-```swift
-@Generable(description: "サーバー・VPS・クラウドに関する情報")
-public struct WorkServerInfo: Codable, Equatable, Sendable {
-    @Guide(description: "サービス名・タイトル")
-    public var title: String?
+**v2.0（現在の方式）**:
+- サブカテゴリ定義ファイル（25個）のみを管理
+- フィールド定義とマッピングルールを統合
+- 型定義不要で柔軟な拡張が可能
+- Single Source of Truthの実現
 
-    @Guide(description: "ユーザー名・アカウント名")
-    public var username: String?
+#### サブカテゴリ定義ファイルの構造
 
-    @Guide(description: "パスワード")
-    public var password: String?
+**配置**: `Sources/AITest/CategoryDefinitions/subcategories/{subCategoryId}.json`
 
-    @Guide(description: "ホスト名・IPアドレス")
-    public var host: String?
-
-    @Guide(description: "ポート番号")
-    public var port: Int?
-
-    @Guide(description: "SSH鍵・認証鍵")
-    public var sshKey: String?
-
-    @Guide(description: "URL・管理画面")
-    public var url: String?
-
-    @Guide(description: "備考・補足情報")
-    public var note: String?
-}
-```
-
-#### マッピングルールの適用
-
-各サブカテゴリ専用構造体から統一フォーマット `AccountInfo` への変換ルールをJSONで定義：
-
-**例: workServer_mapping.json**
+**例: workServer.json**
 ```json
 {
-  "subCategory": "workServer",
-  "directMapping": {
-    "title": "title",
-    "username": "userID",
-    "password": "password",
-    "host": "host",
-    "port": "port",
-    "url": "url"
+  "id": "workServer",
+  "name": {
+    "ja": "サーバー・VPS",
+    "en": "Server・VPS"
   },
-  "noteAppendMapping": {
-    "sshKey": "SSH鍵"
+  "description": {
+    "ja": "サーバー・VPS・クラウドサービスに関する情報",
+    "en": "Information related to servers, VPS, and cloud services"
+  },
+  "examples": {
+    "ja": [],
+    "en": []
+  },
+  "mapping": {
+    "ja": [
+      {
+        "name": "serviceName",
+        "mappingKey": "title",
+        "required": true,
+        "description": "サービス名"
+      },
+      {
+        "name": "loginID",
+        "mappingKey": "userID",
+        "description": "ログイン用のID・ユーザー名"
+      },
+      {
+        "name": "loginPassword",
+        "mappingKey": "password",
+        "description": "ログインパスワード"
+      },
+      {
+        "name": "loginURL",
+        "mappingKey": "url",
+        "description": "ログインURL"
+      },
+      {
+        "name": "hostOrIPAddress",
+        "mappingKey": "host",
+        "description": "ホスト名・IPアドレス"
+      },
+      {
+        "name": "portNumber",
+        "mappingKey": "port",
+        "description": "ポート番号"
+      },
+      {
+        "name": "sshAuthKey",
+        "mappingKey": "authKey",
+        "description": "SSH鍵情報"
+      },
+      {
+        "name": "note",
+        "required": true,
+        "description": "備考・メモ・追加情報"
+      }
+    ]
   }
 }
 ```
 
+**フィールド説明**:
+- `name`: AIに抽出を依頼するフィールド名（プロンプトに使用）
+- `mappingKey`: AccountInfoのどのフィールドにマッピングするか
+- `required`: 必須フィールドかどうか
+- `description`: フィールドの説明（プロンプトに使用）
+
+**マッピングの仕組み**:
+- `mappingKey`が指定されている → 直接マッピング
+- `mappingKey`が`null`または未指定 → noteフィールドに追加
+
 #### 実装クラス
 
 - **ファイル**: `TwoStepsProcessor.swift`
-- **メソッド**: `extractAccountInfoBySteps()`
+- **メソッド**: `extractAccountInfoBySteps()` → `extractAndConvertBySubCategoryJSON()`
 - **内部呼び出し**:
-  - `FoundationModelsExtractor.extractAndConvert()`
-  - `SubCategoryConverter.convert()`
-  - `MappingRuleLoader.loadRule()`
+  - `CategoryDefinitionLoader.generateExtractionPrompt()`: 動的プロンプト生成
+  - `ModelExtractor.extract()`: AI推論実行
+  - `JSONExtractor.extractJSONString()`: JSON文字列解析（使用していない）
+  - `SubCategoryConverter.convert()`: マッピングルール適用
 
 ---
 
@@ -362,124 +453,191 @@ public struct WorkServerInfo: Codable, Equatable, Sendable {
 ```swift
 @available(iOS 26.0, macOS 26.0, *)
 public struct ContentInfo: Codable, Equatable, Sendable {
-    public var mainCategoryString: String
-    public var subCategoryString: String
-    public var confidence: Double?
-
-    public var mainCategory: MainCategory { get }
-    public var subCategory: SubCategory? { get }
+    public var mainCategory: String  // 例: "work"
+    public var subCategory: String   // 例: "workServer"
 }
 ```
 
-**設計原則**: 分割推定方式では、サブカテゴリを判定すれば、そのサブカテゴリ専用構造体（例: `WorkServerInfo`）で情報を抽出し、マッピングルールで`AccountInfo`に変換します。そのため、どの種類の情報が含まれているかを事前判定する`has*`フラグは不要です。
+**設計原則**:
+- String型で柔軟にカテゴリを管理
+- enum不要（動的にカテゴリを追加・変更可能）
+- confidenceフィールド削除（AI自己評価は信頼性が低い）
+- has*フラグ削除（サブカテゴリ判定により抽出内容が決まる）
 
-### SubCategory専用構造体（25種類）
+### サブカテゴリ定義ファイル（25ファイル）
 
-全25個のサブカテゴリに対応する構造体を定義：
+**v2.0の重要な変更**: @Generable専用構造体（25個）を削除し、サブカテゴリ定義ファイルに統合
 
-- **ファイル**: `SubCategoryExtractionStructs.swift`
-- **定義数**: 25構造体
-- **特徴**: 各サブカテゴリに最適化されたフィールド定義
+**配置**: `Sources/AITest/CategoryDefinitions/subcategories/*.json`
 
-**実装済み構造体一覧**:
-- Personal: PersonalHomeInfo, PersonalEducationInfo, PersonalHealthInfo, PersonalContactsInfo, PersonalOtherInfo
-- Financial: FinancialBankingInfo, FinancialCreditCardInfo, FinancialPaymentInfo, FinancialInsuranceInfo, FinancialCryptoInfo
-- Digital: DigitalSubscriptionInfo, DigitalAIInfo, DigitalSocialInfo, DigitalShoppingInfo, DigitalAppsInfo
-- Work: WorkServerInfo, WorkSaaSInfo, WorkDevelopmentInfo, WorkCommunicationInfo, WorkOtherInfo
-- Infrastructure: InfraTelecomInfo, InfraUtilitiesInfo, InfraGovernmentInfo, InfraLicenseInfo, InfraTransportationInfo
+**管理対象**:
+- id: サブカテゴリID
+- name: 日本語・英語の表示名
+- description: カテゴリの説明
+- examples: 具体例
+- **mapping**: フィールド定義とマッピングルールを統合
 
-### MappingRule（変換ルール）
+**利点**:
+- **型定義不要**: Swift構造体を定義せずに動的にフィールドを管理
+- **Single Source of Truth**: 1つのJSONファイルですべてを管理
+- **柔軟な拡張**: 新しいフィールドを追加する際、定義ファイルのみを編集
+- **保守性向上**: 二重管理（構造体+マッピングルール）を排除
+
+### 汎用JSON辞書（`[String: Any]`）
+
+Step 2の抽出結果は型付けされた構造体ではなく、汎用JSON辞書として返されます：
 
 ```swift
-@available(iOS 26.0, macOS 26.0, *)
-public struct MappingRule: Codable {
-    public let subCategory: String
-    public let directMapping: [String: String]
-    public let noteAppendMapping: [String: String]?
-    public let customRules: [String: String]?
-}
+let jsonResult: [String: Any] = [
+    "serviceName": "AWS EC2",
+    "loginID": "admin",
+    "loginPassword": "SecurePass18329",
+    "loginURL": nil,
+    "hostOrIPAddress": nil,
+    "portNumber": nil,
+    "sshAuthKey": nil,
+    "note": "AWS EC2サーバーのログイン情報"
+]
 ```
+
+この汎用辞書を`SubCategoryConverter`がマッピングルールに従って`AccountInfo`に変換します。
 
 ---
 
-## プロンプトテンプレート
+## プロンプト生成（動的）
 
-### 配置場所
+### v2.0の重要な変更
 
-`Sources/AITest/Prompts/`
+**プロンプトテンプレートファイルの廃止**: 静的なテンプレートファイルから動的プロンプト生成に変更
 
-### テンプレート一覧
+### 動的プロンプト生成の仕組み
 
-#### Step 1a: メインカテゴリ判定（2ファイル）
+#### Step 1a: メインカテゴリ判定プロンプト
 
-- `step1a_main_category_ja.txt`: 日本語版
-- `step1a_main_category_en.txt`: 英語版
+**生成メソッド**: `CategoryDefinitionLoader.generateMainCategoryJudgmentPrompt()`
 
-#### Step 1b: サブカテゴリ判定（10ファイル）
+**情報源**: `category_definitions.json`
 
-各メインカテゴリ × 言語：
-- `step1b_personal_ja.txt` / `step1b_personal_en.txt`
-- `step1b_financial_ja.txt` / `step1b_financial_en.txt`
-- `step1b_digital_ja.txt` / `step1b_digital_en.txt`
-- `step1b_work_ja.txt` / `step1b_work_en.txt`
-- `step1b_infrastructure_ja.txt` / `step1b_infrastructure_en.txt`
+**プロンプト構成**:
+1. タスク説明（カテゴリ判定の依頼）
+2. カテゴリ一覧（id、name、description、examples）
+3. 出力形式の指定（JSON形式）
+4. テストデータ
 
-#### Step 2: アカウント情報抽出（2ファイル）
+#### Step 1b: サブカテゴリ判定プロンプト
 
-- `step2_ja_generable.txt`: 日本語版
-- `step2_en_generable.txt`: 英語版
+**生成メソッド**: `CategoryDefinitionLoader.generateSubCategoryJudgmentPrompt()`
 
-**注意**: 現在は統一テンプレートですが、将来的にはサブカテゴリ別に分離予定
+**情報源**:
+- `category_definitions.json`: サブカテゴリ候補リスト
+- `subcategories/{subCategoryId}.json`: 各サブカテゴリの詳細情報
+
+**プロンプト構成**:
+1. タスク説明（サブカテゴリ判定の依頼）
+2. メインカテゴリ情報（Step 1aの結果）
+3. サブカテゴリ候補一覧（id、name、description、examples）
+4. 出力形式の指定（JSON形式）
+5. テストデータ
+
+#### Step 2: アカウント情報抽出プロンプト
+
+**生成メソッド**: `CategoryDefinitionLoader.generateExtractionPrompt()`
+
+**情報源**: `subcategories/{subCategoryId}.json`
+
+**プロンプト構成**:
+1. タスク説明（情報抽出の依頼）
+2. サブカテゴリ情報（name、description）
+3. **フィールド定義リスト**（mapping.jaから動的生成）:
+   - 各フィールドの名前
+   - 各フィールドの説明
+   - 必須/任意の指定
+4. 出力形式の指定（JSON形式）
+5. テストデータ
+
+### 動的プロンプト生成のメリット
+
+1. **メンテナンス性**: プロンプトを定義ファイルから自動生成するため、フィールド追加時にプロンプトファイルを手動編集する必要がない
+2. **一貫性**: 定義ファイルとプロンプトの内容が自動的に同期
+3. **拡張性**: 新しいサブカテゴリを追加する際、定義ファイルを1つ追加するだけで対応可能
+4. **言語切り替え**: 日本語・英語を定義ファイル内で管理し、動的に切り替え
 
 ### プロンプト設計原則
 
-1. **出力形式の指定は不要**: FoundationModelsとGenerableマクロが構造化出力を自動処理するため、JSON形式などの明示的な指示は不要
+1. **JSON形式の明示的な指示**: AIに対してJSON形式での出力を明確に指示
 2. **単一の値を選択**: 複数の値を「|」で区切らない
 3. **confidenceは不要**: AI自己評価の信頼性が低いため使用しない
 4. **例示の明確化**: 各カテゴリの具体例を豊富に提示
-5. **@Generableマクロ活用**: MainCategoryInfo/SubCategoryInfoは@Generableマクロで構造化出力を実現
 
 ---
 
 ## マッピングルール
 
-### 配置場所
+### v2.0の重要な変更
 
-`Sources/AITest/Mappings/`
+**独立したマッピングルールファイルの廃止**: サブカテゴリ定義ファイル内に統合
 
-### ルールファイル（25ファイル）
+### 統合されたマッピングルール
 
-各サブカテゴリに対応：
-- `personalHome_mapping.json`
-- `personalEducation_mapping.json`
-- ...（全25ファイル）
+**配置**: `Sources/AITest/CategoryDefinitions/subcategories/*.json` 内の `mapping` フィールド
 
-### ルールフォーマット
+**v1.x（廃止）**:
+- 25個のサブカテゴリ定義構造体（Swift）
+- 25個のマッピングルールファイル（JSON）
+- 2つのシステムを別々に管理
+
+**v2.0（現在）**:
+- 25個のサブカテゴリ定義ファイル（JSON）
+- フィールド定義とマッピングルールを1つのファイルで管理
+- Single Source of Truth
+
+### マッピングルールの構造
+
+サブカテゴリ定義ファイル内の `mapping` フィールド：
 
 ```json
 {
-  "subCategory": "サブカテゴリ名",
-  "directMapping": {
-    "ソースフィールド名": "AccountInfoフィールド名"
-  },
-  "noteAppendMapping": {
-    "ソースフィールド名": "日本語ラベル"
-  },
-  "customRules": {
-    "特殊ルール名": "処理内容"
+  "mapping": {
+    "ja": [
+      {
+        "name": "serviceName",
+        "mappingKey": "title",
+        "required": true,
+        "description": "サービス名"
+      },
+      {
+        "name": "sshAuthKey",
+        "mappingKey": "authKey",
+        "description": "SSH鍵情報"
+      },
+      {
+        "name": "note",
+        "description": "備考・メモ"
+      }
+    ]
   }
 }
 ```
 
-### マッピングの優先順位
+### マッピングの動作
 
-1. **directMapping**: 直接フィールドにマッピング
-2. **noteAppendMapping**: note フィールドに「ラベル: 値」形式で追加
-3. **customRules**: カスタム変換処理（将来の拡張用）
+**SubCategoryConverter.convert()**がマッピングを実行：
 
-### ルール読み込み
+1. **直接マッピング**: `mappingKey`が指定されている場合
+   ```
+   JSON["serviceName"] → AccountInfo.title
+   JSON["loginID"] → AccountInfo.userID
+   ```
 
-- **クラス**: `MappingRuleLoader`
+2. **noteフィールドへの追加**: `mappingKey`が`null`または未指定の場合
+   ```
+   JSON["sshAuthKey"] → AccountInfo.note に "SSH鍵情報: <値>" を追加
+   ```
+
+### マッピングルールの読み込み
+
+- **クラス**: `CategoryDefinitionLoader`
+- **メソッド**: `loadSubCategoryDefinition(subCategoryId:)`
 - **キャッシュ**: 初回読み込み後はメモリキャッシュ
 - **エラー処理**: ファイルが見つからない場合は `fatalError`
 
@@ -815,8 +973,31 @@ public struct MappingRule: Codable {
 | 2025-10-22 | 1.0 | 初版作成 | Claude Code |
 | 2025-10-22 | 1.1 | ContentInfo構造体からhas*フィールドを削除（分割推定方式では不要） | Claude Code |
 | 2025-10-22 | 1.2 | confidence削除、@Generableマクロ適用、プロンプト出力形式指定削除 | Claude Code |
+| 2025-11-06 | 2.0 | **大規模アーキテクチャ変更**: @Generable構造体廃止、動的プロンプト生成、Single Source of Truth実現 | Claude Code |
+
+### v2.0 主要変更点
+
+**削除されたコンポーネント（約515行）**:
+- 7個の@Generable抽出構造体（ExtractionStructs.swift全体）
+- MainCategoryInfo/SubCategoryInfo構造体
+- 25個のサブカテゴリ専用構造体
+- 9個のJSON抽出メソッド
+- 独立したマッピングルールファイル（25個）
+- 静的プロンプトテンプレートファイル
+
+**追加されたコンポーネント**:
+- CategoryDefinitionLoader: 動的プロンプト生成
+- 統合されたサブカテゴリ定義ファイル（mapping含む）
+- extractGenericJSON(): 汎用JSON抽出
+- 動的カテゴリ管理システム
+
+**設計原則の変更**:
+- TwoSteps抽出はJSON方式のみサポート
+- 型定義不要（動的JSON抽出）
+- Single Source of Truth（category_definitions.json + subcategories/*.json）
+- プロンプトの動的生成
 
 ---
 
-**最終更新日**: 2025-10-22
+**最終更新日**: 2025-11-06
 **ドキュメント管理者**: プロジェクトチーム

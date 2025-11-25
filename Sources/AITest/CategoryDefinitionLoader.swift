@@ -241,14 +241,13 @@ public class CategoryDefinitionLoader {
             }
 
             let number = index + 1
-            let name = language == .japanese ? subCategoryDef.name.ja : subCategoryDef.name.en
+//            let name = language == .japanese ? subCategoryDef.name.ja : subCategoryDef.name.en
             let desc = language == .japanese ? subCategoryDef.description.ja : subCategoryDef.description.en
-            let examples = language == .japanese ? subCategoryDef.examples.ja : subCategoryDef.examples.en
-            let examplesText = examples.isEmpty ? "" : "\n   例: " + examples.joined(separator: ", ")
+//            let examples = language == .japanese ? subCategoryDef.examples.ja : subCategoryDef.examples.en
+//            let examplesText = examples.isEmpty ? "" : "\n   例: " + examples.joined(separator: ", ")
 
             return """
-            \(number). **\(subcategoryId)（\(name)）**
-               \(desc)\(examplesText)
+            \(number). \(subcategoryId): \(desc)
             """
         }.joined(separator: "\n\n")
 
@@ -317,7 +316,13 @@ public class CategoryDefinitionLoader {
             let templateJA = """
             あなたはプライベート情報管理のアシスタントです。
 
-            添付したドキュメントから\(subcategoryTitle)に関する情報を抽出してください。
+            添付したドキュメント（メッセージ、会話ログ、設定ファイルなど）から\(subcategoryTitle)に関する情報を抽出してください。
+
+            ドキュメントに含まれる可能性のあるデータ：
+            - アカウント情報（ID、パスワード、URL等）
+            - SSH秘密鍵（PEM形式など）
+            - API認証キー
+            - その他の設定情報
 
             出力は次のスキーマ構造に厳密に一致させ、**純粋なJSONオブジェクトのみ**を出力してください。
 
@@ -330,11 +335,9 @@ public class CategoryDefinitionLoader {
             4. 出力は **1個の純粋なJSONオブジェクト** のみ。改行や説明を付け加えないでください。
             5. JSON構文（括弧、カンマ、クォート）の整合性を守り、**正確な構造体としてパース可能**な状態で返してください。
 
-            === 添付ドキュメントの内容 ===
+            以下のドキュメントを分析してください：
 
             {TEXT}
-
-            -------------------
             """
 
             let templateEN = """

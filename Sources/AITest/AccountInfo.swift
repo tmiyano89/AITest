@@ -687,7 +687,6 @@ public enum ExtractionError: LocalizedError {
     case promptTemplateNotFound(String)
     case mappingRuleNotFound(String)
     case invalidJSONFormat(aiResponse: String?)
-    case invalidYAMLFormat
     case externalLLMError(response: String)
     case methodNotSupported(String)
     case invalidPattern(String)
@@ -729,8 +728,6 @@ public enum ExtractionError: LocalizedError {
             return "マッピングルールファイルが見つかりません: \(fileName)"
         case .invalidJSONFormat:
             return "無効なJSON形式です"
-        case .invalidYAMLFormat:
-            return "無効なYAML形式です"
         case .externalLLMError(_):
             return "外部LLMエラー: 無効なJSON形式です"
         case .methodNotSupported(let method):

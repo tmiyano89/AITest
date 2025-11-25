@@ -56,8 +56,6 @@ public class FoundationModelsExtractor: ModelExtractor {
                 (accountInfo, rawResponse) = try await performGenerableExtraction(session: session, prompt: prompt)
             case .json:
                 (accountInfo, rawResponse) = try await performJSONExtraction(session: session, prompt: prompt)
-            case .yaml:
-                throw ExtractionError.methodNotSupported("YAML method is not supported in FoundationModels")
             }
             
             let extractionTime = CFAbsoluteTimeGetCurrent() - startTime
@@ -88,9 +86,13 @@ public class FoundationModelsExtractor: ModelExtractor {
             }
         } catch {
             // その他のエラーの場合は、rawResponseを含むExtractionErrorに変換
+            log.error("❌ FoundationModels抽出中にエラーが発生: \(error)")
+            log.error("❌ エラーの詳細型: \(type(of: error))")
             if !rawResponse.isEmpty {
+                log.error("❌ rawResponse (最初の500文字): \(String(rawResponse.prefix(500)))")
                 throw ExtractionError.invalidJSONFormat(aiResponse: rawResponse)
             } else {
+                log.error("❌ rawResponseが空です。AIが応答を返していません。")
                 throw ExtractionError.invalidInput
             }
         }
@@ -159,14 +161,16 @@ public class FoundationModelsExtractor: ModelExtractor {
         log.debug("🔍 JSON抽出開始")
         
         let aiStart = CFAbsoluteTimeGetCurrent()
-        
+
         // ストリーミングレスポンスを取得
+        log.debug("🌊 ストリーミングレスポンス開始 - プロンプト文字数: \(prompt.count)")
         let stream = session.streamResponse(to: prompt)
         let response = try await stream.collect()
         let aiTime = CFAbsoluteTimeGetCurrent() - aiStart
-        
+        log.debug("✅ ストリーミングレスポンス完了 - AI処理時間: \(String(format: "%.3f", aiTime))秒")
+
         log.info("⏱️  AI処理時間: \(String(format: "%.3f", aiTime))秒")
-        
+
         // 生のレスポンスを取得
         let rawResponse = response.content
         
@@ -214,21 +218,6 @@ public class FoundationModelsExtractor: ModelExtractor {
 
     // MARK: - Two-Steps Extraction Methods
 
-
-    // MARK: - SubCategory Extraction Methods
-
-    /// @ai[2025-10-21 18:00] Generic extraction method for all subcategory types
-    /// 目的: 25個の重複したextractXXXInfo関数を単一のGeneric関数に統一
-    /// 背景: すべてのサブカテゴリ抽出メソッドが同じパターンを使用
-    /// 意図: コードの重複を排除し、保守性を向上
-    @MainActor
-    func extractSubCategoryInfo<T: Generable>(from text: String, prompt: String, as type: T.Type) async throws -> T {
-        guard let session = self.session else { throw ExtractionError.languageModelUnavailable }
-        let stream = session.streamResponse(to: prompt, generating: type)
-        for try await _ in stream {}
-        return try await stream.collect().content
-    }
-
     /// @ai[2025-11-05 14:00] 汎用JSON抽出メソッド
     /// @ai[2025-11-05 18:00] String型に変更（enum削除）
     /// 目的: サブカテゴリ定義ファイルから動的にプロンプトを生成してJSON抽出
@@ -269,11 +258,4 @@ public class FoundationModelsExtractor: ModelExtractor {
         log.info("✅ 汎用JSON抽出成功: \(json.keys.count)個のフィールド")
         return json
     }
-
-    /// @ai[2025-11-05 13:00] extractAndConvert メソッドを削除
-    /// 理由: SubCategoryConverterのシグネチャ変更により、二重実装を排除
-    /// 変換ロジックはSubCategoryConverterに集約し、TwoStepsProcessorで統一的に処理
-    /// 参考: docs/tasks/2025-11-05_schema_review/code_fix_proposal.md
-    // extractAndConvert メソッドは削除されました
-    // Generable構造体の抽出にはextractSubCategoryInfoを使用してください
 }

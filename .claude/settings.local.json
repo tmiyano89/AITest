@@ -21,7 +21,10 @@
       "Bash(do echo \"=== $file ===\")",
       "Bash(head:*)",
       "Bash(for file in Tests/TestData/*/Level3_Complex.txt)",
-      "Bash(tee:*)"
+      "Bash(tee:*)",
+      "Bash(for testcase in chat contract creditcard password voice)",
+      "Bash(do echo \"============================================\" echo \"Testing: $testcase\" echo \"============================================\" swift run AITestApp --mode two-steps --method json --testcase \"$testcase\" --language ja --levels 1 --runs 1)",
+      "Read(//dev/**)"
     ],
     "deny": [],
     "ask": []

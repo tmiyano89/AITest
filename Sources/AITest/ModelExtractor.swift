@@ -88,7 +88,16 @@ public class CommonExtractionProcessor {
     public func loadTestData(testcase: String, level: Int, language: PromptLanguage) throws -> String {
         log.debug("📂 テストデータ読み込み開始 - testcase: \(testcase), level: \(level), language: \(language.rawValue)")
 
-        let testcaseDir = testcase.capitalized
+        // testcase名からディレクトリ名へのマッピング
+        let testcaseDirMap: [String: String] = [
+            "chat": "Chat",
+            "contract": "Contract",
+            "creditcard": "CreditCard",
+            "password": "PasswordManager",
+            "voice": "VoiceRecognition"
+        ]
+
+        let testcaseDir = testcaseDirMap[testcase.lowercased()] ?? testcase.capitalized
         let levelFile = "Level\(level)_\(level == 1 ? "Basic" : level == 2 ? "General" : "Complex").txt"
         let testDataPath = "Tests/TestData/\(testcaseDir)/\(levelFile)"
 

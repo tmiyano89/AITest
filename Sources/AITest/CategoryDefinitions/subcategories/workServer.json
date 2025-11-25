@@ -23,7 +23,7 @@
       {
         "name": "loginID",
         "mappingKey": "userID",
-        "description": "ログイン用のID・ユーザー名"
+        "description": "ログイン用のユーザーID"
       },
       {
         "name": "loginPassword",
@@ -38,7 +38,7 @@
       {
         "name": "accountName",
         "mappingKey": "number",
-        "description": "アカウントを識別するための番号やエリアス"
+        "description": "アカウントを識別するためのIDや番号"
       },
       {
         "name": "hostOrIPAddress",
