@@ -92,6 +92,14 @@ public func validateArguments() -> (isValid: Bool, errors: [String]) {
     return (errors.isEmpty, errors)
 }
 
+/// @ai[2025-11-25 18:10] verboseモードを引数から抽出
+/// 目的: --verboseフラグの有無を判定し、LogWrapperのverboseモードを設定
+/// 背景: 詳細ログを条件付きで出力するため、verboseモードの状態を管理する必要がある
+/// 意図: コマンドライン引数からverboseモードを判定し、グローバルフラグを設定
+public func extractVerboseFromArguments() -> Bool {
+    return CommandLine.arguments.contains("--verbose") || CommandLine.arguments.contains("-v")
+}
+
 /// ヘルプメッセージを表示
 public func printHelp() {
     print("\n📖 AITestApp 使用方法:")
@@ -104,6 +112,7 @@ public func printHelp() {
     print("  --language=<言語>         言語を指定 (ja, en)")
     print("  --testcase=<テストケース> テストケースを指定")
     print("  --algo=<アルゴリズム>     アルゴリズムを指定")
+    print("  --verbose, -v             詳細ログを表示")
     print("  --help                    このヘルプを表示")
     print("\n有効なパターン: \(VALID_PATTERNS.joined(separator: ", "))")
 }

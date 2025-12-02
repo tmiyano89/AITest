@@ -82,7 +82,7 @@ public class ExternalLLMExtractor: ModelExtractor {
         }
         
         log.debug("📝 外部LLM応答受信完了 - コンテンツ文字数: \(content.count), レスポンス全体文字数: \(rawResponse.count)")
-        log.debug("📝 生レスポンス（最初の500文字）: \(String(rawResponse.prefix(500)))")
+        log.debugLongText("📝 生レスポンス", rawResponse)
         
         // 統一されたJSON抽出処理を使用
         let (accountInfo, jsonError) = jsonExtractor.extractFromJSONText(content)

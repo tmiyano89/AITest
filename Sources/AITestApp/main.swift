@@ -19,6 +19,15 @@ print("🚀 AITest コンソールアプリケーション開始")
 print("OS Version: \(ProcessInfo.processInfo.operatingSystemVersionString)")
 print(String(repeating: "=", count: 80))
 
+// @ai[2025-11-25 18:10] verboseモードの設定
+// 目的: コマンドライン引数からverboseモードを判定し、LogWrapperのグローバルフラグを設定
+// 背景: 詳細ログを条件付きで出力するため、アプリケーション起動時にverbose状態を設定
+// 意図: すべてのLogWrapperインスタンスで一貫したverbose動作を実現
+LogWrapper.isVerbose = extractVerboseFromArguments()
+if LogWrapper.isVerbose {
+    print("🔍 Verboseモード: 有効（詳細ログを表示します）")
+}
+
 // iOS 26+、macOS 26+の利用可能性チェック（メインターゲット）
 if #available(iOS 26.0, macOS 26.0, *) {
     log.success("iOS 26+ / macOS 26+ の要件を満たしています")
@@ -348,7 +357,7 @@ func extractExternalLLMConfigFromArguments() -> LLMConfig? {
 @available(iOS 26.0, macOS 26.0, *)
 func validateArguments() -> (isValid: Bool, errors: [String]) {
     var errors: [String] = []
-    let validOptions = ["--method", "--language", "--testcase", "--testcases", "--algo", "--algos", "--levels", "--runs", "--mode", "--external-llm-url", "--external-llm-model", "--timeout", "--debug-single", "--debug-prompt", "--collect-responses", "--test-extraction-methods", "--experiment", "--test-dir"]
+    let validOptions = ["--method", "--language", "--testcase", "--testcases", "--algo", "--algos", "--levels", "--runs", "--mode", "--external-llm-url", "--external-llm-model", "--timeout", "--debug-single", "--debug-prompt", "--collect-responses", "--test-extraction-methods", "--experiment", "--test-dir", "--verbose", "-v"]
     
     // サポートされているオプションをチェック
     for argument in CommandLine.arguments {
@@ -834,14 +843,20 @@ func runSpecificExperiment(_ experiment: (method: ExtractionMethod, language: Pr
         let experimentName = "\(experiment.method.rawValue)_\(experiment.language.rawValue)"
         finalTestDir = "test_logs/\(timestamp)_\(experimentName)"
     }
-    print("🔍 DEBUG: ディレクトリ作成開始 - パス: \(finalTestDir)")
+    if LogWrapper.isVerbose {
+        print("🔍 DEBUG: ディレクトリ作成開始 - パス: \(finalTestDir)")
+    }
     createLogDirectory(finalTestDir)
-    print("🔍 DEBUG: ディレクトリ作成完了")
+    if LogWrapper.isVerbose {
+        print("🔍 DEBUG: ディレクトリ作成完了")
+    }
     timer.checkpoint("ディレクトリ作成完了")
     
     // テストケースの読み込み
     // experiment.testcaseを使用（mapPatternToTestDataDirectoryは廃止）
-    print("🔍 DEBUG: パターンマッピング: \(pattern.rawValue) -> \(experiment.testcase)")
+    if LogWrapper.isVerbose {
+        print("🔍 DEBUG: パターンマッピング: \(pattern.rawValue) -> \(experiment.testcase)")
+    }
     let allTestCases = loadTestCases(pattern: experiment.testcase)
 
     // levelsでテストケースをフィルタリング
@@ -849,7 +864,9 @@ func runSpecificExperiment(_ experiment: (method: ExtractionMethod, language: Pr
         let (_, level) = parseTestCaseName(testCase.name)
         return experiment.levels.contains(level)
     }
-    print("🔍 DEBUG: 全テストケース数: \(allTestCases.count), フィルタ後: \(testCases.count), 対象レベル: \(experiment.levels.map(String.init).joined(separator: ", "))")
+    if LogWrapper.isVerbose {
+        print("🔍 DEBUG: 全テストケース数: \(allTestCases.count), フィルタ後: \(testCases.count), 対象レベル: \(experiment.levels.map(String.init).joined(separator: ", "))")
+    }
     timer.checkpoint("テストケース読み込み完了")
 
     // 各テストケースに対して指定回数実行
@@ -887,10 +904,12 @@ func runSpecificExperiment(_ experiment: (method: ExtractionMethod, language: Pr
             let unifiedExtractor = UnifiedExtractor(modelExtractor: modelExtractor)
             testTimer.checkpoint("抽出器作成完了")
             
-            print("🔍 DEBUG: 統一抽出フロー開始")
-            print("🔍 DEBUG: 外部LLM設定: \(externalLLMConfig != nil ? "設定あり" : "設定なし")")
-            if let config = externalLLMConfig {
-                print("🔍 DEBUG: 外部LLM設定詳細: URL=\(config.baseURL), モデル=\(config.model)")
+            if LogWrapper.isVerbose {
+                print("🔍 DEBUG: 統一抽出フロー開始")
+                print("🔍 DEBUG: 外部LLM設定: \(externalLLMConfig != nil ? "設定あり" : "設定なし")")
+                if let config = externalLLMConfig {
+                    print("🔍 DEBUG: 外部LLM設定詳細: URL=\(config.baseURL), モデル=\(config.model)")
+                }
             }
             
             // テストケース名からレベルを抽出
@@ -923,14 +942,20 @@ func runSpecificExperiment(_ experiment: (method: ExtractionMethod, language: Pr
             if let authKey = accountInfo.authKey { print("    authKey: \(authKey)") }
 
             // 構造化ログの出力
-            print("🔍 DEBUG: generateStructuredLog呼び出し開始")
+            if LogWrapper.isVerbose {
+                print("🔍 DEBUG: generateStructuredLog呼び出し開始")
+            }
             await generateStructuredLog(testCase: testCase, accountInfo: accountInfo, experiment: experiment, pattern: pattern, iteration: 1, runNumber: run, testDir: finalTestDir, requestContent: requestContent, contentInfo: contentInfo)
-            print("🔍 DEBUG: generateStructuredLog呼び出し完了")
+            if LogWrapper.isVerbose {
+                print("🔍 DEBUG: generateStructuredLog呼び出し完了")
+            }
             testTimer.checkpoint("ログ出力完了")
             
         } catch {
             print("❌ 抽出失敗: \(error.localizedDescription)")
-            print("🔍 DEBUG: エラーの詳細: \(error)")
+            if LogWrapper.isVerbose {
+                print("🔍 DEBUG: エラーの詳細: \(error)")
+            }
             
             // エラー時の構造化ログ
             await generateErrorStructuredLog(testCase: testCase, error: error, experiment: experiment, pattern: pattern, iteration: 1, runNumber: run, testDir: finalTestDir, requestContent: nil)
@@ -1035,32 +1060,56 @@ func generateFormatExperimentReport(testDir: String, experiment: (method: Extrac
 }
 
 /// ログディレクトリを作成
+/// @ai[2025-11-25 18:10] verboseモード対応を追加
+/// 目的: DEBUG出力をverboseモード時のみ表示
+/// 背景: 冗長なDEBUG出力が通常実行時のログを読みにくくしている
+/// 意図: verboseモード時のみ詳細ログを表示
 func createLogDirectory(_ path: String) {
-    print("🔍 DEBUG: createLogDirectory開始 - パス: \(path)")
+    if LogWrapper.isVerbose {
+        print("🔍 DEBUG: createLogDirectory開始 - パス: \(path)")
+    }
     let fileManager = FileManager.default
     if !fileManager.fileExists(atPath: path) {
-        print("🔍 DEBUG: ディレクトリが存在しないため作成します")
+        if LogWrapper.isVerbose {
+            print("🔍 DEBUG: ディレクトリが存在しないため作成します")
+        }
         do {
             try fileManager.createDirectory(atPath: path, withIntermediateDirectories: true, attributes: nil)
-            print("🔍 DEBUG: ディレクトリ作成成功")
+            if LogWrapper.isVerbose {
+                print("🔍 DEBUG: ディレクトリ作成成功")
+            }
         } catch {
             print("❌ DEBUG: ディレクトリ作成失敗: \(error.localizedDescription)")
         }
     } else {
-        print("🔍 DEBUG: ディレクトリは既に存在します")
+        if LogWrapper.isVerbose {
+            print("🔍 DEBUG: ディレクトリは既に存在します")
+        }
     }
-    print("🔍 DEBUG: createLogDirectory完了")
+    if LogWrapper.isVerbose {
+        print("🔍 DEBUG: createLogDirectory完了")
+    }
 }
 
 /// 構造化ログを生成
 /// @ai[2025-10-22 18:25] 2ステップ方式のカテゴリ結果を追加
+/// @ai[2025-11-25 18:10] verboseモード対応を追加
+/// 目的: DEBUG出力をverboseモード時のみ表示
+/// 背景: 冗長なDEBUG出力が通常実行時のログを読みにくくしている
+/// 意図: verboseモード時のみ詳細ログを表示
 @available(iOS 26.0, macOS 26.0, *)
 func generateStructuredLog(testCase: (name: String, text: String), accountInfo: AccountInfo, experiment: (method: ExtractionMethod, language: PromptLanguage, testcase: String, algo: String, mode: ExtractionMode, levels: [Int]), pattern: ExperimentPattern, iteration: Int, runNumber: Int, testDir: String, requestContent: String?, contentInfo: ContentInfo?) async {
-    print("🔍 DEBUG: generateStructuredLog開始 - testDir: \(testDir)")
+    if LogWrapper.isVerbose {
+        print("🔍 DEBUG: generateStructuredLog開始 - testDir: \(testDir)")
+    }
     let (testPattern, level) = parseTestCaseName(testCase.name)
-    print("🔍 DEBUG: パターン: \(testPattern), レベル: \(level)")
+    if LogWrapper.isVerbose {
+        print("🔍 DEBUG: パターン: \(testPattern), レベル: \(level)")
+    }
     let expectedFields = getExpectedFields(for: testPattern, level: level)
-    print("🔍 DEBUG: 期待フィールド数: \(expectedFields.count)")
+    if LogWrapper.isVerbose {
+        print("🔍 DEBUG: 期待フィールド数: \(expectedFields.count)")
+    }
 
     var structuredLog: [String: Any] = [
         "pattern": testPattern,
@@ -1141,10 +1190,14 @@ func generateStructuredLog(testCase: (name: String, text: String), accountInfo: 
             // ログファイルに保存
             let logFileName = "\(experiment.testcase)_\(experiment.algo)_\(experiment.method.rawValue)_\(experiment.language.rawValue)_level\(level)_run\(runNumber).json"
             let logFilePath = "\(testDir)/\(logFileName)"
-            print("🔍 DEBUG: ログファイル保存開始 - パス: \(logFilePath)")
+            if LogWrapper.isVerbose {
+                print("🔍 DEBUG: ログファイル保存開始 - パス: \(logFilePath)")
+            }
             try jsonString.write(toFile: logFilePath, atomically: true, encoding: .utf8)
             print("💾 ログ保存: \(logFilePath)")
-            print("🔍 DEBUG: ログファイル保存完了")
+            if LogWrapper.isVerbose {
+                print("🔍 DEBUG: ログファイル保存完了")
+            }
         }
     } catch {
         print("❌ 構造化ログ生成エラー: \(error.localizedDescription)")

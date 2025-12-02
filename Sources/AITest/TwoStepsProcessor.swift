@@ -246,7 +246,7 @@ class TwoStepsProcessor {
         )
 
         log.info("📝 Step 2 プロンプト生成完了")
-        log.debug("🔍 プロンプト先頭500文字: \(String(prompt.prefix(500)))")
+        log.debugLongText("🔍 プロンプト", prompt)
 
         // ModelExtractorで推論実行（JSON形式）
         let extractionResult = try await modelExtractor.extract(

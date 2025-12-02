@@ -174,7 +174,7 @@ public class FoundationModelsExtractor: ModelExtractor {
         // 生のレスポンスを取得
         let rawResponse = response.content
         
-        log.debug("📝 生レスポンス（最初の500文字）: \(String(rawResponse.prefix(500)))")
+        log.debugLongText("📝 生レスポンス", rawResponse)
         
         // 統一されたJSON抽出処理を使用
         let (accountInfo, jsonError) = jsonExtractor.extractFromJSONText(rawResponse)
@@ -239,7 +239,7 @@ public class FoundationModelsExtractor: ModelExtractor {
             language: language
         )
 
-        log.debug("📤 動的生成プロンプト (先頭500文字):\n\(String(prompt.prefix(500)))...")
+        log.debugLongText("📤 動的生成プロンプト", prompt)
 
         // 2. LanguageModelで応答取得
         guard let session = self.session else {

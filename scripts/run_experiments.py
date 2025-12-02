@@ -12,6 +12,8 @@ from pathlib import Path
 from datetime import datetime
 from typing import List, Dict, Any, Optional
 import argparse
+import random
+import string
 
 class ExperimentConfig:
     """実験設定クラス"""
@@ -69,16 +71,25 @@ class ExperimentRunner:
         # ログファイル用のディレクトリを指定（全パターン共通）
         log_dir = str(self.base_output_dir)
 
+        # @ai[2025-11-27 07:05] two-stepsモードではalgosパラメータは不要
+        # 理由: two-stepsモードではアルゴリズムの指定が不要で、カテゴリ判定と情報抽出のみを実行する
+        # 背景: algosパラメータはsimpleモードでのみ使用される
         cmd = [
             "swift", "run", "AITestApp",
             "--method", method,
             "--mode", config.mode,
             "--testcase", testcase,
-            "--algos", algo,
+        ]
+        
+        # two-stepsモード以外の場合はalgosパラメータを追加
+        if config.mode != "two-steps":
+            cmd.extend(["--algos", algo])
+        
+        cmd.extend([
             "--language", config.language,
             "--runs", str(config.runs),
             "--test-dir", log_dir
-        ]
+        ])
         
         try:
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=600, env=os.environ)
@@ -319,11 +330,15 @@ def main():
     args = parser.parse_args()
 
     # 出力ディレクトリを決定
+    # @ai[2025-11-27 07:05] ディレクトリ名を{日時}_{method}_{language}_{mode}_{ランダム4文字}形式に変更
+    # 理由: コマンドファイルで指定された命名規則に合わせるため
+    # 背景: 同一時刻に複数の実験を実行した場合の衝突を避けるため、ランダム4文字を追加
     if args.output_dir:
         base_output_dir = args.output_dir
     else:
         timestamp = datetime.now().strftime("%Y%m%d%H%M")
-        base_output_dir = f"test_logs/{timestamp}_{args.method}_{args.language}_{args.mode}"
+        random_suffix = ''.join(random.choices(string.ascii_lowercase + string.digits, k=4))
+        base_output_dir = f"test_logs/{timestamp}_{args.method}_{args.language}_{args.mode}_{random_suffix}"
 
     print("🚀 拡張可能な実験実行を開始します（新しい引数方式）...")
     print(f"🔧 抽出方法: {args.method}")
