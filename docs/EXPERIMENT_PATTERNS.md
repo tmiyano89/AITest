@@ -1,138 +1,259 @@
 # 実験パターン仕様書
 
+## ドキュメント情報
+
+- **最終更新**: 2025-12-02 13:33
+- **バージョン**: 2.0
+- **対象実装**: iOS 26+, macOS 26+
+
 ## 概要
 
-このドキュメントでは、@Guideマクロ改善のための実験で使用される8つのパターンについて詳しく説明します。各パターンは、Instructions（指示）、Prompt（プロンプト）、@Guideマクロ、@Generableマクロの組み合わせで構成されており、Apple Foundation Models（AFM）の性能特性を多角的に評価することを目的としています。
+このドキュメントでは、アカウント情報抽出のための実験で使用されるパターンについて詳しく説明します。各パターンは、Instructions（指示）、Prompt（プロンプト）、ExtractionMethod（抽出方式）、ExtractionMode（抽出モード）の組み合わせで構成されており、Apple Foundation Models（AFM）の性能特性を多角的に評価することを目的としています。
 
 ## パターン命名規則
 
 各パターン名は以下の形式で構成されています：
 
 ```
-{pattern}_{algo}_{method}
+{testcase}_{algo}_{method}
 ```
 
 ### 命名要素の説明
 
 | 要素 | 値 | 意味 |
 |------|-----|------|
-| pattern | chat | チャット形式のテストデータ |
+| testcase | chat | チャット形式のテストデータ |
+| | contract | 契約情報 |
+| | creditcard | クレジットカード情報 |
+| | password | パスワード情報 |
+| | voice | 音声認識データ |
 | algo | abs | 抽象指示（Abstract） |
 | | strict | 厳格指示（Strict） |
 | | persona | 人格指示（Persona） |
-| | twosteps | 2ステップ処理 |
 | | abs-ex | 抽象指示+例示 |
 | | strict-ex | 厳格指示+例示 |
 | | persona-ex | 人格指示+例示 |
-| method | gen | @Generableマクロ使用 |
-| | json | JSONフォーマット |
-| | yaml | YAMLフォーマット |
+| method | generable | @Generableマクロ使用（単純推定のみ） |
+| | json | JSONフォーマット（単純推定・2ステップ抽出の両方） |
+
+### 抽出モード（ExtractionMode）
+
+| モード | 値 | 意味 | サポートするmethod |
+|--------|-----|------|-------------------|
+| 単純推定 | simple | 従来の1ステップ抽出 | generable, json |
+| 分割推定（2ステップ） | two-steps | カテゴリ判定→情報抽出の2段階処理 | **jsonのみ** |
+
+**重要な制約**: 2ステップ抽出（分割推定）は**JSON方式のみ**サポートされています。@Generableマクロは単純推定（1ステップ抽出）でのみ使用可能です。
 
 ## パターン一覧
 
-### 1. chat_abs_gen
+### 単純推定（1ステップ抽出）パターン
+
+#### 1. chat_abs_generable
 **表示名**: Chat・抽象指示・@Generable
 
 **特徴**:
 - 最小限の抽象指示で基本性能を測定
 - 例示なし、1プロンプト、@Generable使用
 - ベースライン性能の測定に使用
+- **抽出モード**: 単純推定（simple）
 
 **使用場面**:
 - 基本性能の測定
 - 他のパターンとの比較基準
 - 最小構成での性能評価
 
-### 2. chat_abs-ex_gen
+#### 2. chat_abs-ex_generable
 **表示名**: Chat・抽象指示(例示)・@Generable
 
 **特徴**:
 - 抽象指示にfew-shot例示を追加
 - 良例1件で学習効果を確認
 - 例示の効果を測定
+- **抽出モード**: 単純推定（simple）
 
 **使用場面**:
 - 例示の効果測定
 - 学習効果の評価
 - 抽象指示+例示の相乗効果確認
 
-### 3. chat_strict_gen
+#### 3. chat_strict_generable
 **表示名**: Chat・厳格指示・@Generable
 
 **特徴**:
 - 厳格な制約ルールで出力品質を向上
 - 推測禁止、形式統一を強調
 - 制約による精度向上効果を測定
+- **抽出モード**: 単純推定（simple）
 
 **使用場面**:
 - 制約の効果測定
 - 出力品質の向上確認
 - 厳格な指示の有効性評価
 
-### 4. chat_strict-ex_gen
+#### 4. chat_strict-ex_generable
 **表示名**: Chat・厳格指示(例示)・@Generable
 
 **特徴**:
 - 厳格制約にfew-shot例示を追加
 - 制約+学習の相乗効果を測定
 - 最高精度を目指すパターン
+- **抽出モード**: 単純推定（simple）
 
 **使用場面**:
 - 最高精度の追求
 - 制約+例示の相乗効果測定
 - 本番環境での使用候補
 
-### 5. chat_persona_gen
+#### 5. chat_persona_generable
 **表示名**: Chat・人格指示・@Generable
 
 **特徴**:
 - プロ秘書の役割を活性化
 - 専門知識と作業パターンの活用
 - 人格設定による性能向上効果を測定
+- **抽出モード**: 単純推定（simple）
 
 **使用場面**:
 - 人格設定の効果測定
 - 専門知識の活用確認
 - 役割ベースのアプローチ評価
 
-### 6. chat_persona-ex_gen
+#### 6. chat_persona-ex_generable
 **表示名**: Chat・人格指示(例示)・@Generable
 
 **特徴**:
 - 人格指示にfew-shot例示を追加
 - 役割+学習の相乗効果を測定
 - 人格設定と例示の組み合わせ効果
+- **抽出モード**: 単純推定（simple）
 
 **使用場面**:
 - 人格+例示の相乗効果測定
 - 高度な人格設定の評価
 - 複合アプローチの有効性確認
 
-### 7. chat_twosteps_gen
-**表示名**: Chat・2ステップ・@Generable
+#### 7. chat_abs_json
+**表示名**: Chat・抽象指示・JSON
 
 **特徴**:
-- 2ステップ処理（タイプ判定→抽出）
-- 段階的アプローチの効果を測定
-- 複雑なタスクの分割処理
+- 抽象指示をJSONフォーマットで実行
+- 外部LLMとの性能比較用
+- **抽出モード**: 単純推定（simple）
+
+**使用場面**:
+- @Generable vs JSONの比較
+- 外部LLMでの性能評価
+- フォーマットの性能差測定
+
+#### 8. chat_abs-ex_json
+**表示名**: Chat・抽象指示(例示)・JSON
+
+**特徴**:
+- 抽象指示(例示)をJSONフォーマットで実行
+- 外部LLMとの性能比較用
+- **抽出モード**: 単純推定（simple）
+
+**使用場面**:
+- 例示効果のJSON方式での測定
+- 外部LLMでの例示効果評価
+
+#### 9. chat_strict_json
+**表示名**: Chat・厳格指示・JSON
+
+**特徴**:
+- 厳格指示をJSONフォーマットで実行
+- 外部LLMとの性能比較用
+- **抽出モード**: 単純推定（simple）
+
+**使用場面**:
+- 制約効果のJSON方式での測定
+- 外部LLMでの制約効果評価
+
+#### 10. chat_strict-ex_json
+**表示名**: Chat・厳格指示(例示)・JSON
+
+**特徴**:
+- 厳格指示(例示)をJSONフォーマットで実行
+- 外部LLMとの性能比較用
+- **抽出モード**: 単純推定（simple）
+
+**使用場面**:
+- 制約+例示効果のJSON方式での測定
+- 外部LLMでの最高精度評価
+
+#### 11. chat_persona_json
+**表示名**: Chat・人格指示・JSON
+
+**特徴**:
+- 人格指示をJSONフォーマットで実行
+- 外部LLMとの性能比較用
+- **抽出モード**: 単純推定（simple）
+
+**使用場面**:
+- 人格設定効果のJSON方式での測定
+- 外部LLMでの人格設定効果評価
+
+#### 12. chat_persona-ex_json
+**表示名**: Chat・人格指示(例示)・JSON
+
+**特徴**:
+- 人格指示(例示)をJSONフォーマットで実行
+- 外部LLMとの性能比較用
+- **抽出モード**: 単純推定（simple）
+
+**使用場面**:
+- 人格+例示効果のJSON方式での測定
+- 外部LLMでの複合アプローチ評価
+
+### 分割推定（2ステップ抽出）パターン
+
+**重要**: 2ステップ抽出は**JSON方式のみ**サポートされています。
+
+#### 13. chat_abs_json (two-steps)
+**表示名**: Chat・抽象指示・JSON（2ステップ）
+
+**特徴**:
+- 2ステップ処理（カテゴリ判定→情報抽出）
+- 抽象指示を使用
+- **抽出モード**: 分割推定（two-steps）
+- **抽出方式**: JSON（必須）
+
+**処理フロー**:
+1. Step 1a: メインカテゴリ判定（5分類）
+2. Step 1b: サブカテゴリ判定（25分類）
+3. Step 2: カテゴリ特化型プロンプトで情報抽出
 
 **使用場面**:
 - 段階的処理の効果測定
 - 複雑なタスクの分割効果
-- 2ステップアプローチの評価
+- カテゴリ特化型抽出の評価
 
-### 8. chat_twosteps_json
-**表示名**: Chat・2ステップ・JSON
+#### 14. chat_strict_json (two-steps)
+**表示名**: Chat・厳格指示・JSON（2ステップ）
 
 **特徴**:
-- 2ステップ処理をJSONフォーマットで実行
-- @Generable vs JSONの性能比較
-- フォーマットの違いによる性能差測定
+- 2ステップ処理に厳格指示を適用
+- カテゴリ判定と情報抽出の両方で厳格な制約を使用
+- **抽出モード**: 分割推定（two-steps）
+- **抽出方式**: JSON（必須）
 
 **使用場面**:
-- @Generable vs JSONの比較
-- フォーマットの性能差測定
-- 代替手法の評価
+- 2ステップ抽出での制約効果測定
+- 高精度なカテゴリ判定と情報抽出
+
+#### 15. chat_persona_json (two-steps)
+**表示名**: Chat・人格指示・JSON（2ステップ）
+
+**特徴**:
+- 2ステップ処理に人格指示を適用
+- カテゴリ判定と情報抽出の両方で専門知識を活用
+- **抽出モード**: 分割推定（two-steps）
+- **抽出方式**: JSON（必須）
+
+**使用場面**:
+- 2ステップ抽出での人格設定効果測定
+- 専門知識を活用した高精度抽出
 
 ## 指示タイプの詳細
 
@@ -156,15 +277,15 @@
 ### 軸別分析
 1. **指示タイプ軸**: 抽象 vs 厳格 vs 人格
 2. **例示軸**: なし vs あり
-3. **ステップ軸**: 1ステップ vs 2ステップ
-4. **フォーマット軸**: @Generable vs JSON
+3. **抽出モード軸**: 単純推定（1ステップ） vs 分割推定（2ステップ）
+4. **抽出方式軸**: @Generable vs JSON
 
 ### 段階的実験アプローチ
-1. **第1段階**: 基本性能測定（ABS-EX0-S1）
-2. **第2段階**: 例示効果測定（EX0 vs EX1）
-3. **第3段階**: 指示タイプ効果測定（ABS vs STRICT vs PERSONA）
-4. **第4段階**: ステップ効果測定（S1 vs S2）
-5. **第5段階**: フォーマット比較（@Generable vs JSON）
+1. **第1段階**: 基本性能測定（単純推定・抽象指示・例示なし）
+2. **第2段階**: 例示効果測定（例示なし vs 例示あり）
+3. **第3段階**: 指示タイプ効果測定（抽象 vs 厳格 vs 人格）
+4. **第4段階**: 抽出方式比較（@Generable vs JSON）
+5. **第5段階**: 抽出モード比較（単純推定 vs 分割推定）
 
 ## 評価指標
 
@@ -179,17 +300,36 @@
 
 ## 使用方法
 
-### 単一パターン実行
+### Swiftコマンドライン実行
+
+#### 単純推定（1ステップ抽出）
 ```bash
-python3 scripts/run_experiments.py --patterns PATTERN_ABS-EX0-S1-gen --runs 5 --language ja
+# @Generable方式
+swift run AITestApp --method generable --algo abs --testcase chat --level 1
+
+# JSON方式
+swift run AITestApp --method json --algo strict --testcase chat --level 1
 ```
 
-### 複数パターン比較
+#### 分割推定（2ステップ抽出）
 ```bash
-python3 scripts/run_experiments.py --patterns PATTERN_ABS-EX0-S1-gen PATTERN_STRICT-EX0-S1-gen --runs 3 --language ja
+# 2ステップ抽出（JSON方式のみ）
+swift run AITestApp --method json --algo abs --testcase chat --level 1 --mode two-steps
 ```
 
-### 10回実験（統計処理）
+### Pythonスクリプト実行
+
+#### 単一パターン実行
+```bash
+python3 scripts/run_experiments.py --patterns abs_gen --runs 5 --language ja
+```
+
+#### 複数パターン比較
+```bash
+python3 scripts/run_experiments.py --patterns abs_gen strict_gen --runs 3 --language ja
+```
+
+#### 10回実験（統計処理）
 ```bash
 python3 scripts/run_10_experiments.py
 ```
@@ -197,17 +337,26 @@ python3 scripts/run_10_experiments.py
 ## 実験結果の解釈
 
 ### パターン比較の観点
-1. **基本性能**: ABS-EX0-S1を基準とした相対性能
-2. **例示効果**: EX0 vs EX1の性能差
+1. **基本性能**: 単純推定・抽象指示・例示なしを基準とした相対性能
+2. **例示効果**: 例示なし vs 例示ありの性能差
 3. **指示効果**: 抽象 vs 厳格 vs 人格の性能差
-4. **ステップ効果**: 1ステップ vs 2ステップの性能差
-5. **フォーマット効果**: @Generable vs JSONの性能差
+4. **抽出方式効果**: @Generable vs JSONの性能差
+5. **抽出モード効果**: 単純推定 vs 分割推定の性能差
 
 ### 推奨パターン選択
-- **最高精度**: PATTERN_STRICT-EX1-S1-gen（制約+例示）
-- **バランス**: PATTERN_STRICT-EX0-S1-gen（制約のみ）
-- **基本性能**: PATTERN_ABS-EX0-S1-gen（最小構成）
-- **複雑タスク**: PATTERN_STRICT-EX0-S2-gen（2ステップ）
+
+#### 単純推定（1ステップ抽出）
+- **最高精度**: `chat_strict-ex_generable`（制約+例示+@Generable）
+- **バランス**: `chat_strict_generable`（制約のみ+@Generable）
+- **基本性能**: `chat_abs_generable`（最小構成+@Generable）
+- **外部LLM対応**: `chat_strict_json`（制約+JSON）
+
+#### 分割推定（2ステップ抽出）
+- **カテゴリ特化型抽出**: `chat_abs_json`（two-stepsモード）
+- **高精度カテゴリ判定**: `chat_strict_json`（two-stepsモード）
+- **専門知識活用**: `chat_persona_json`（two-stepsモード）
+
+**注意**: 2ステップ抽出はJSON方式のみサポートされています。
 
 ## 注意事項
 
@@ -216,8 +365,31 @@ python3 scripts/run_10_experiments.py
 3. **テストデータ**: 全パターンで同じテストデータを使用
 4. **評価指標**: 正規化スコアを主要指標として使用
 
+## 重要な制約事項
+
+### 2ステップ抽出の制約
+
+**2ステップ抽出（分割推定）はJSON方式のみサポートされています。**
+
+- `@Generable`マクロは単純推定（1ステップ抽出）でのみ使用可能
+- 2ステップ抽出で`@Generable`を指定するとエラーが発生します
+- 理由: 2ステップ抽出では動的プロンプト生成により型定義が不要になったため
+
+### YAMLサポートの削除
+
+**YAMLフォーマットはサポートされていません。**
+
+- 2025-11-07にYAMLサポートが削除されました
+- 現在サポートされている抽出方式: `generable`, `json`のみ
+
 ## 更新履歴
 
 - 2025-01-10: 初版作成
 - 2025-01-10: パターン仕様の詳細化
 - 2025-01-10: 実験設計指針の追加
+- 2025-12-02: **v2.0 大幅更新**
+  - YAMLサポート削除を反映
+  - 2ステップ抽出の制約を明記
+  - 抽出モード（ExtractionMode）の追加
+  - パターン一覧を最新実装に合わせて更新
+  - 使用方法を最新のコマンド形式に更新

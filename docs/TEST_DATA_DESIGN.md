@@ -1,8 +1,14 @@
 # テストデータ設計 - Account情報抽出性能検証
 
+## ドキュメント情報
+
+- **最終更新**: 2025-12-03 16:42
+- **バージョン**: 2.0
+- **対象実装**: iOS 26+, macOS 26+
+
 ## 概要
 
-Apple Intelligence Foundation Model（AIFM）のAccount情報抽出性能を検証するため、5つのシチュエーション × 3つのレベル = 15のテストケースを設計する。
+Apple Intelligence Foundation Model（AIFM）のAccount情報抽出性能を検証するため、5つのシチュエーション × 3つのレベル = 15のテストケースを設計します。テストデータファイルには期待フィールドを明示的に定義し、正解データは`expected_answers.json`で管理します。
 
 ## テストケース設計
 
@@ -128,6 +134,8 @@ Apple Intelligence Foundation Model（AIFM）のAccount情報抽出性能を検�
 
 ## テストデータ構造
 
+### ディレクトリ構造
+
 ```
 Tests/TestData/
 ├── Chat/
@@ -146,56 +154,283 @@ Tests/TestData/
 │   ├── Level1_Basic.txt
 │   ├── Level2_General.txt
 │   └── Level3_Complex.txt
-└── PasswordManager/
-    ├── Level1_Basic.txt
-    ├── Level2_General.txt
-    └── Level3_Complex.txt
+├── PasswordManager/
+│   ├── Level1_Basic.txt
+│   ├── Level2_General.txt
+│   └── Level3_Complex.txt
+└── expected_answers.json  (正解データ)
 ```
+
+### テストデータファイルの形式
+
+各テストデータファイルは以下の形式で記述します：
+
+```
+//expectedFields: field1,field2,field3,...
+//author: Test Author (オプション)
+//description: Description (オプション)
+実際のテストデータテキスト
+```
+
+**重要なポイント**:
+- **必須**: 先頭に`//expectedFields:`コメントで期待フィールドを指定
+- **形式**: `//expectedFields: title,userID,password,note`（カンマ区切り）
+- **コメント行**: `//`で始まる行はすべてコメントとして扱われ、抽出処理では除外される
+- **クリーンなコンテンツ**: コメント行を除いたテキストが実際のテストデータとして使用される
+
+**例: Chat/Level1_Basic.txt**
+```
+//expectedFields: title,userID,password,note
+//author: Test Author
+//description: Basic chat pattern test case
+Hey! 新しいサーバーのアカウント情報を送るね
+
+AWS EC2にログインするには
+アカウントはadmin/SecurePass18329です
+でアクセスできるよ
+
+よろしく！
+```
+
+### 正解データファイル（expected_answers.json）
+
+各テストケースの正解データは`Tests/TestData/expected_answers.json`で管理します。
+
+**構造**:
+```json
+{
+  "Chat": {
+    "Level1_Basic": {
+      "title": "{要AI検証}",
+      "userID": "admin",
+      "password": "SecurePass18329",
+      "url": "",
+      "note": "{要AI検証}",
+      "host": "",
+      "port": "",
+      "number": "",
+      "authKey": ""
+    },
+    "Level2_General": {
+      ...
+    },
+    "Level3_Complex": {
+      ...
+    }
+  },
+  "Contract": { ... },
+  "CreditCard": { ... },
+  "VoiceRecognition": { ... },
+  "PasswordManager": { ... }
+}
+```
+
+**重要なポイント**:
+- **`{要AI検証}`マーカー**: `title`と`note`フィールドには`{要AI検証}`が設定される
+  - これらのフィールドは自由形式の記述が可能なため、AIによる検証が必要
+  - 抽出結果の`status`は`pending`として記録され、後でAI検証により`correct`または`wrong`に更新される
+- **空文字列**: 期待されないフィールドは空文字列`""`で定義
+- **完全一致フィールド**: `userID`, `password`, `url`, `host`, `port`, `authKey`などは完全一致で判定
 
 ## 期待される抽出結果
 
-各テストケースに対して、以下の情報が正しく抽出されることを期待する：
+各テストケースに対して、テストデータファイル内の`//expectedFields:`コメントで指定されたフィールドが正しく抽出されることを期待します。
 
-### 基本フィールド（全レベル）
-- `title`: サービス名
-- `userID`: ユーザーID/メールアドレス
-- `password`: パスワード
-- `url`: ログインURL
-- `note`: 備考
+### フィールド定義
 
-### 拡張フィールド（Level 2+）
-- `host`: ホスト名/IPアドレス
-- `port`: ポート番号
-- `authKey`: 認証キー/SSH鍵
-- `confidence`: 信頼度スコア
+| フィールド名 | 説明 | 検証方法 | 例 |
+|------------|------|---------|-----|
+| `title` | サービス名 | **AI検証**（自由形式の記述が可能） | "AWS EC2", "GitHub" |
+| `userID` | ユーザーID/メールアドレス | **完全一致**（期待値と完全一致が必要） | "admin", "user@example.com" |
+| `password` | パスワード | **完全一致**（期待値と完全一致が必要） | "SecurePass18329" |
+| `url` | ログインURL | **完全一致**（期待値と完全一致が必要） | "https://console.aws.amazon.com" |
+| `note` | 備考・メモ | **AI検証**（自由形式の記述が可能） | "AWS EC2にログインするためのアカウント情報。" |
+| `host` | ホスト名/IPアドレス | **完全一致**（期待値と完全一致が必要） | "197.78.64.33", "ec2-54-123-45-67.compute-1.amazonaws.com" |
+| `port` | ポート番号 | **完全一致**（期待値と完全一致が必要） | "22", "443" |
+| `authKey` | 認証キー/SSH鍵 | **完全一致**（期待値と完全一致が必要） | "-----BEGIN OPENSSH PRIVATE KEY-----..." |
+| `number` | 識別番号（カード番号、アカウントIDなど） | **完全一致**（期待値と完全一致が必要） | "123456789012" |
 
-### 特殊フィールド（Level 3）
-- 詳細な備考情報
-- 技術的制約事項
-- セキュリティ要件
-- 運用上の注意事項
+### レベル別の期待フィールド
+
+#### Chat（チャット）
+
+**Level 1**:
+- `title`, `userID`, `password`, `note`
+
+**Level 2**:
+- `title`, `userID`, `password`, `url`, `number`, `note`
+
+**Level 3**:
+- `title`, `userID`, `password`, `url`, `note`, `host`, `port`, `authKey`
+
+#### Contract（契約書）
+
+**Level 1**:
+- `title`, `userID`, `password`, `note`
+
+**Level 2**:
+- `title`, `userID`, `password`, `url`, `note`
+
+**Level 3**:
+- `title`, `userID`, `password`, `url`, `note`, `host`, `port`
+
+#### CreditCard（クレジットカード）
+
+**Level 1**:
+- `title`, `userID`, `note`
+
+**Level 2**:
+- `title`, `userID`, `note`
+
+**Level 3**:
+- `title`, `userID`, `note`, `authKey`
+
+#### VoiceRecognition（音声認識）
+
+**Level 1**:
+- `title`, `userID`, `password`, `note`
+
+**Level 2**:
+- `title`, `userID`, `password`, `url`, `note`, `host`, `port`
+
+**Level 3**:
+- `title`, `userID`, `password`, `url`, `note`, `host`, `port`, `authKey`
+
+#### PasswordManager（パスワード管理）
+
+**Level 1**:
+- `title`, `userID`, `password`, `note`
+
+**Level 2**:
+- `title`, `userID`, `password`, `url`, `note`
+
+**Level 3**:
+- `title`, `userID`, `password`, `url`, `note`, `host`, `port`
+
+### 検証方法の分類
+
+#### AI検証が必要なフィールド（pendingステータス）
+
+以下のフィールドは自由形式の記述が可能なため、AIによる検証が必要です：
+
+- **`title`**: サービス名は様々な表現が正しい場合がある
+  - 例: "AWS EC2", "Amazon EC2", "EC2インスタンス" など
+- **`note`**: 備考は様々な表現が正しい場合がある
+  - 例: "AWS EC2にログインするためのアカウント情報。", "EC2サーバーのログイン情報です" など
+
+**検証フロー**:
+1. 抽出結果の`status`が`pending`として記録される
+2. AIがテストデータと抽出結果を比較して検証
+3. `status`を`correct`または`wrong`に更新
+
+#### プログラム判定可能なフィールド（correct/wrong/missingステータス）
+
+以下のフィールドは期待値と完全一致で判定されます：
+
+- **`userID`**: ユーザーID/メールアドレス
+- **`password`**: パスワード
+- **`url`**: ログインURL
+- **`host`**: ホスト名/IPアドレス
+- **`port`**: ポート番号
+- **`authKey`**: 認証キー/SSH鍵
+- **`number`**: 識別番号
+
+**判定ロジック**:
+- 抽出値が期待値と完全一致 → `correct`
+- 抽出値が期待値と不一致 → `wrong`
+- 抽出値がnullまたは空文字列 → `missing`
 
 ## 評価指標
 
 ### 抽出精度
-- **完全抽出**: 全フィールドが正しく抽出された場合
+
+**フィールド別の精度**:
+- **完全抽出**: 全フィールドが正しく抽出された場合（`status: correct`）
 - **部分抽出**: 一部フィールドが正しく抽出された場合
-- **抽出失敗**: フィールドが抽出されなかった場合
+- **抽出失敗**: フィールドが抽出されなかった場合（`status: missing`）
+- **誤抽出**: 期待されないフィールドが抽出された場合（`unexpected_fields`に記録）
 
-### 処理時間
-- **Level 1**: 1秒以内
-- **Level 2**: 3秒以内
-- **Level 3**: 10秒以内
+**ステータス別の集計**:
+- **correct**: 正しく抽出されたフィールド数
+- **wrong**: 抽出されたが値が間違っているフィールド数
+- **missing**: 抽出されなかったフィールド数
+- **pending**: AI検証待ちのフィールド数（`title`, `note`のみ）
+- **unexpected**: 期待されないフィールドが抽出された数
 
-### 信頼度スコア
-- **Level 1**: 0.9以上
-- **Level 2**: 0.7以上
-- **Level 3**: 0.5以上
+**精度計算式**:
+- **正解率**: `correct数 / 期待フィールド数`
+- **抽出率**: `(correct数 + wrong数) / 期待フィールド数`
+- **精度**: `correct数 / (correct数 + wrong数 + unexpected数)`
+
+### 処理時間（参考値）
+
+処理時間は環境やAIモデルの状態により変動するため、参考値として記録されます：
+
+- **Level 1**: 平均1-3秒
+- **Level 2**: 平均2-5秒
+- **Level 3**: 平均3-10秒
+- **2ステップ抽出**: 平均4-8秒（Step 1: 2-3秒 + Step 2: 2-5秒）
+
+### 信頼度スコア（非推奨）
+
+**注意**: 信頼度スコア（confidence）はAI自己評価のため信頼性が低く、評価指標としては使用しません。
+
+- 実装では`confidence`フィールドは存在しますが、評価には使用されません
+- 評価は`status`フィールド（correct, wrong, missing, pending）に基づいて行います
+
+## テストデータファイルの作成・編集ガイドライン
+
+### 必須要件
+
+1. **`//expectedFields:`コメントの必須性**: 
+   - すべてのテストデータファイルの先頭に`//expectedFields:`コメントを記述
+   - 形式: `//expectedFields: field1,field2,field3,...`
+   - カンマ区切りでフィールド名を列挙
+   - このコメントがない場合、`fatalError`が発生します
+
+2. **期待フィールドの一貫性**:
+   - テストデータファイルの`//expectedFields:`と`expected_answers.json`のフィールド定義を一致させる
+   - 期待フィールドに含まれないフィールドが抽出された場合、`unexpected_fields`に記録される
+
+3. **正解データの定義**:
+   - `expected_answers.json`にすべてのテストケースの正解データを定義
+   - `title`と`note`フィールドには`{要AI検証}`マーカーを設定
+   - 期待されないフィールドは空文字列`""`で定義
+
+### 推奨事項
+
+1. **コメントの活用**:
+   - `//author:`: テストデータの作成者を記録
+   - `//description:`: テストケースの説明を記録
+   - これらのコメントは抽出処理では無視されますが、ドキュメントとして有用です
+
+2. **現実性の確保**:
+   - 実際の使用場面を想定したリアルなデータを作成
+   - 異なる形式や表現を含む多様なデータを用意
+
+3. **個人情報の保護**:
+   - テストデータには実際の個人情報は使用しない
+   - パスワードや認証キーはダミーデータを使用
+
+4. **セキュリティ**:
+   - テストデータに含まれる認証情報はすべてダミーデータ
+   - 実際のアカウント情報は使用しない
 
 ## 注意事項
 
-1. **個人情報の保護**: テストデータには実際の個人情報は使用しない
-2. **セキュリティ**: パスワードや認証キーはダミーデータを使用
-3. **現実性**: 実際の使用場面を想定したリアルなデータ
-4. **多様性**: 異なる形式や表現を含む多様なデータ
-5. **検証可能性**: 正解データを明確に定義し、検証可能な形式で提供
+1. **ファイル形式**: UTF-8エンコーディングで保存
+2. **改行コード**: Unix形式（LF）を推奨
+3. **コメント行**: `//`で始まる行はすべてコメントとして扱われ、抽出処理では除外される
+4. **期待フィールドの順序**: `//expectedFields:`コメント内のフィールド順序は任意
+5. **フィールド名の大文字小文字**: フィールド名は小文字で記述（`title`, `userID`, `password`など）
+6. **正解データの更新**: テストデータを変更した場合は、`expected_answers.json`も更新する必要がある
+
+## 更新履歴
+
+- 2025-12-03: **v2.0 大幅更新**
+  - テストデータファイルの形式を実装に合わせて更新（`//expectedFields:`コメントの必須化）
+  - 正解データファイル（`expected_answers.json`）の説明を追加
+  - AI検証が必要なフィールド（`title`, `note`）の説明を追加
+  - 期待フィールドのレベル別定義を実装に合わせて更新
+  - 評価指標を実装に合わせて更新（信頼度スコアの非推奨化）
+  - テストデータファイルの作成・編集ガイドラインを追加
