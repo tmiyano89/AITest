@@ -144,12 +144,10 @@ public class CommonExtractionProcessor {
             memoryUsed: getMemoryUsage(),
             textLength: 0, // 簡易実装
             extractedFieldsCount: accountInfo.extractedFieldsCount,
-            confidence: accountInfo.confidence ?? 0.0,
-            isValid: accountInfo.isValid,
-            validationResult: accountInfo.validate()
+            confidence: accountInfo.confidence ?? 0.0
         )
         
-        log.debug("✅ メトリクス作成完了 - フィールド数: \(metrics.extractedFieldsCount), 有効: \(metrics.isValid)")
+        log.debug("✅ メトリクス作成完了 - フィールド数: \(metrics.extractedFieldsCount)")
         return metrics
     }
     

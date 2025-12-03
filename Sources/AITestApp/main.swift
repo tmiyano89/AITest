@@ -169,7 +169,6 @@ func generateFormatExperimentReport() async {
                     総時間: \(String(format: "%.3f", metrics.totalTime))秒
                     メモリ使用量: \(String(format: "%.2f", metrics.memoryUsed))MB
                     抽出フィールド数: \(accountInfo.extractedFieldsCount)
-                    バリデーション: \(metrics.isValid ? "成功" : "警告あり")
                     """
                     
                     reportData.append((
@@ -928,7 +927,6 @@ func runSpecificExperiment(_ experiment: (method: ExtractionMethod, language: Pr
             print("  ⏱️  抽出時間: \(String(format: "%.3f", metrics.extractionTime))秒")
             print("  ⏱️  総時間: \(String(format: "%.3f", metrics.totalTime))秒")
             print("  📊 抽出フィールド数: \(accountInfo.extractedFieldsCount)")
-            print("  ✅ バリデーション: \(metrics.isValid ? "成功" : "警告あり")")
 
             // 抽出されたフィールドの詳細表示
             print("  📋 抽出結果:")

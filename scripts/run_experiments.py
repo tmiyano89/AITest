@@ -17,11 +17,16 @@ import string
 
 class ExperimentConfig:
     """実験設定クラス"""
-    def __init__(self, pattern: str, language: str = "ja", runs: int = 1, mode: str = "simple"):
+    def __init__(self, pattern: str, language: str = "ja", runs: int = 1, mode: str = "simple", levels: List[int] = None):
         self.pattern = pattern
         self.language = language
         self.runs = runs
         self.mode = mode
+        # @ai[2025-12-03 17:53] levels属性を追加
+        # 目的: Swiftアプリケーションに--levelsパラメータを渡すため
+        # 背景: 指定されたレベル以外も実行される問題を修正
+        # 意図: 指定されたレベルのみを実行するようにする
+        self.levels = levels if levels is not None else [1, 2, 3]
 
     def get_experiment_name(self) -> str:
         """実験名を生成"""
@@ -45,6 +50,7 @@ class ExperimentConfig:
             'language': self.language,
             'runs': self.runs,
             'mode': self.mode,
+            'levels': self.levels,
             'experiment_name': self.get_experiment_name(),
             'method': self.get_method()
         }
@@ -85,8 +91,14 @@ class ExperimentRunner:
         if config.mode != "two-steps":
             cmd.extend(["--algos", algo])
         
+        # @ai[2025-12-03 17:53] --levelsパラメータを追加
+        # 目的: 指定されたレベルのみを実行するため
+        # 背景: --levelsパラメータが渡されていないため、Swiftアプリケーションがデフォルトで全レベルを実行していた
+        # 意図: 指定されたレベルのみを実行するようにする
+        levels_str = ",".join(map(str, config.levels))
         cmd.extend([
             "--language", config.language,
+            "--levels", levels_str,
             "--runs", str(config.runs),
             "--test-dir", log_dir
         ])
@@ -352,14 +364,17 @@ def main():
     print()
 
     # 実験設定を作成（すべての組み合わせを生成）
+    # @ai[2025-12-03 17:53] levelsパラメータをExperimentConfigに渡すように修正
+    # 目的: 指定されたレベルのみを実行するため
+    # 背景: レベルごとに個別の実験設定を作成するのではなく、levelsリストを渡すように変更
+    # 意図: Swiftアプリケーションに--levelsパラメータを渡すことで、指定されたレベルのみを実行する
     configs = []
     for testcase in args.testcases:
         for algo in args.algos:
-            for level in args.levels:
-                # パターン名を生成: {testcase}_{algo}_{method}
-                pattern = f"{testcase}_{algo}_{args.method}"
-                config = ExperimentConfig(pattern=pattern, language=args.language, runs=args.runs, mode=args.mode)
-                configs.append(config)
+            # パターン名を生成: {testcase}_{algo}_{method}
+            pattern = f"{testcase}_{algo}_{args.method}"
+            config = ExperimentConfig(pattern=pattern, language=args.language, runs=args.runs, mode=args.mode, levels=args.levels)
+            configs.append(config)
     
     # 実験実行
     runner = ExperimentRunner(base_output_dir)
