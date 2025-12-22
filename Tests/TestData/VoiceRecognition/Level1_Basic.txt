@@ -1,4 +1,5 @@
 //expectedFields: title,userID,password,note
+//expectedCategory: work,workServer
 えー 新しいサーバーのアカウント情報を送るね
 
 AWS EC2にログインするには

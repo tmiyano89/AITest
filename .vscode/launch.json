@@ -24,8 +24,9 @@
             "args": [],
             "cwd": "${workspaceFolder:AITest}",
             "name": "Debug AITestApp",
-            "program": "${workspaceFolder:AITest}/.build/debug/AITestApp",
-            "preLaunchTask": "swift: Build Debug AITestApp"
+            "preLaunchTask": "swift: Build Debug AITestApp",
+            "target": "AITestApp",
+            "configuration": "debug"
         },
         {
             "type": "swift",
@@ -33,8 +34,9 @@
             "args": [],
             "cwd": "${workspaceFolder:AITest}",
             "name": "Release AITestApp",
-            "program": "${workspaceFolder:AITest}/.build/release/AITestApp",
-            "preLaunchTask": "swift: Build Release AITestApp"
+            "preLaunchTask": "swift: Build Release AITestApp",
+            "target": "AITestApp",
+            "configuration": "release"
         }
     ]
 }

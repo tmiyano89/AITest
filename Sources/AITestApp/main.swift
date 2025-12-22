@@ -1139,12 +1139,31 @@ func generateStructuredLog(testCase: (name: String, text: String), accountInfo: 
             subCategoryDisplay = contentInfo.subCategory
         }
 
-        structuredLog["two_steps_category"] = [
+        // @ai[2025-12-11 17:50] カテゴリ判定の検証を追加
+        // @ai[2025-12-11 18:00] expectedCategoryを必須に変更
+        // 目的: 期待カテゴリと抽出カテゴリを比較して精度を評価
+        // 背景: テストケースファイルのヘッダで期待カテゴリを宣言（必須）
+        // 意図: カテゴリ判定の正しさを客観的に評価する。期待カテゴリが指定されていない場合はgetExpectedCategoryでfatalErrorが発生する
+        let (pattern, level) = parseTestCaseName(testCase.name)
+        let expectedCategory = getExpectedCategory(for: pattern, level: level)
+        
+        let mainCategoryCorrect = contentInfo.mainCategory == expectedCategory.mainCategory
+        let subCategoryCorrect = contentInfo.subCategory == expectedCategory.subCategory
+        let categoryCorrect = mainCategoryCorrect && subCategoryCorrect
+        
+        let categoryStatus: [String: Any] = [
             "main_category": contentInfo.mainCategory,
             "main_category_display": mainCategoryDisplay,
             "sub_category": contentInfo.subCategory,
-            "sub_category_display": subCategoryDisplay
+            "sub_category_display": subCategoryDisplay,
+            "expected_main_category": expectedCategory.mainCategory,
+            "expected_sub_category": expectedCategory.subCategory,
+            "main_category_status": mainCategoryCorrect ? "correct" : "wrong",
+            "sub_category_status": subCategoryCorrect ? "correct" : "wrong",
+            "category_status": categoryCorrect ? "correct" : "wrong"
         ]
+        
+        structuredLog["two_steps_category"] = categoryStatus
     }
     
     // 期待されるフィールドの分析

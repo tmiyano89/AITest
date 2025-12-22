@@ -1,4 +1,5 @@
 //expectedFields: title,userID,note
+//expectedCategory: financial,financialCreditCard
 VISA
 4532-3234-5678-9112
 11/25

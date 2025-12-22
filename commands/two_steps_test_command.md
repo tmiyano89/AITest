@@ -33,6 +33,10 @@ python3 scripts/run_experiments.py --method json --mode two-steps --testcase cha
 - 日時: `yyyymmddHHMM`形式（例: 202511270642）
 - ランダム4文字: 小文字英数字（例: a3f2）
 
+**test-idの取得方法**: 実験ディレクトリ名から`test_logs/`を除いた部分がtest-idです。
+- 例: `test_logs/202511270642_json_ja_two-steps_a3f2/` → `202511270642_json_ja_two-steps_a3f2`
+- コマンド例: `TEST_ID=$(basename test_logs/202511270642_json_ja_two-steps_a3f2)`
+
 ### 2. レポート生成
 
 ```bash
@@ -44,12 +48,22 @@ open test_logs/202511270642_json_ja_two-steps_a3f2/parallel_format_experiment_re
 
 titleとnote項目について、各levelごとに以下の2段階の手順でstatusを更新する。
 
-#### 3.1 項目一覧CSVファイルの作成
+**中間ファイルの保存場所**: すべての中間ファイルは`tmp/{test-id}/`ディレクトリに保存します。
+- `test-id`は実験ディレクトリ名から取得（例: `test_logs/202511270642_json_ja_two-steps_a3f2/` → `202511270642_json_ja_two-steps_a3f2`）
+
+#### 3.1 中間ファイルディレクトリの作成と項目一覧CSVファイルの作成
 
 ```bash
+# test-idを実験ディレクトリ名から取得（実験ディレクトリのパスを指定）
+EXPERIMENT_DIR="test_logs/202511270642_json_ja_two-steps_a3f2"
+TEST_ID=$(basename ${EXPERIMENT_DIR})
+
+# 中間ファイルディレクトリの作成
+mkdir -p tmp/${TEST_ID}
+
 # CSVファイルに出力するため、リダイレクトを使用
-python3 scripts/extract_pending_items.py "level1" "title" --log-dir "test_logs/202511270642_json_ja_two-steps_a3f2" --all-items > level1_title_items.csv
-python3 scripts/extract_pending_items.py "level1" "note" --log-dir "test_logs/202511270642_json_ja_two-steps_a3f2" --all-items > level1_note_items.csv
+python3 scripts/extract_pending_items.py "level1" "title" --log-dir "${EXPERIMENT_DIR}" --all-items > tmp/${TEST_ID}/level1_title_items.csv
+python3 scripts/extract_pending_items.py "level1" "note" --log-dir "${EXPERIMENT_DIR}" --all-items > tmp/${TEST_ID}/level1_note_items.csv
 ```
 
 このCSVファイルには、検証対象の全項目が含まれます（ファイル名、値、status）。
@@ -67,10 +81,10 @@ python3 scripts/extract_pending_items.py "level1" "note" --log-dir "test_logs/20
 
 以下の手順で、各CSVファイルごとに検証を実施してください：
 
-**ファイル1: `level1_title_items.csv` の検証**
+**ファイル1: `tmp/${TEST_ID}/level1_title_items.csv` の検証**
 
 1. **CSVファイルの読み込み**
-   - `level1_title_items.csv` を読み込む
+   - `tmp/${TEST_ID}/level1_title_items.csv` を読み込む
    - CSVファイルの形式: `ファイル名,値,status`
 
 2. **テストデータの確認**
@@ -86,13 +100,13 @@ python3 scripts/extract_pending_items.py "level1" "note" --log-dir "test_logs/20
 
 4. **検証結果CSVファイルの作成**
    - `correct`以外のケースのみ記載（コンパクト形式）
-   - ファイル名: `level1_title_verification_compact.csv`
+   - ファイル名: `tmp/${TEST_ID}/level1_title_verification_compact.csv`
    - 形式: `ファイル名,項目,判定,理由`
 
-**ファイル2: `level1_note_items.csv` の検証**
+**ファイル2: `tmp/${TEST_ID}/level1_note_items.csv` の検証**
 
 1. **CSVファイルの読み込み**
-   - `level1_note_items.csv` を読み込む
+   - `tmp/${TEST_ID}/level1_note_items.csv` を読み込む
    - CSVファイルの形式: `ファイル名,値,status`
 
 2. **テストデータの確認**
@@ -108,7 +122,7 @@ python3 scripts/extract_pending_items.py "level1" "note" --log-dir "test_logs/20
 
 4. **検証結果CSVファイルの作成**
    - `correct`以外のケースのみ記載（コンパクト形式）
-   - ファイル名: `level1_note_verification_compact.csv`
+   - ファイル名: `tmp/${TEST_ID}/level1_note_verification_compact.csv`
    - 形式: `ファイル名,項目,判定,理由`
 
 **⚠️ 重要な注意事項**:
@@ -137,10 +151,30 @@ chat_abs_json_ja_level1_run2.json,title,wrong,抽出値「AWO」はテストデ�
 #### 3.3 全項目のstatus更新
 
 ```bash
-python3 scripts/update_pending_status.py level1_title_verification_compact.csv test_logs/202511270642_json_ja_two-steps_a3f2 title
-python3 scripts/update_pending_status.py level1_note_verification_compact.csv test_logs/202511270642_json_ja_two-steps_a3f2 note
-python3 scripts/cleanup_intermediate_files.py
+# test-idを実験ディレクトリ名から取得（実験ディレクトリのパスを指定）
+EXPERIMENT_DIR="test_logs/202511270642_json_ja_two-steps_a3f2"
+TEST_ID=$(basename ${EXPERIMENT_DIR})
+
+python3 scripts/update_pending_status.py tmp/${TEST_ID}/level1_title_verification_compact.csv ${EXPERIMENT_DIR} title
+python3 scripts/update_pending_status.py tmp/${TEST_ID}/level1_note_verification_compact.csv ${EXPERIMENT_DIR} note
 ```
+
+#### 3.4 中間ファイルの削除
+
+**⚠️ 重要**: 検証作業で作成されたすべての中間ファイルを`tmp/{test-id}`ディレクトリごと削除してください。
+
+```bash
+# test-idを実験ディレクトリ名から取得（実験ディレクトリのパスを指定）
+EXPERIMENT_DIR="test_logs/202511270642_json_ja_two-steps_a3f2"
+TEST_ID=$(basename ${EXPERIMENT_DIR})
+
+# 自動削除スクリプトの実行（tmp/${TEST_ID}ディレクトリごと削除）
+python3 scripts/cleanup_intermediate_files.py --test-id ${TEST_ID}
+```
+
+**削除対象**: `tmp/${TEST_ID}/`ディレクトリごと削除されます。このディレクトリ内のすべてのファイル（`level*_items.csv`、`level*_verification*.csv`など）が削除されます。
+
+**確認**: 作業完了後、`tmp/${TEST_ID}/`ディレクトリが存在しないことを確認してください。
 
 ### 4. 更新されたログの再集計
 

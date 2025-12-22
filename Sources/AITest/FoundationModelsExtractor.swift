@@ -165,6 +165,13 @@ public class FoundationModelsExtractor: ModelExtractor {
         // ストリーミングレスポンスを取得
         log.debug("🌊 ストリーミングレスポンス開始 - プロンプト文字数: \(prompt.count)")
         let stream = session.streamResponse(to: prompt)
+        
+        // ストリーミング中の部分結果を処理（ストリームを適切に消費するため）
+        for try await _ in stream {
+            // 部分結果の処理（必要に応じて）
+        }
+        
+        // 最終結果を収集
         let response = try await stream.collect()
         let aiTime = CFAbsoluteTimeGetCurrent() - aiStart
         log.debug("✅ ストリーミングレスポンス完了 - AI処理時間: \(String(format: "%.3f", aiTime))秒")

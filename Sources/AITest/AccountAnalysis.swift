@@ -68,21 +68,33 @@ public struct AIResponseAnalysis: Codable, Sendable {
 }
 
 /// テストデータファイルの解析結果
+/// @ai[2025-12-11 17:50] expectedCategoryフィールドを追加
+/// @ai[2025-12-11 18:00] expectedCategoryを必須フィールドに変更
+/// 目的: two-stepsモードでのカテゴリ判定精度を検証可能にする
+/// 背景: テストケースファイルのヘッダで期待カテゴリを宣言し、検証ロジックを追加
+/// 意図: カテゴリ判定の正しさを客観的に評価する。すべてのテストケースファイルで期待カテゴリの宣言を必須とする
 @available(iOS 26.0, macOS 26.0, *)
 public struct TestDataFile {
     public let expectedFields: [String]
+    public let expectedCategory: (mainCategory: String, subCategory: String)
     public let cleanContent: String
 }
 
 /// テストデータファイルを解析して期待フィールドとクリーンなコンテンツを取得
 /// - 先頭の複数のコメント行（//で始まる行）をサポート
 /// - expectedFields:が必須、なければfatalError
+/// - expectedCategory:が必須、なければfatalError
+/// @ai[2025-12-11 18:00] expectedCategoryを必須に変更
+/// 目的: すべてのテストケースファイルで期待カテゴリの宣言を必須とする
+/// 背景: カテゴリ判定の精度を正確に評価するため
+/// 意図: テストケースファイル作成時に期待カテゴリを忘れないようにする
 @available(iOS 26.0, macOS 26.0, *)
 public func parseTestDataFile(at path: String) throws -> TestDataFile {
     let content = try String(contentsOfFile: path, encoding: .utf8)
     let lines = content.split(separator: "\n", omittingEmptySubsequences: false)
 
     var expectedFields: [String] = []
+    var expectedCategory: (mainCategory: String, subCategory: String)? = nil
     var firstNonCommentLineIndex = 0
 
     // 先頭のコメント行を全て解析
@@ -94,6 +106,16 @@ public func parseTestDataFile(at path: String) throws -> TestDataFile {
             if trimmedLine.hasPrefix("//expectedFields:") {
                 let fieldsString = trimmedLine.replacingOccurrences(of: "//expectedFields:", with: "").trimmingCharacters(in: .whitespaces)
                 expectedFields = fieldsString.split(separator: ",").map { String($0.trimmingCharacters(in: .whitespaces)) }
+            }
+            // expectedCategory:を探す（形式: mainCategory,subCategory）
+            if trimmedLine.hasPrefix("//expectedCategory:") {
+                let categoryString = trimmedLine.replacingOccurrences(of: "//expectedCategory:", with: "").trimmingCharacters(in: .whitespaces)
+                let categoryParts = categoryString.split(separator: ",").map { String($0.trimmingCharacters(in: .whitespaces)) }
+                if categoryParts.count == 2 {
+                    expectedCategory = (mainCategory: categoryParts[0], subCategory: categoryParts[1])
+                } else {
+                    fatalError("❌ テストデータファイル '\(path)' の //expectedCategory: の形式が不正です。'//expectedCategory: mainCategory,subCategory' の形式で指定してください。例: '//expectedCategory: work,workServer'")
+                }
             }
             // 他のコメント行は無視
         } else {
@@ -108,11 +130,16 @@ public func parseTestDataFile(at path: String) throws -> TestDataFile {
         fatalError("❌ テストデータファイル '\(path)' に //expectedFields: コメントが見つかりません。先頭に '//expectedFields: field1,field2,...' の形式で追加してください。")
     }
 
+    // expectedCategoryが見つからない場合はfatalError
+    guard let category = expectedCategory else {
+        fatalError("❌ テストデータファイル '\(path)' に //expectedCategory: コメントが見つかりません。先頭に '//expectedCategory: mainCategory,subCategory' の形式で追加してください。例: '//expectedCategory: work,workServer'")
+    }
+
     // クリーンなコンテンツ（コメント行を除く）
     let cleanLines = Array(lines[firstNonCommentLineIndex...])
     let cleanContent = cleanLines.joined(separator: "\n")
 
-    return TestDataFile(expectedFields: expectedFields, cleanContent: cleanContent)
+    return TestDataFile(expectedFields: expectedFields, expectedCategory: category, cleanContent: cleanContent)
 }
 
 /// テストケース名を解析してパターンとレベルを取得
@@ -160,6 +187,42 @@ public func getExpectedFields(for pattern: String, level: Int) -> [String] {
     do {
         let testDataFile = try parseTestDataFile(at: testDataPath)
         return testDataFile.expectedFields
+    } catch {
+        fatalError("❌ テストデータファイル '\(testDataPath)' の読み込みに失敗しました。エラー: \(error)")
+    }
+}
+
+/// 期待されるカテゴリを取得（テストデータファイルから動的に読み込み）
+/// @ai[2025-12-11 17:50] 期待カテゴリ取得関数を追加
+/// @ai[2025-12-11 18:00] 戻り値を必須に変更（オプショナルを削除）
+/// 目的: two-stepsモードでのカテゴリ判定精度を検証可能にする
+/// 背景: テストケースファイルのヘッダで期待カテゴリを宣言（必須）
+/// 意図: カテゴリ判定の正しさを客観的に評価する。期待カテゴリが指定されていない場合はparseTestDataFileでfatalErrorが発生する
+@available(iOS 26.0, macOS 26.0, *)
+public func getExpectedCategory(for pattern: String, level: Int) -> (mainCategory: String, subCategory: String) {
+    // 有効なパターンとレベルの確認
+    let validPatterns = ["Chat", "Contract", "CreditCard", "VoiceRecognition", "PasswordManager"]
+    guard validPatterns.contains(pattern) && (1...3).contains(level) else {
+        fatalError("❌ 無効なパターンまたはレベルです: pattern=\(pattern), level=\(level)")
+    }
+
+    // レベルに応じたサフィックスを取得
+    let levelSuffix: String
+    switch level {
+    case 1: levelSuffix = "Basic"
+    case 2: levelSuffix = "General"
+    case 3: levelSuffix = "Complex"
+    default: levelSuffix = "Basic"
+    }
+
+    // テストデータファイルのパスを構築
+    let testDataPath = "Tests/TestData/\(pattern)/Level\(level)_\(levelSuffix).txt"
+
+    // テストデータファイルから期待カテゴリを読み込む
+    // expectedCategoryが指定されていない場合はparseTestDataFileでfatalErrorが発生する
+    do {
+        let testDataFile = try parseTestDataFile(at: testDataPath)
+        return testDataFile.expectedCategory
     } catch {
         fatalError("❌ テストデータファイル '\(testDataPath)' の読み込みに失敗しました。エラー: \(error)")
     }

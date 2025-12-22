@@ -1,4 +1,5 @@
 //expectedFields: title,userID,password,note
+//expectedCategory: work,workServer
 //author: Test Author
 //description: Basic chat pattern test case
 Hey! 新しいサーバーのアカウント情報を送るね

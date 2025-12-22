@@ -1,4 +1,5 @@
 //expectedFields: title,userID,password,url,note,host,port,authKey
+//expectedCategory: work,workServer
 お疲れ様！昨日の会議で話してた新しいプロジェクトのインフラ構築について、進捗を報告するね。
 
 まず、Indigo VPSインスタンスセットアップが完了したよ。

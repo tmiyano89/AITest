@@ -1,4 +1,5 @@
 //expectedFields: title,userID,password,url,number,note
+//expectedCategory: work,workServer
 【AWSコンソールアクセス情報のご連絡】
 
 開発環境での作業にあたり、下記のAWSアカウントへのログインが必要となります。

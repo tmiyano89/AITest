@@ -1,3 +1,4 @@
 //expectedFields: title,userID,password,url,note
+//expectedCategory: digital,digitalApps
 name,username,password,url
 GitHub,john.doe,GitHubPass2024!,https://github.com

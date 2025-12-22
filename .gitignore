@@ -96,3 +96,6 @@ Benchmark/results/
 docs/ai-logs/*.log
 docs/ai-logs/*.txt
 test_logs/
+
+# Intermediate files for pending item verification
+tmp/
